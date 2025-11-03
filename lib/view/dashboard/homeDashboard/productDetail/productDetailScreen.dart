@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:user_side/models/cart_manager.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productBuyForm.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productImage.dart';
 import 'package:user_side/widgets/customButton.dart';
@@ -320,7 +321,68 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: CustomButton(onTap: () {}, text: "Add to Cart"),
+                    child: CustomButton(
+                      text: "Add to Cart",
+                      onTap: () {
+                        if (selectedColor == null || selectedSize == null) {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text("Select Options"),
+                              content: const Text(
+                                "Please select both color and size first.",
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text("OK"),
+                                ),
+                              ],
+                            ),
+                          );
+                          return;
+                        }
+
+                        // ✅ Check if product already exists in favourites
+                        final alreadyExists = CartManager.items.any(
+                          (item) =>
+                              item.name == widget.name &&
+                              item.color == selectedColor &&
+                              item.size == selectedSize,
+                        );
+
+                        if (alreadyExists) {
+                          // ✅ Show Already Exists Message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "This product is already in favourite list",
+                              ),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                          return;
+                        }
+
+                        // ✅ Add Product to Cart (if not exists)
+                        CartManager.addToCart(
+                          CartItem(
+                            name: widget.name,
+                            imageUrl: widget.imageUrls.first,
+                            price: widget.price,
+                            color: selectedColor!,
+                            size: selectedSize!,
+                          ),
+                        );
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Product added to favourites!"),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
