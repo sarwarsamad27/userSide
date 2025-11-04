@@ -13,7 +13,7 @@ class CustomAppContainer extends StatelessWidget {
   final Color? shadow;
   final double? height;
   final double? width;
-  
+
   final Border? border;
 
   const CustomAppContainer({
@@ -35,7 +35,6 @@ class CustomAppContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-     
       height: height,
       width: width,
       padding:
@@ -44,13 +43,6 @@ class CustomAppContainer extends StatelessWidget {
         color: color ?? Colors.white.withOpacity(0.2),
         borderRadius: borderRadius ?? BorderRadius.circular(20.r),
         border: Border.all(color: Colors.white),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: child,
     );

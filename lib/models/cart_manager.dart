@@ -1,19 +1,17 @@
-import 'package:flutter/material.dart';
-
 class CartItem {
   final String name;
   final String imageUrl;
   final String price;
-  final String color;
-  final String size;
+  final List<String> colors;  
+  final List<String> sizes;  
   int quantity;
 
   CartItem({
     required this.name,
     required this.imageUrl,
     required this.price,
-    required this.color,
-    required this.size,
+    required this.colors,
+    required this.sizes,
     this.quantity = 1,
   });
 }
@@ -26,8 +24,8 @@ class CartManager {
   static void addToCart(CartItem newItem) {
     final existing = _cartItems.indexWhere((item) =>
         item.name == newItem.name &&
-        item.color == newItem.color &&
-        item.size == newItem.size);
+        item.colors == newItem.colors &&
+        item.sizes == newItem.sizes);
 
     if (existing == -1) {
       _cartItems.add(newItem);

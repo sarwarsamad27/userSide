@@ -7,19 +7,22 @@ import 'package:user_side/widgets/customContainer.dart';
 import 'package:user_side/widgets/customTextFeld.dart';
 
 class ProductBuyForm extends StatefulWidget {
-  final String imageUrl;
-  final String name;
-  final String price;
-  final String color;
-  final String size;
+  final String? imageUrl;
+  final String? name;
+  final String? price;
+  final List<String>? colors;
+  final List<String>? sizes;
+
+  final List<dynamic>? favouriteItems; // ✅ for multiple favourite products
 
   const ProductBuyForm({
     super.key,
-    required this.imageUrl,
-    required this.name,
-    required this.price,
-    required this.color,
-    required this.size,
+    this.imageUrl,
+    this.name,
+    this.price,
+    this.colors,
+    this.sizes,
+    this.favouriteItems,
   });
 
   @override
@@ -38,109 +41,184 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
 
   @override
   Widget build(BuildContext context) {
+    final isFromFavourite =
+        widget.favouriteItems != null && widget.favouriteItems!.isNotEmpty;
+
     return Scaffold(
       body: CustomBgContainer(
         child: SafeArea(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 30.h),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10.r),
-                      child: Image.network(
-                        widget.imageUrl,
-                        height: 60.h,
-                        width: 60.w,
-                        fit: BoxFit.cover,
-                      ),
+                // 🔹 Product Info (Single or Multiple)
+                if (isFromFavourite)
+                  // ✅ Multiple favourite items (horizontal scroll)
+                  SizedBox(
+                    height: 90.h,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: widget.favouriteItems!.length,
+                      itemBuilder: (context, index) {
+                        final item = widget.favouriteItems![index];
+                        return Container(
+                          margin: EdgeInsets.only(right: 10.w),
+                          padding: EdgeInsets.all(8.w),
+                          width: 180.w,
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(10.r),
+
+                            border: Border.all(color: AppColor.primaryColor),
+                          ),
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8.r),
+                                child: Image.network(
+                                  item.imageUrl,
+                                  height: 60.h,
+                                  width: 60.w,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      item.name,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13.sp,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      item.price,
+                                      style: TextStyle(
+                                        color: Colors.black87,
+                                        fontSize: 12.sp,
+                                      ),
+                                    ),
+                                    Text(
+                                      "Qty: ${item.quantity}",
+                                      style: TextStyle(
+                                        fontSize: 11.sp,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.name,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16.sp,
-                            ),
-                          ),
-                          Text(
-                            widget.price,
-                            style: TextStyle(
-                              color: Colors.black87,
-                              fontSize: 14.sp,
-                            ),
-                          ),
-                          Text(
-                            "Color: ${widget.color}, Size: ${widget.size}",
-                            style: TextStyle(
-                              color: Colors.grey[700],
-                              fontSize: 13.sp,
-                            ),
-                          ),
-                        ],
+                  )
+                else
+                  // ✅ Single product (Buy Now case)
+                  Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10.r),
+                        child: Image.network(
+                          widget.imageUrl!,
+                          height: 60.h,
+                          width: 60.w,
+                          fit: BoxFit.cover,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.name ?? "",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16.sp,
+                              ),
+                            ),
+                            Text(
+                              widget.price ?? "",
+                              style: TextStyle(
+                                color: Colors.black87,
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                            Text(
+                              "Colors: ${widget.colors?.join(', ') ?? ''}\nSizes: ${widget.sizes?.join(', ') ?? ''}",
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 13.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
 
                 SizedBox(height: 16.h),
 
-                // 🔹 Quantity Selector
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        if (quantity > 1) {
+                // 🔹 Quantity (only show for single product)
+                if (!isFromFavourite)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          if (quantity > 1) {
+                            setState(() {
+                              quantity--;
+                            });
+                          }
+                        },
+                        child: Container(
+                          height: 35.h,
+                          width: 35.w,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8.r),
+                            border: Border.all(color: AppColor.primaryColor),
+                          ),
+                          child: const Icon(Icons.remove, size: 20),
+                        ),
+                      ),
+                      SizedBox(width: 20.w),
+                      Text(
+                        "$quantity",
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 20.w),
+                      InkWell(
+                        onTap: () {
                           setState(() {
-                            quantity--;
+                            quantity++;
                           });
-                        }
-                      },
-                      child: Container(
-                        height: 35.h,
-                        width: 35.w,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8.r),
-                          border: Border.all(color: AppColor.primaryColor),
+                        },
+                        child: Container(
+                          height: 35.h,
+                          width: 35.w,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8.r),
+                            border: Border.all(color: AppColor.primaryColor),
+                          ),
+                          child: const Icon(Icons.add, size: 20),
                         ),
-                        child: const Icon(Icons.remove, size: 20),
                       ),
-                    ),
-                    SizedBox(width: 20.w),
-                    Text(
-                      "$quantity",
-                      style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(width: 20.w),
-                    InkWell(
-                      onTap: () {
-                        setState(() {
-                          quantity++;
-                        });
-                      },
-                      child: Container(
-                        height: 35.h,
-                        width: 35.w,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8.r),
-                          border: Border.all(color: AppColor.primaryColor),
-                        ),
-                        child: const Icon(Icons.add, size: 20),
-                      ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
 
                 SizedBox(height: 20.h),
 
@@ -188,10 +266,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                             CustomButton(
                               text: "Place Order",
                               onTap: () {
-                                // Handle order placement here
-                                debugPrint(
-                                  "Order placed with Quantity: $quantity",
-                                );
+                                debugPrint("Order placed successfully ✅");
                               },
                             ),
                           ],

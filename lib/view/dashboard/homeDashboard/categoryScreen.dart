@@ -220,8 +220,7 @@ class _CategoryscreenState extends State<Categoryscreen> {
                               name: product['name']!,
                               description:
                                   'High-quality ${product['name']} perfect for everyday wear. Comfortable, stylish, and durable.',
-                              color: 'Black',
-                              size: '42',
+                             
                               price: product['price']!,
                               brandName: 'Nike Official',
                             ),

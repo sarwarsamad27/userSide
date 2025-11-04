@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/models/cart_manager.dart';
+import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productBuyForm.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productImage.dart';
 import 'package:user_side/widgets/customButton.dart';
-import 'package:user_side/widgets/customContainer.dart';
 import 'package:user_side/widgets/productCard.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final List<String> imageUrls;
   final String name;
   final String description;
-  final String color;
-  final String size;
   final String price;
   final String brandName;
 
@@ -21,8 +19,6 @@ class ProductDetailScreen extends StatefulWidget {
     required this.imageUrls,
     required this.name,
     required this.description,
-    required this.color,
-    required this.size,
     required this.price,
     required this.brandName,
   });
@@ -32,8 +28,8 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  String? selectedColor;
-  String? selectedSize;
+  List<String> selectedColors = [];
+  List<String> selectedSizes = [];
 
   final List<String> availableColors = ["Red", "Blue", "Black", "White"];
   final List<String> availableSizes = ["S", "M", "L", "XL"];
@@ -107,8 +103,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           children: [
                             CircleAvatar(
                               radius: 24.r,
-                              backgroundImage: const NetworkImage(
-                                "https://images.seeklogo.com/logo-png/9/1/nike-logo-png_seeklogo-99478.png",
+                              backgroundImage: AssetImage(
+                                "assets/images/shookoo_image.png",
                               ),
                             ),
                             SizedBox(width: 12.w),
@@ -154,14 +150,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         Wrap(
                           spacing: 8.w,
                           children: availableColors.map((color) {
-                            final isSelected = color == selectedColor;
+                            final isSelected = selectedColors.contains(color);
                             return ChoiceChip(
                               label: Text(color),
                               selected: isSelected,
                               onSelected: (_) {
-                                setState(() => selectedColor = color);
+                                setState(() {
+                                  if (isSelected) {
+                                    selectedColors.remove(color); // unselect
+                                  } else {
+                                    selectedColors.add(color); // select
+                                  }
+                                });
                               },
-                              selectedColor: Colors.black,
+                              selectedColor: AppColor.primaryColor,
                               labelStyle: TextStyle(
                                 color: isSelected ? Colors.white : Colors.black,
                               ),
@@ -182,21 +184,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         Wrap(
                           spacing: 8.w,
                           children: availableSizes.map((size) {
-                            final isSelected = size == selectedSize;
+                            final isSelected = selectedSizes.contains(size);
                             return ChoiceChip(
                               label: Text(size),
                               selected: isSelected,
                               onSelected: (_) {
-                                setState(() => selectedSize = size);
+                                setState(() {
+                                  if (isSelected) {
+                                    selectedSizes.remove(size); // unselect
+                                  } else {
+                                    selectedSizes.add(size); // select
+                                  }
+                                });
                               },
-                              selectedColor: Colors.black,
+                              selectedColor: AppColor.primaryColor,
                               labelStyle: TextStyle(
                                 color: isSelected ? Colors.white : Colors.black,
                               ),
                             );
                           }).toList(),
                         ),
-
                         SizedBox(height: 20.h),
 
                         // 🔹 Description
@@ -233,7 +240,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
                   SizedBox(height: 8.h),
                   SizedBox(
-                    height: 250.h,
+                    height: 220.h,
                     child: ListView.separated(
                       padding: EdgeInsets.symmetric(horizontal: 16.w),
                       scrollDirection: Axis.horizontal,
@@ -242,7 +249,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       itemBuilder: (context, index) {
                         final item = relatedProducts[index];
                         return SizedBox(
-                          width: 160.w,
+                          width: 175.w,
                           child: ProductCard(
                             name: item['name']!,
                             price: item['price']!,
@@ -298,6 +305,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
 
           // 🔹 Bottom Buy/Add Buttons
+          // 🔹 Bottom Buy/Add Buttons
           Positioned(
             bottom: 0,
             left: 0,
@@ -324,6 +332,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     child: CustomButton(
                       text: "Add to Cart",
                       onTap: () {
+                        final selectedColor = selectedColors.isNotEmpty
+                            ? selectedColors.first
+                            : null;
+                        final selectedSize = selectedSizes.isNotEmpty
+                            ? selectedSizes.first
+                            : null;
+
                         if (selectedColor == null || selectedSize == null) {
                           showDialog(
                             context: context,
@@ -343,16 +358,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           return;
                         }
 
-                        // ✅ Check if product already exists in favourites
                         final alreadyExists = CartManager.items.any(
                           (item) =>
                               item.name == widget.name &&
-                              item.color == selectedColor &&
-                              item.size == selectedSize,
+                              item.colors == selectedColors &&
+                              item.sizes == selectedSizes,
                         );
 
                         if (alreadyExists) {
-                          // ✅ Show Already Exists Message
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
@@ -364,14 +377,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           return;
                         }
 
-                        // ✅ Add Product to Cart (if not exists)
                         CartManager.addToCart(
                           CartItem(
                             name: widget.name,
                             imageUrl: widget.imageUrls.first,
                             price: widget.price,
-                            color: selectedColor!,
-                            size: selectedSize!,
+                            colors: selectedColors,
+                            sizes: selectedSizes,
                           ),
                         );
 
@@ -389,6 +401,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     child: CustomButton(
                       text: "Buy Now",
                       onTap: () {
+                        final selectedColor = selectedColors.isNotEmpty
+                            ? selectedColors.first
+                            : null;
+                        final selectedSize = selectedSizes.isNotEmpty
+                            ? selectedSizes.first
+                            : null;
+
                         if (selectedColor == null || selectedSize == null) {
                           showDialog(
                             context: context,
@@ -413,8 +432,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 imageUrl: widget.imageUrls.first,
                                 name: widget.name,
                                 price: widget.price,
-                                color: selectedColor!,
-                                size: selectedSize!,
+                                colors: selectedColors,
+                                sizes: selectedSizes,
                               ),
                             ),
                           );

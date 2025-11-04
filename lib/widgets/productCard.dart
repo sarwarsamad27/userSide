@@ -37,14 +37,13 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ---------- Product Image ----------
             ClipRRect(
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(16.r),
                 topRight: Radius.circular(16.r),
               ),
               child: SizedBox(
-                height: 140.h, // ✅ fixed responsive image height
+                height: 140.h,
                 width: double.infinity,
                 child: Image.network(
                   imageUrl,
@@ -62,7 +61,6 @@ class ProductCard extends StatelessWidget {
               ),
             ),
 
-            // ---------- Product Info ----------
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
               child: Column(
