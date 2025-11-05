@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 import 'package:user_side/widgets/customContainer.dart';
 import 'package:user_side/widgets/productCard.dart';
@@ -20,7 +21,7 @@ class Profilescreen extends StatelessWidget {
             // 🧑‍🎨 Emoji Avatar
             CircleAvatar(
               radius: 20.r,
-              backgroundColor: Colors.amber.shade200,
+              backgroundColor: AppColor.primaryColor.withOpacity(.3),
               child: const Text("😊", style: TextStyle(fontSize: 20)),
             ),
             SizedBox(width: 12.w),
@@ -110,7 +111,7 @@ class Profilescreen extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(height: 25.h),
+              SizedBox(height: 15.h),
 
               /// 🕒 Recently Viewed
               Text(
@@ -119,7 +120,7 @@ class Profilescreen extends StatelessWidget {
               ),
               SizedBox(height: 12.h),
               SizedBox(
-                height: 210.h,
+                height: 220.h,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: 5,
@@ -127,14 +128,12 @@ class Profilescreen extends StatelessWidget {
                   itemBuilder: (context, index) {
                     return ProductCard(
                       name: 'Product ${index + 1}',
-                      price: '',
+                      price: '43$index',
                       imageUrl: 'https://picsum.photos/200/300?random=$index',
                     );
                   },
                 ),
               ),
-
-              SizedBox(height: 25.h),
 
               /// 🔹 Quick Options
               Text(
@@ -143,18 +142,45 @@ class Profilescreen extends StatelessWidget {
               ),
               SizedBox(height: 12.h),
 
-              Wrap(
-                alignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 12.w,
-                runSpacing: 12.h,
+              Column(
                 children: [
-                  optionTile(Icons.favorite, "Wishlist", Colors.pinkAccent),
-                  optionTile(Icons.local_offer, "Offers", Colors.orangeAccent),
-                  optionTile(Icons.card_giftcard, "Rewards", Colors.teal),
-                  optionTile(Icons.support_agent, "Help Center", Colors.blue),
-                  optionTile(Icons.settings, "Settings", Colors.grey),
-                  optionTile(Icons.logout, "Logout", Colors.redAccent),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      optionTile(
+                        Icons.history,
+                        "Order History",
+                        Colors.pinkAccent,
+                      ),
+                      optionTile(
+                        Icons.local_offer,
+                        "Offers",
+                        Colors.orangeAccent,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                    children: [
+                      optionTile(Icons.card_giftcard, "Rewards", Colors.teal),
+                      optionTile(
+                        Icons.support_agent,
+                        "Help Center",
+                        Colors.blue,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                    children: [
+                      optionTile(Icons.settings, "Settings", Colors.grey),
+                      optionTile(Icons.logout, "Logout", Colors.redAccent),
+                    ],
+                  ),
                 ],
               ),
             ],
@@ -166,14 +192,14 @@ class Profilescreen extends StatelessWidget {
 
   Widget optionTile(IconData icon, String title, Color color) {
     return CustomAppContainer(
-      width: 160.w,
+      width: 170.w,
       height: 60.h,
 
       color: Colors.white,
       borderRadius: BorderRadius.circular(16.r),
 
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Icon(icon, color: color),
           SizedBox(width: 8.w),
