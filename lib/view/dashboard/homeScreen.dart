@@ -34,7 +34,7 @@ class _CompanyHomeScreenState extends State<HomeNavBarScreen> {
       designSize: const Size(390, 844),
       builder: (context, child) {
         return Scaffold(
-          backgroundColor: const Color(0xFFF9FAFB),
+          backgroundColor: Color(0xFFF9FAFB),
           body: screens[_currentIndex],
 
           /// 🔹 Animated Bottom Navbar

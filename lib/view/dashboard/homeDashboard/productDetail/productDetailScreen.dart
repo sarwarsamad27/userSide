@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/models/cart_manager.dart';
 import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfileScreen.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productBuyForm.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productImage.dart';
 import 'package:user_side/widgets/customButton.dart';
@@ -101,10 +102,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         // 🔹 Brand Section
                         Row(
                           children: [
-                            CircleAvatar(
-                              radius: 24.r,
-                              backgroundImage: AssetImage(
-                                "assets/images/shookoo_image.png",
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => CompanyProfileScreen(
+                                      companyName: widget.name,
+                                      logoUrl: "https://picsum.photos/100/100",
+                                      bannerUrl:
+                                          "https://picsum.photos/800/300",
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: CircleAvatar(
+                                radius: 24.r,
+                                backgroundImage: AssetImage(
+                                  "assets/images/shookoo_image.png",
+                                ),
                               ),
                             ),
                             SizedBox(width: 12.w),

@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/view/dashboard/profile/helpCenter.dart';
+import 'package:user_side/view/dashboard/profile/offer.dart';
+import 'package:user_side/view/dashboard/profile/orderHistory.dart';
+import 'package:user_side/view/dashboard/profile/setting.dart';
+import 'package:user_side/view/dashboard/profile/termAndCondition.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
+import 'package:user_side/widgets/customButton.dart';
 import 'package:user_side/widgets/customContainer.dart';
 import 'package:user_side/widgets/productCard.dart';
 
@@ -12,13 +17,12 @@ class Profilescreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+        backgroundColor: AppColor.appimagecolor,
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 🧑‍🎨 Emoji Avatar
             CircleAvatar(
               radius: 20.r,
               backgroundColor: AppColor.primaryColor.withOpacity(.3),
@@ -35,11 +39,22 @@ class Profilescreen extends StatelessWidget {
             ),
           ],
         ),
+
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: Colors.black87),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SettingsScreen()),
+              );
+            },
+            icon: const Icon(
+              Icons.settings,
+              color: Colors.black,
+              size: 26,
+            ),
           ),
+          SizedBox(width: 10.w),
         ],
       ),
 
@@ -50,41 +65,6 @@ class Profilescreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// 💰 Wallet Section
-              CustomAppContainer(
-                padding: EdgeInsets.all(16.w),
-
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20.r),
-
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(LucideIcons.wallet, color: Colors.orange),
-                        SizedBox(width: 10.w),
-                        Text(
-                          "My Wallet",
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      "\$245.00",
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
               SizedBox(height: 20.h),
 
               Container(
@@ -148,14 +128,18 @@ class Profilescreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       optionTile(
+                        context,
                         Icons.history,
                         "Order History",
                         Colors.pinkAccent,
+                        OrderHistoryScreen(),
                       ),
                       optionTile(
+                        context,
                         Icons.local_offer,
                         "Offers",
                         Colors.orangeAccent,
+                        OffersScreen(),
                       ),
                     ],
                   ),
@@ -164,22 +148,47 @@ class Profilescreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
                     children: [
-                      optionTile(Icons.card_giftcard, "Rewards", Colors.teal),
                       optionTile(
+                        context,
+                        Icons.card_giftcard,
+                        "Term & Condition",
+                        Colors.teal,
+                        TermsConditionScreen(),
+                      ),
+                      optionTile(
+                        context,
                         Icons.support_agent,
                         "Help Center",
                         Colors.blue,
+                        HelpCenterScreen(),
                       ),
                     ],
                   ),
                   SizedBox(height: 10.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
-                    children: [
-                      optionTile(Icons.settings, "Settings", Colors.grey),
-                      optionTile(Icons.logout, "Logout", Colors.redAccent),
-                    ],
+                  CustomButton(
+                    text: "Log Out",
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text("Logout"),
+                          content: const Text(
+                            "Are you sure you want to log out?",
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text("Cancel"),
+                            ),
+                            TextButton(
+                              onPressed: () {},
+                              child: const Text("Logout"),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -190,24 +199,36 @@ class Profilescreen extends StatelessWidget {
     );
   }
 
-  Widget optionTile(IconData icon, String title, Color color) {
-    return CustomAppContainer(
-      width: 170.w,
-      height: 60.h,
-
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16.r),
-
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Icon(icon, color: color),
-          SizedBox(width: 8.w),
-          Text(
-            title,
-            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
-          ),
-        ],
+  Widget optionTile(
+    BuildContext context,
+    IconData icon,
+    String title,
+    Color color,
+    Widget screen,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+      },
+      child: CustomAppContainer(
+        padding: EdgeInsets.symmetric(horizontal: 4.w),
+        width: 170.w,
+        height: 60.h,
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Icon(icon, color: color),
+            SizedBox(width: 4.w),
+            FittedBox(
+              child: Text(
+                title,
+                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

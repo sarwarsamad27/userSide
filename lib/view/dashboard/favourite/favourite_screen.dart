@@ -14,11 +14,31 @@ class FavouiteScreen extends StatefulWidget {
 }
 
 class _FavouiteScreenState extends State<FavouiteScreen> {
+  double getTotalAmount() {
+    double total = 0;
+    for (var item in CartManager.items) {
+      // Parse ₹999 format price to double
+      final priceValue =
+          double.tryParse(item.price.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+      total += priceValue * item.quantity;
+    }
+    return total;
+  }
+
   @override
   Widget build(BuildContext context) {
     final items = CartManager.items;
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          "My Favourites ❤️",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
       body: CustomBgContainer(
         child: SafeArea(
           child: Column(
@@ -36,12 +56,21 @@ class _FavouiteScreenState extends State<FavouiteScreen> {
                         itemCount: items.length,
                         itemBuilder: (context, index) {
                           final item = items[index];
+                          final priceValue =
+                              double.tryParse(
+                                item.price.replaceAll(RegExp(r'[^0-9.]'), ''),
+                              ) ??
+                              0;
+                          final total = priceValue * item.quantity;
+
                           return Container(
                             margin: EdgeInsets.only(bottom: 12.h),
                             padding: EdgeInsets.all(12.w),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              border: Border.all(color: AppColor.primaryColor),
+                              border: Border.all(
+                                color: AppColor.primaryColor.withOpacity(.3),
+                              ),
                               borderRadius: BorderRadius.circular(12.r),
                               boxShadow: [
                                 BoxShadow(
@@ -52,17 +81,21 @@ class _FavouiteScreenState extends State<FavouiteScreen> {
                               ],
                             ),
                             child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                /// 🖼 Product Image
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8.r),
                                   child: Image.network(
                                     item.imageUrl,
-                                    height: 70.h,
-                                    width: 70.w,
+                                    height: 80.h,
+                                    width: 80.w,
                                     fit: BoxFit.cover,
                                   ),
                                 ),
                                 SizedBox(width: 12.w),
+
+                                /// 📦 Product Details
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -82,6 +115,7 @@ class _FavouiteScreenState extends State<FavouiteScreen> {
                                           color: Colors.black87,
                                         ),
                                       ),
+                                      SizedBox(height: 4.h),
                                       Text(
                                         "Colors: ${item.colors.join(', ')}",
                                         style: TextStyle(
@@ -96,9 +130,22 @@ class _FavouiteScreenState extends State<FavouiteScreen> {
                                           color: Colors.grey[600],
                                         ),
                                       ),
+                                      SizedBox(height: 6.h),
+
+                                      /// 💰 Total Amount
+                                      Text(
+                                        "Total: Rs. x${total.toStringAsFixed(2)}",
+                                        style: TextStyle(
+                                          fontSize: 14.sp,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColor.primaryColor,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
+
+                                /// ➕➖ Quantity Controls + Delete
                                 Column(
                                   children: [
                                     Row(
@@ -158,23 +205,49 @@ class _FavouiteScreenState extends State<FavouiteScreen> {
                       ),
               ),
 
-              // 🔹 Custom Button inside CustomBgContainer
+              // 🔹 Bottom Summary & Checkout
               if (items.isNotEmpty)
                 Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal: 20.w,
-                    vertical: 10.h,
+                    horizontal: 12.w,
+                    vertical: 4.h,
                   ),
-                  child: CustomButton(
-                    text: "Proceed to Checkout (${items.length})",
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ProductBuyForm(favouriteItems: items),
-                        ),
-                      );
-                    },
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Grand Total:",
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            "Rs. ${getTotalAmount().toStringAsFixed(2)}",
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.bold,
+                              color: AppColor.appbackgroundcolor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10.h),
+                      CustomButton(
+                        text: "Proceed to Checkout (${items.length})",
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  ProductBuyForm(favouriteItems: items),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
             ],

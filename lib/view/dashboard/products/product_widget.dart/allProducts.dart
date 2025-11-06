@@ -49,7 +49,6 @@ class AllProducts extends StatelessWidget {
                   builder: (_) => ProductDetailScreen(
                     imageUrls: [
                       product['image']!,
-
                       product['image']!,
                       product['image']!,
                       product['image']!,
