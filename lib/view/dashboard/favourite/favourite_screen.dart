@@ -134,7 +134,7 @@ class _FavouiteScreenState extends State<FavouiteScreen> {
 
                                       /// 💰 Total Amount
                                       Text(
-                                        "Total: Rs. x${total.toStringAsFixed(2)}",
+                                        "Total: Rs. ${total.toStringAsFixed(2)}",
                                         style: TextStyle(
                                           fontSize: 14.sp,
                                           fontWeight: FontWeight.w600,
@@ -145,7 +145,6 @@ class _FavouiteScreenState extends State<FavouiteScreen> {
                                   ),
                                 ),
 
-                                /// ➕➖ Quantity Controls + Delete
                                 Column(
                                   children: [
                                     Row(

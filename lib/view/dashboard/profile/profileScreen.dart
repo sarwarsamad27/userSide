@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/view/dashboard/profile/helpCenter.dart';
 import 'package:user_side/view/dashboard/profile/offer.dart';
 import 'package:user_side/view/dashboard/profile/orderHistory.dart';
@@ -48,11 +49,7 @@ class Profilescreen extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => SettingsScreen()),
               );
             },
-            icon: const Icon(
-              Icons.settings,
-              color: Colors.black,
-              size: 26,
-            ),
+            icon: const Icon(Icons.settings, color: Colors.black, size: 26),
           ),
           SizedBox(width: 10.w),
         ],
@@ -100,16 +97,20 @@ class Profilescreen extends StatelessWidget {
               ),
               SizedBox(height: 12.h),
               SizedBox(
-                height: 220.h,
+                height: 240.h,
+
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: 5,
-                  separatorBuilder: (_, __) => SizedBox(width: 12.w),
+                  separatorBuilder: (_, __) => SizedBox(width: 16.w),
                   itemBuilder: (context, index) {
                     return ProductCard(
                       name: 'Product ${index + 1}',
                       price: '43$index',
                       imageUrl: 'https://picsum.photos/200/300?random=$index',
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (_)=>ProductDetailScreen(imageUrls: [], name: 'Product ${index + 1}', description: "description", price: '43$index', brandName: "shookoo")));
+                      },
                     );
                   },
                 ),

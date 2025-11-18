@@ -6,6 +6,8 @@ class ProductCard extends StatelessWidget {
   final String name;
   final String price;
   final String imageUrl;
+  final String? description;
+
   final VoidCallback? onTap;
 
   /// 👇 Optional badges
@@ -19,6 +21,7 @@ class ProductCard extends StatelessWidget {
     Key? key,
     required this.name,
     required this.price,
+    this.description,
     required this.imageUrl,
     this.onTap,
     this.discountText,
@@ -183,6 +186,12 @@ class ProductCard extends StatelessWidget {
                         ],
                       ),
                     ],
+                  ),
+                  Text(
+                    description ?? "It is compfortable and affordable",
+                    maxLines: 1, // ya jitni lines chaho
+                    overflow: TextOverflow.ellipsis, // dots (...) show karega
+                    style: TextStyle(fontSize: 14, color: Colors.black87),
                   ),
                 ],
               ),

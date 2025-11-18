@@ -42,37 +42,37 @@ class _CategoryscreenState extends State<Categoryscreen> {
   final List<Map<String, String>> products = const [
     {
       'name': 'Running Shoes',
-      'price': '₹3,499',
+      'price': '3,499',
       'image':
           'https://thumbs.dreamstime.com/b/beautiful-rain-forest-ang-ka-nature-trail-doi-inthanon-national-park-thailand-36703721.jpg',
     },
     {
       'name': 'Casual Sneakers',
-      'price': '₹2,199',
+      'price': '2,199',
       'image':
           'https://cdn.pixabay.com/photo/2025/04/28/19/59/female-model-9565629_640.jpg',
     },
     {
       'name': 'Formal Shoes',
-      'price': '₹4,999',
+      'price': '4,999',
       'image':
           'https://bkacontent.com/wp-content/uploads/2016/06/Depositphotos_31146757_l-2015.jpg',
     },
     {
       'name': 'Formal Shoes',
-      'price': '₹4,999',
+      'price': '4,999',
       'image':
           'https://bkacontent.com/wp-content/uploads/2016/06/Depositphotos_31146757_l-2015.jpg',
     },
     {
       'name': 'Formal Shoes',
-      'price': '₹4,999',
+      'price': '4,999',
       'image':
           'https://bkacontent.com/wp-content/uploads/2016/06/Depositphotos_31146757_l-2015.jpg',
     },
     {
       'name': 'Formal Shoes',
-      'price': '₹4,999',
+      'price': '4,999',
       'image':
           'https://bkacontent.com/wp-content/uploads/2016/06/Depositphotos_31146757_l-2015.jpg',
     },
@@ -220,7 +220,7 @@ class _CategoryscreenState extends State<Categoryscreen> {
                               name: product['name']!,
                               description:
                                   'High-quality ${product['name']} perfect for everyday wear. Comfortable, stylish, and durable.',
-                             
+
                               price: product['price']!,
                               brandName: 'Nike Official',
                             ),
