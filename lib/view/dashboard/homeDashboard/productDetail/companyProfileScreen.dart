@@ -265,17 +265,9 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => ProductDetailScreen(
-                              imageUrls: [
-                                item['imageUrl']!,
-                                item['imageUrl']!,
-                                item['imageUrl']!,
-                              ],
-                              name: item['name']!,
-                              description:
-                                  "At ${widget.companyName}, we offer high-quality, trend-forward products designed to enhance your lifestyle. "
-                                  "We prioritize craftsmanship, comfort, and innovation to provide you with a premium shopping experience.",
-                              price: item['price']!,
-                              brandName: widget.companyName,
+                              profileId: '',
+                               categoryId: '',
+                                productId: '',
                             ),
                           ),
                         );

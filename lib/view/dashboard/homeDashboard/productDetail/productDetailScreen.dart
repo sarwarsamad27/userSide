@@ -1,29 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/addToCartButton.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/buyNowButton.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfileScreen.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productImage.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/review.dart';
+import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getSingleProduct_provider.dart';
 import 'package:user_side/widgets/productCard.dart';
 
 class ProductDetailScreen extends StatefulWidget {
-  final List<String> imageUrls;
-  final String name;
-  final String description;
-  final String price;
-  final String brandName;
+  final String profileId;
+  final String categoryId;
+  final String productId;
 
-  const ProductDetailScreen({
+  ProductDetailScreen({
     super.key,
-    required this.imageUrls,
-    required this.name,
-    required this.description,
-    required this.price,
-    required this.brandName,
+    required this.profileId,
+    required this.categoryId,
+    required this.productId,
   });
-
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
@@ -31,56 +28,71 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   List<String> selectedColors = [];
   List<String> selectedSizes = [];
+  final relatedProducts = [
+    {
+      'name': 'Running Shoes',
+      'price': '4,999',
+      'imageUrl':
+          'https://i.pinimg.com/736x/60/a6/e2/60a6e2b0776d1d6735fce5ae7dc9b175.jpg',
+    },
+    {
+      'name': 'Sneakers',
+      'price': '6,499',
+      'imageUrl':
+          'https://i.pinimg.com/736x/60/a6/e2/60a6e2b0776d1d6735fce5ae7dc9b175.jpg',
+    },
+    {
+      'name': 'Sports Jacket',
+      'price': '8,999',
+      'imageUrl':
+          'https://i.pinimg.com/736x/60/a6/e2/60a6e2b0776d1d6735fce5ae7dc9b175.jpg',
+    },
+  ];
+  final otherProducts = [
+    {
+      'name': 'T-Shirt',
+      'price': '2,999',
+      'imageUrl':
+          'https://i.pinimg.com/736x/60/a6/e2/60a6e2b0776d1d6735fce5ae7dc9b175.jpg',
+    },
+    {
+      'name': 'Joggers',
+      'price': '3,499',
+      'imageUrl':
+          'https://i.pinimg.com/736x/60/a6/e2/60a6e2b0776d1d6735fce5ae7dc9b175.jpg',
+    },
+    {
+      'name': 'Cap',
+      'price': '999',
+      'imageUrl':
+          'https://i.pinimg.com/736x/60/a6/e2/60a6e2b0776d1d6735fce5ae7dc9b175.jpg',
+    },
+  ];
 
-  // ⭐ PROPER REVIEW SYSTEM
- 
- 
-  final List<String> availableColors = ["Red", "Blue", "Black", "White"];
-  final List<String> availableSizes = ["S", "M", "L", "XL"];
+  @override
+  void initState() {
+    super.initState();
+    context.read<GetSingleProductProvider>().fetchSingleProduct(
+      widget.profileId,
+      widget.categoryId,
+      widget.productId,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final relatedProducts = [
-      {
-        'name': 'Running Shoes',
-        'price': '4,999',
-        'imageUrl':
-            'https://i.pinimg.com/736x/60/a6/e2/60a6e2b0776d1d6735fce5ae7dc9b175.jpg',
-      },
-      {
-        'name': 'Sneakers',
-        'price': '6,499',
-        'imageUrl':
-            'https://i.pinimg.com/736x/60/a6/e2/60a6e2b0776d1d6735fce5ae7dc9b175.jpg',
-      },
-      {
-        'name': 'Sports Jacket',
-        'price': '8,999',
-        'imageUrl':
-            'https://i.pinimg.com/736x/60/a6/e2/60a6e2b0776d1d6735fce5ae7dc9b175.jpg',
-      },
-    ];
+    final provider = context.watch<GetSingleProductProvider>();
 
-    final otherProducts = [
-      {
-        'name': 'T-Shirt',
-        'price': '2,999',
-        'imageUrl':
-            'https://i.pinimg.com/736x/60/a6/e2/60a6e2b0776d1d6735fce5ae7dc9b175.jpg',
-      },
-      {
-        'name': 'Joggers',
-        'price': '3,499',
-        'imageUrl':
-            'https://i.pinimg.com/736x/60/a6/e2/60a6e2b0776d1d6735fce5ae7dc9b175.jpg',
-      },
-      {
-        'name': 'Cap',
-        'price': '999',
-        'imageUrl':
-            'https://i.pinimg.com/736x/60/a6/e2/60a6e2b0776d1d6735fce5ae7dc9b175.jpg',
-      },
-    ];
+    if (provider.loading || provider.productData == null) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: AppColor.primaryColor),
+        ),
+      );
+    }
+
+    final data = provider.productData!;
+    final product = data.product!;
 
     return Scaffold(
       body: Stack(
@@ -91,7 +103,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ProductImage(imageUrls: widget.imageUrls),
+                  // ⭐ IMAGES Dynamic
+                  ProductImage(imageUrls: product.images ?? []),
 
                   Padding(
                     padding: EdgeInsets.symmetric(
@@ -101,7 +114,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ───────────────── Brand Section ────────────────
+                        // ⭐ BRAND SECTION Dynamic
                         Row(
                           children: [
                             InkWell(
@@ -110,24 +123,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) => CompanyProfileScreen(
-                                      companyName: widget.name,
-                                      logoUrl: "https://picsum.photos/100/100",
-                                      bannerUrl:
-                                          "https://picsum.photos/800/300",
+                                      companyName: data.profileName ?? "",
+                                      logoUrl: data.profileImage ?? "",
+                                      bannerUrl: "",
                                     ),
                                   ),
                                 );
                               },
                               child: CircleAvatar(
                                 radius: 24.r,
-                                backgroundImage: AssetImage(
-                                  "assets/images/shookoo_image.png",
-                                ),
+                                backgroundImage: data.profileImage != null
+                                    ? NetworkImage(data.profileImage!)
+                                    : AssetImage(
+                                            "assets/images/shookoo_image.png",
+                                          )
+                                          as ImageProvider,
                               ),
                             ),
                             SizedBox(width: 12.w),
                             Text(
-                              widget.brandName,
+                              data.profileName ?? "",
                               style: TextStyle(
                                 fontSize: 16.sp,
                                 fontWeight: FontWeight.w600,
@@ -135,27 +150,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ),
                           ],
                         ),
+
                         SizedBox(height: 20.h),
 
-                        // ───────────────── Title + Price ────────────────
+                        // ⭐ Product Name
                         Text(
-                          widget.name,
+                          product.name ?? "",
                           style: TextStyle(
                             fontSize: 22.sp,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+
                         SizedBox(height: 8.h),
+
+                        // ⭐ Product Price
                         Text(
-                          "Rs: ${widget.price}",
+                          "Rs: ${product.afterDiscountPrice ?? 0}",
                           style: TextStyle(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
+
                         SizedBox(height: 20.h),
 
-                        // ───────────────── Color Selection ────────────────
+                        // ⭐ Colors
                         Text(
                           "Select Color",
                           style: TextStyle(
@@ -167,7 +187,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
                         Wrap(
                           spacing: 8.w,
-                          children: availableColors.map((color) {
+                          children: (product.color ?? []).map((color) {
                             final selected = selectedColors.contains(color);
                             return ChoiceChip(
                               label: Text(color),
@@ -181,14 +201,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               },
                               selectedColor: AppColor.primaryColor,
                               labelStyle: TextStyle(
-                                color: selected ? Colors.white : Colors.black87,
+                                color: selected ? Colors.white : Colors.black,
                               ),
                             );
                           }).toList(),
                         ),
+
                         SizedBox(height: 20.h),
 
-                        // ───────────────── Size Selection ────────────────
+                        // ⭐ Sizes
                         Text(
                           "Select Size",
                           style: TextStyle(
@@ -200,7 +221,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
                         Wrap(
                           spacing: 8.w,
-                          children: availableSizes.map((size) {
+                          children: (product.size ?? []).map((size) {
                             final selected = selectedSizes.contains(size);
                             return ChoiceChip(
                               label: Text(size),
@@ -214,14 +235,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               },
                               selectedColor: AppColor.primaryColor,
                               labelStyle: TextStyle(
-                                color: selected ? Colors.white : Colors.black87,
+                                color: selected ? Colors.white : Colors.black,
                               ),
                             );
                           }).toList(),
                         ),
+
                         SizedBox(height: 20.h),
 
-                        // ───────────────── Description ────────────────
+                        // ⭐ DESCRIPTION Dynamic
                         Text(
                           "Description",
                           style: TextStyle(
@@ -232,19 +254,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         SizedBox(height: 8.h),
 
                         Text(
-                          widget.description,
+                          product.description ?? "",
                           style: TextStyle(
                             color: Colors.grey[700],
                             height: 1.5,
                             fontSize: 14.sp,
                           ),
                         ),
+
                         SizedBox(height: 20.h),
 
-                     Review()],
+                        Review(),
+                      ],
                     ),
                   ),
-
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
                     child: Text(
@@ -277,7 +300,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       },
                     ),
                   ),
-
                   // ───────────────── Other Products ────────────────
                   Padding(
                     padding: EdgeInsets.symmetric(
@@ -320,7 +342,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             ),
           ),
-
           // ───────────────── Bottom Buttons ────────────────
           Positioned(
             bottom: 0,
@@ -345,19 +366,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               child: Row(
                 children: [
                   AddToCart(
-                    imageUrls: widget.imageUrls,
-                    name: widget.name,
-                    description: widget.description,
-                    price: widget.price,
-                    brandName: widget.brandName,
+                    imageUrls: [],
+                    name: '',
+                    description: '',
+                    price: '',
+                    brandName: '',
                   ),
                   SizedBox(width: 12.w),
                   BuyNowButton(
-                    imageUrls: widget.imageUrls,
-                    name: widget.name,
-                    description: widget.description,
-                    price: widget.price,
-                    brandName: widget.brandName,
+                    imageUrls: [],
+                    name: '',
+                    description: '',
+                    price: '',
+                    brandName: '',
                   ),
                 ],
               ),

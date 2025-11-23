@@ -108,8 +108,17 @@ class Profilescreen extends StatelessWidget {
                       name: 'Product ${index + 1}',
                       price: '43$index',
                       imageUrl: 'https://picsum.photos/200/300?random=$index',
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (_)=>ProductDetailScreen(imageUrls: [], name: 'Product ${index + 1}', description: "description", price: '43$index', brandName: "shookoo")));
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ProductDetailScreen(
+                              profileId: '',
+                              categoryId: '',
+                              productId: '',
+                            ),
+                          ),
+                        );
                       },
                     );
                   },

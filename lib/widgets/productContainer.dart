@@ -40,7 +40,11 @@ class CategoryTile extends StatelessWidget {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: Image.network(image, fit: BoxFit.cover),
+                    child: Image.network(
+                      image ??
+                          'https://www.freeiconspng.com/uploads/no-image-icon-4.png',
+                      fit: BoxFit.cover,
+                    ),
                   ),
                   // gradient overlay for effect
                   Positioned.fill(

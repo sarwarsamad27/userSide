@@ -2,23 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/resources/toast.dart';
+import 'package:user_side/view/auth/forgotScreen.dart';
+import 'package:user_side/view/auth/signUpScreen.dart';
 import 'package:user_side/view/dashboard/homeScreen.dart';
-// import 'package:user_side/view/companySide/auth/forgotScreen.dart';
-// import 'package:user_side/view/companySide/auth/signUpScreen.dart';
-// import 'package:user_side/view/companySide/dashboard/profileScreen.dart/profileForm.dart';
+import 'package:user_side/viewModel/provider/authProvider/login_provider.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 import 'package:user_side/widgets/customButton.dart';
 import 'package:user_side/widgets/customContainer.dart';
 import 'package:user_side/widgets/customTextFeld.dart';
 import 'package:user_side/widgets/social_button.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
+    final provider = Provider.of<LoginProvider>(context);
 
     return ScreenUtilInit(
       designSize: const Size(390, 844),
@@ -72,7 +73,7 @@ class LoginScreen extends StatelessWidget {
                           CustomTextField(
                             headerText: "Email Address",
                             hintText: "Enter your email",
-                            controller: emailController,
+                            controller: provider.emailController,
                             prefixIcon: Icons.email_outlined,
                           ),
                           SizedBox(height: 18.h),
@@ -80,7 +81,7 @@ class LoginScreen extends StatelessWidget {
                           CustomTextField(
                             headerText: "Password",
                             hintText: "Enter your password",
-                            controller: passwordController,
+                            controller: provider.passwordController,
                             isPassword: true,
                             prefixIcon: Icons.lock_outline,
                           ),
@@ -93,7 +94,9 @@ class LoginScreen extends StatelessWidget {
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => Column()),
+                                  MaterialPageRoute(
+                                    builder: (_) => ForgotScreen(),
+                                  ),
                                 );
                               },
                               child: Text(
@@ -111,12 +114,39 @@ class LoginScreen extends StatelessWidget {
                           /// Login Button
                           CustomButton(
                             text: "Login",
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => HomeNavBarScreen()),
+                            onTap: () async {
+                              provider.clearError();
+
+                              await provider.loginProvider(
+                                email: provider.emailController.text.trim(),
+                                password: provider.passwordController.text
+                                    .trim(),
                               );
-                              print("Login Pressed!");
+
+                              if (provider.loginData?.token != null &&
+                                  provider.loginData!.token!.isNotEmpty) {
+                                final userEmail = provider.emailController.text
+                                    .trim();
+
+                                provider.emailController.clear();
+                                provider.passwordController.clear();
+
+                             
+
+                                
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => HomeNavBarScreen(),
+                                    ),
+                                  );
+                               
+                              } else {
+                                AppToast.error(
+                                  provider.errorMessage ??
+                                      "Invalid email or password",
+                                );
+                              }
                             },
                           ),
 
@@ -187,7 +217,9 @@ class LoginScreen extends StatelessWidget {
                                 onTap: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (_) => Column()),
+                                    MaterialPageRoute(
+                                      builder: (_) => SignUpScreen(),
+                                    ),
                                   );
                                 },
                                 child: Text(

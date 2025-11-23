@@ -2,13 +2,22 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:user_side/exception/exceptions.dart';
 import 'package:user_side/network/base_api_services.dart';
+import 'package:user_side/resources/local_storage.dart';
 
 class NetworkApiServices extends BaseApiServices {
   // ✅ Static headers (no token)
-  Map<String, String> getHeaders() {
-    return {"Accept": "application/json", "Content-Type": "application/json"};
+  Future<Map<String, String>> getHeaders({bool isMultipart = false}) async {
+    final token = await LocalStorage.getToken();
+    print("Token: $token"); // Debugging token value
+
+    return {
+      "Accept": "application/json",
+      if (!isMultipart) "Content-Type": "application/json",
+      if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
+    };
   }
 
   @override
@@ -19,7 +28,7 @@ class NetworkApiServices extends BaseApiServices {
     try {
       final response = await http.post(
         Uri.parse(url),
-        headers: getHeaders(),
+        headers: await getHeaders(),
         body: jsonEncode(body),
       );
       return _handleResponse(url, response, body: body);
@@ -31,7 +40,10 @@ class NetworkApiServices extends BaseApiServices {
   @override
   Future<Map<String, dynamic>> getApi(String url) async {
     try {
-      final response = await http.get(Uri.parse(url), headers: getHeaders());
+      final response = await http.get(
+        Uri.parse(url),
+        headers: await getHeaders(),
+      );
       return _handleResponse(url, response);
     } catch (e) {
       return _handleError(e);
@@ -41,54 +53,181 @@ class NetworkApiServices extends BaseApiServices {
   @override
   Future<Map<String, dynamic>> putApi(
     String url,
-    Map<String, dynamic> body,
-  ) async {
+    Map<String, dynamic> body, {
+    File? image,
+    String fileFieldName = "image",
+  }) async {
     try {
-      final response = await http.put(
-        Uri.parse(url),
-        headers: getHeaders(),
-        body: jsonEncode(body),
-      );
-      return _handleResponse(url, response, body: body);
+      // If image is provided, use multipart PUT
+      if (image != null) {
+        var request = http.MultipartRequest('PUT', Uri.parse(url));
+
+        // Headers
+        final token = await LocalStorage.getToken();
+        request.headers.addAll({
+          "Accept": "application/json",
+          if (token != null && token.isNotEmpty)
+            "Authorization": "Bearer $token",
+        });
+
+        // Add text fields
+        body.forEach((key, value) {
+          request.fields[key] = value.toString();
+        });
+
+        // Add image
+        final mimeType = image.path.split('.').last.toLowerCase(); // jpg/png
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            fileFieldName,
+            image.path,
+            contentType: MediaType("image", mimeType),
+          ),
+        );
+
+        // Send request
+        var streamed = await request.send();
+        var response = await http.Response.fromStream(streamed);
+
+        print("PUT Multipart Response: ${response.body}");
+        return jsonDecode(response.body);
+      } else {
+        // Plain JSON PUT
+        final response = await http.put(
+          Uri.parse(url),
+          headers: await getHeaders(),
+          body: jsonEncode(body),
+        );
+
+        return _handleResponse(url, response, body: body);
+      }
     } catch (e) {
       return _handleError(e);
     }
   }
 
-  // ✅ Multi-image upload ke liye
-  Future<Map<String, dynamic>> postMultipartApi(
-    String url,
-    Map<String, String> fields, // text fields
-    List<File> images, { // multiple images
-    String fileFieldName = "images", // backend ke hisaab se change karein
+  Future<Map<String, dynamic>> putMultiPart({
+    required String url,
+    required Map<String, String> fields,
+    required List<File> files,
+    String fileFieldName = "images",
   }) async {
     try {
-      var request = http.MultipartRequest('POST', Uri.parse(url));
+      var request = http.MultipartRequest('PUT', Uri.parse(url));
 
-      // Add fields (jaise name, userId, etc.)
+      // Add headers
+      final token = await LocalStorage.getToken();
+      request.headers.addAll({
+        "Accept": "application/json",
+        if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
+      });
+
+      // Add text fields
       request.fields.addAll(fields);
 
-      // Add multiple images
-      for (var file in images) {
+      // Add files
+      for (var file in files) {
+        final mimeType = file.path.split(".").last.toLowerCase();
         request.files.add(
           await http.MultipartFile.fromPath(
-            fileFieldName, // 👈 agar backend `req.files.images` expect karta hai
+            fileFieldName,
             file.path,
+            contentType: MediaType("image", mimeType),
           ),
         );
       }
 
       // Send request
+      var streamed = await request.send();
+      var response = await http.Response.fromStream(streamed);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return jsonDecode(response.body);
+      } else {
+        return {
+          'code_status': false,
+          'message': 'Server Error: ${response.body}',
+        };
+      }
+    } catch (e) {
+      return {'code_status': false, 'message': 'Exception: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> postSingleImageApi(
+    String url,
+    Map<String, String> fields,
+    File? image, {
+    String fileFieldName = "image",
+  }) async {
+    try {
+      var request = http.MultipartRequest('POST', Uri.parse(url));
+
+      // Correct Headers
+      final token = await LocalStorage.getToken();
+      request.headers.addAll({
+        "Accept": "application/json",
+        if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
+      });
+
+      // Add Text Fields
+      request.fields.addAll(fields);
+
+      // Add Image Properly
+      if (image != null) {
+        final mimeType = image.path
+            .split(".")
+            .last
+            .toLowerCase(); // jpg/png/jpeg
+
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            fileFieldName,
+            image.path,
+            contentType: MediaType("image", mimeType), // <-- IMPORTANT
+          ),
+        );
+      }
+
+      var streamed = await request.send();
+      var response = await http.Response.fromStream(streamed);
+
+      print("Upload Response: ${response.body}");
+
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'code_status': false, 'message': 'Exception: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> postMultipartApi(
+    String url,
+    Map<String, String> fields,
+    List<File> images, {
+    String fileFieldName = "images",
+  }) async {
+    try {
+      var request = http.MultipartRequest('POST', Uri.parse(url));
+
+      // Add Authorization Header (IMPORTANT)
+      final token = await LocalStorage.getToken();
+      request.headers.addAll({
+        "Accept": "application/json",
+        if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
+      });
+
+      // Add fields (text)
+      request.fields.addAll(fields);
+
+      // Add images
+      for (var file in images) {
+        request.files.add(
+          await http.MultipartFile.fromPath(fileFieldName, file.path),
+        );
+      }
+
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
-
-      if (kDebugMode) {
-        print("✅ Multipart API URL: $url");
-        print("✅ Fields: $fields");
-        print("✅ Files: ${images.map((e) => e.path).toList()}");
-        print("✅ Status Code: ${response.statusCode}");
-        print("✅ Response Body: ${response.body}");
-      }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return jsonDecode(response.body);
@@ -106,7 +245,10 @@ class NetworkApiServices extends BaseApiServices {
   @override
   Future<Map<String, dynamic>> deleteApi(String url) async {
     try {
-      final response = await http.delete(Uri.parse(url), headers: getHeaders());
+      final response = await http.delete(
+        Uri.parse(url),
+        headers: await getHeaders(),
+      );
       return _handleResponse(url, response);
     } catch (e) {
       return _handleError(e);

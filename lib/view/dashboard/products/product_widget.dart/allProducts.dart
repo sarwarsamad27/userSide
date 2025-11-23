@@ -47,17 +47,9 @@ class AllProducts extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (_) => ProductDetailScreen(
-                    imageUrls: [
-                      product['image']!,
-                      product['image']!,
-                      product['image']!,
-                      product['image']!,
-                      product['image']!,
-                    ],
-                    name: product["name"]!,
-                    description: "Its is very much good condition",
-                    price: product["price"]!,
-                    brandName: "brandName",
+                    profileId: "profileId",
+                    categoryId: "categoryId",
+                    productId: "productId",
                   ),
                 ),
               );
