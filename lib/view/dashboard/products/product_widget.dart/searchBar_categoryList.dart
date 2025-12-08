@@ -3,74 +3,88 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/widgets/customContainer.dart';
 import 'package:user_side/widgets/customsearchbar.dart';
+import 'package:provider/provider.dart';
+import 'package:user_side/viewModel/provider/productProvider/getAllProduct_provider.dart';
 
-class SearchbarCategorylist extends StatelessWidget {
-   SearchbarCategorylist({super.key});
-       final List<String> categories = [
-      "All",
-      "Clothes",
-      "Shoes",
-      "Bags",
-      "Accessories",
-      "Beauty",
-    ];
+class SearchbarCategorylist extends StatefulWidget {
+  final Function(String) onCategorySelected;
 
-    final ValueNotifier<int> selectedCategoryIndex = ValueNotifier<int>(0);
+  const SearchbarCategorylist({super.key, required this.onCategorySelected});
+
+  @override
+  State<SearchbarCategorylist> createState() => _SearchbarCategorylistState();
+}
+
+class _SearchbarCategorylistState extends State<SearchbarCategorylist> {
+  final List<String> categories = [
+    "All",
+    "Clothes",
+    "Shoes",
+    "Bags",
+    "Accessories",
+    "Beauty",
+  ];
+
+  int selectedCategoryIndex = 0; // ✅ Keep as state variable
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const CustomSearchBar(),
-                      SizedBox(height: 10.h),
-                      SizedBox(
-                        height: 35.h,
-                        child: ValueListenableBuilder<int>(
-                          valueListenable: selectedCategoryIndex,
-                          builder: (context, selectedIndex, _) {
-                            return ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: categories.length,
-                              separatorBuilder: (_, __) => SizedBox(width: 8.w),
-                              itemBuilder: (context, index) {
-                                final isSelected = selectedIndex == index;
+    final provider = Provider.of<GetAllProductProvider>(context, listen: false);
 
-                                return GestureDetector(
-                                  onTap: () {
-                                    selectedCategoryIndex.value = index;
-                                  },
-                                  child: CustomAppContainer(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 16.w,
-                                      vertical: 6.h,
-                                    ),
-                                    color: isSelected
-                                        ? AppColor.primaryColor
-                                        : AppColor.primaryColor.withOpacity(
-                                            0.4,
-                                          ),
-                                    borderRadius: BorderRadius.circular(20.r),
-                                    child: Center(
-                                      child: Text(
-                                        categories[index],
-                                        style: TextStyle(
-                                          fontSize: 13.sp,
-                                          fontWeight: FontWeight.w500,
-                                          color: isSelected
-                                              ? Colors.white
-                                              : Colors.black,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomSearchBar(
+          onChanged: (value) {
+            provider.searchProducts(value);
+          },
+        ),
+
+        SizedBox(height: 10.h),
+
+        /// CATEGORY LIST
+        SizedBox(
+          height: 35.h,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: categories.length,
+            separatorBuilder: (_, __) => SizedBox(width: 8.w),
+            itemBuilder: (context, index) {
+              final isSelected = selectedCategoryIndex == index;
+
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    selectedCategoryIndex = index; // ✅ Update selected index
+                  });
+
+                  widget.onCategorySelected(categories[index]);
+                },
+                child: CustomAppContainer(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 5.h,
+                  ),
+                  color: isSelected
+                      ? AppColor.primaryColor
+                      : AppColor.primaryColor.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(20.r),
+                  child: Center(
+                    child: Text(
+                      categories[index],
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w500,
+                        color: isSelected ? Colors.white : Colors.black,
                       ),
-                    ],
-                  );
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 }

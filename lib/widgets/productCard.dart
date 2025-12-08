@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/resources/global.dart';
 
 class ProductCard extends StatelessWidget {
   final String name;
@@ -10,12 +11,10 @@ class ProductCard extends StatelessWidget {
 
   final VoidCallback? onTap;
 
-  /// 👇 Optional badges
-  final String? discountText; // e.g. "20% OFF"
-  final String? saveText; // e.g. "Save Rs.100"
+  final String? discountText;
+  final String? saveText;
 
-  /// 👇 Optional original price (cut wali)
-  final String? originalPrice; // e.g. "Rs. 2000"
+  final String? originalPrice;
 
   const ProductCard({
     Key? key,
@@ -34,7 +33,7 @@ class ProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 150.w, // ✅ fixed responsive width for horizontal scroll
+        width: 150.w,
         margin: EdgeInsets.only(bottom: 16.h),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -50,7 +49,6 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ---------- Product Image + Badges ----------
             Stack(
               children: [
                 ClipRRect(
@@ -61,26 +59,41 @@ class ProductCard extends StatelessWidget {
                   child: SizedBox(
                     height: 140.h,
                     width: double.infinity,
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, progress) {
-                        if (progress == null) return child;
-                        return const Center(child: CircularProgressIndicator());
-                      },
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.grey[200],
-                        alignment: Alignment.center,
-                        child: const Icon(
-                          Icons.broken_image,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
+                    child: imageUrl.isNotEmpty
+                        ? Image.network(
+                            imageUrl.startsWith('http')
+                                ? imageUrl
+                                : Global.imageUrl + imageUrl,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  color: Colors.grey[200],
+                                  alignment: Alignment.center,
+                                  child: const Icon(
+                                    Icons.image_not_supported,
+                                    color: Colors.grey,
+                                    size: 40,
+                                  ),
+                                ),
+                          )
+                        : Container(
+                            color: Colors.grey[200],
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.image_not_supported,
+                              color: Colors.grey,
+                              size: 40,
+                            ),
+                          ),
                   ),
                 ),
 
-                /// 👇 Discount Badge
                 if (discountText != null)
                   Positioned(
                     top: 8.h,
@@ -105,7 +118,6 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
 
-                /// 👇 Save Badge
                 if (saveText != null)
                   Positioned(
                     top: 8.h,
@@ -132,7 +144,6 @@ class ProductCard extends StatelessWidget {
               ],
             ),
 
-            // ---------- Product Info ----------
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
               child: Column(
@@ -151,15 +162,13 @@ class ProductCard extends StatelessWidget {
                   ),
                   SizedBox(height: 6.h),
 
-                  // ---------- Price Row ----------
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
-                          /// Current Price
                           Text(
-                            ("Rs: $price"),
+                            "Rs: $price",
                             style: TextStyle(
                               fontSize: 12.sp,
                               fontWeight: FontWeight.bold,
@@ -167,7 +176,6 @@ class ProductCard extends StatelessWidget {
                             ),
                           ),
 
-                          /// 👇 Original Price (Cut Wali)
                           if (originalPrice != null) ...[
                             SizedBox(width: 5.w),
                             Text(
@@ -176,10 +184,9 @@ class ProductCard extends StatelessWidget {
                                 fontSize: 12.sp,
                                 color: Colors.grey.shade600,
                                 decoration: TextDecoration.lineThrough,
-                                decorationThickness: 2, // ✅ thodi bold cut line
-                                decorationColor:
-                                    Colors.redAccent, // ✅ highlight color
-                                height: 1.2, // ✅ alignment better banata h
+                                decorationThickness: 2,
+                                decorationColor: Colors.redAccent,
+                                height: 1.2,
                               ),
                             ),
                           ],
@@ -188,9 +195,9 @@ class ProductCard extends StatelessWidget {
                     ],
                   ),
                   Text(
-                    description ?? "It is compfortable and affordable",
-                    maxLines: 1, // ya jitni lines chaho
-                    overflow: TextOverflow.ellipsis, // dots (...) show karega
+                    description ?? "",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 14, color: Colors.black87),
                   ),
                 ],

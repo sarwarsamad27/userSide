@@ -12,7 +12,8 @@ import 'package:user_side/view/dashboard/products/productScreen.dart';
 import 'package:user_side/view/dashboard/profile/profileScreen.dart';
 
 class HomeNavBarScreen extends StatefulWidget {
-  const HomeNavBarScreen({super.key});
+  final String? productId;
+  const HomeNavBarScreen({super.key, this.productId});
 
   @override
   State<HomeNavBarScreen> createState() => _CompanyHomeScreenState();
@@ -20,11 +21,12 @@ class HomeNavBarScreen extends StatefulWidget {
 
 class _CompanyHomeScreenState extends State<HomeNavBarScreen> {
   int _currentIndex = 0;
+  String? get productId => widget.productId;
 
   final screens = [
     const HomeScreen(),
     const ProductScreen(),
-    const FavouiteScreen(),
+    FavouriteScreen(),
     const Profilescreen(),
   ];
 

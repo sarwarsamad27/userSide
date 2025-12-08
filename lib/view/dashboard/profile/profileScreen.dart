@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/resources/local_storage.dart';
+import 'package:user_side/view/auth/loginView.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/view/dashboard/profile/helpCenter.dart';
 import 'package:user_side/view/dashboard/profile/offer.dart';
-import 'package:user_side/view/dashboard/profile/orderHistory.dart';
+import 'package:user_side/view/dashboard/profile/order/orderHistory.dart';
 import 'package:user_side/view/dashboard/profile/setting.dart';
 import 'package:user_side/view/dashboard/profile/termAndCondition.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
@@ -107,7 +109,6 @@ class Profilescreen extends StatelessWidget {
                     return ProductCard(
                       name: 'Product ${index + 1}',
                       price: '43$index',
-                      imageUrl: 'https://picsum.photos/200/300?random=$index',
                       onTap: () {
                         Navigator.push(
                           context,
@@ -119,7 +120,7 @@ class Profilescreen extends StatelessWidget {
                             ),
                           ),
                         );
-                      },
+                      }, imageUrl: '',
                     );
                   },
                 ),
@@ -177,29 +178,42 @@ class Profilescreen extends StatelessWidget {
                   SizedBox(height: 10.h),
 
                   CustomButton(
-                    text: "Log Out",
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          title: const Text("Logout"),
-                          content: const Text(
-                            "Are you sure you want to log out?",
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text("Cancel"),
-                            ),
-                            TextButton(
-                              onPressed: () {},
-                              child: const Text("Logout"),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+  text: "Log Out",
+  onTap: () {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Logout"),
+        content: const Text("Are you sure you want to log out?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+
+              // Clear saved token & userId
+              await LocalStorage.clearAll();
+
+              // Close popup
+              Navigator.pop(context);
+
+              // Navigate to login screen and clear history
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
+            },
+            child: const Text("Logout"),
+          ),
+        ],
+      ),
+    );
+  },
+)
+
                 ],
               ),
             ],

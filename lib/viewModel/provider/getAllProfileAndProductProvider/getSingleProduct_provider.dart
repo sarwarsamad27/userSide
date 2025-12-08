@@ -7,14 +7,24 @@ class GetSingleProductProvider with ChangeNotifier {
 
   bool loading = false;
   GetSingleProductModel? productData;
+  void addNewReview(Reviews newReview) {
+    productData?.reviews?.insert(0, newReview);
+    notifyListeners();
+  }
 
   Future<void> fetchSingleProduct(
-      String profileId, String categoryId, String productId) async {
+    String profileId,
+    String categoryId,
+    String productId,
+  ) async {
     loading = true;
     notifyListeners();
 
-    productData =
-        await _repo.getSingleProduct(categoryId, profileId, productId);
+    productData = await _repo.getSingleProduct(
+      categoryId,
+      profileId,
+      productId,
+    );
 
     loading = false;
     notifyListeners();

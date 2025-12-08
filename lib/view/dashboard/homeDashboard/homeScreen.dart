@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
+import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/view/dashboard/homeDashboard/categoryAndProduct/categoryScreen.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getAllProfile_provider.dart';
 import 'package:user_side/widgets/customsearchbar.dart';
@@ -14,58 +16,67 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   @override
   void initState() {
     super.initState();
-    final provider =
-        Provider.of<GetAllProfileProvider>(context, listen: false);
 
-    provider.fetchProfiles();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<GetAllProfileProvider>(
+        context,
+        listen: false,
+      ).fetchProfiles();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<GetAllProfileProvider>(context);
 
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-          child: Column(
-            children: [
-              CustomSearchBar(
-                hintText: "Search brands...",
-                onChanged: (value) {},
-              ),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            child: Column(
+              children: [
+                CustomSearchBar(
+                  hintText: "Search brands...",
+                  onChanged: (value) {
+                    provider.applySearch(value);
+                  },
+                ),
 
-              SizedBox(height: 16.h),
+                SizedBox(height: 16.h),
 
-              Expanded(
-                child: provider.isLoading
-                    ? const Center(child: CircularProgressIndicator())
-
-                    : provider.productData == null ||
+                Expanded(
+                  child: provider.isLoading
+                      ?  Center(child: SpinKitThreeBounce(
+                          color: AppColor.primaryColor, 
+                          size: 30.0,
+                        ),)
+                      : provider.productData == null ||
                             provider.productData!.profiles == null ||
                             provider.productData!.profiles!.isEmpty
-                        ? const Center(
-                            child: Text("No Profiles Found"),
-                          )
-
-                        : GridView.builder(
-                            physics: const BouncingScrollPhysics(),
-                            itemCount:
-                                provider.productData!.profiles!.length,
+                      ? const Center(child: Text("No Profiles Found"))
+                      : RefreshIndicator(
+                          onRefresh: () async {
+                            await provider.refreshProfiles(); // 🔥 REFRESH API
+                            provider.applySearch(""); // 🔥 RESET search
+                          },
+                          child: GridView.builder(
+                            physics:
+                                const AlwaysScrollableScrollPhysics(), // IMPORTANT
+                            itemCount: provider.filteredProfiles.length,
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisExtent: 260.h,
-                              crossAxisSpacing: 14.w,
-                              mainAxisSpacing: 5.h,
-                            ),
+                                  crossAxisCount: 2,
+                                  mainAxisExtent: 260.h,
+                                  crossAxisSpacing: 14.w,
+                                  mainAxisSpacing: 5.h,
+                                ),
                             itemBuilder: (context, index) {
-                              final item = provider
-                                  .productData!.profiles![index];
+                              final item = provider.filteredProfiles[index];
 
                               return CategoryTile(
                                 name: item.name ?? "",
@@ -75,15 +86,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                           Categoryscreen( profileId: item.sId!,),
+                                          Categoryscreen(profileId: item.sId!),
                                     ),
                                   );
                                 },
                               );
                             },
                           ),
-              ),
-            ],
+                        ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

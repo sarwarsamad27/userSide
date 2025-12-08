@@ -75,6 +75,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
             ],
           ),
           child: TextField(
+            
             focusNode: _focusNode,
             readOnly: widget.readOnly ?? false,
             controller: widget.controller,

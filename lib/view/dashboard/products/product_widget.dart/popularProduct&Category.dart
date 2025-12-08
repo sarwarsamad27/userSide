@@ -1,74 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:provider/provider.dart';
+import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/resources/global.dart';
+import 'package:user_side/view/dashboard/homeDashboard/categoryAndProduct/categoryScreen.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
-import 'package:user_side/view/dashboard/products/popularCategoryDetail.dart';
 import 'package:user_side/view/dashboard/products/product_widget.dart/productTile.dart';
+import 'package:user_side/viewModel/provider/productProvider/getPopularCategory_provider.dart';
+import 'package:user_side/viewModel/provider/productProvider/getPopularProduct_provider.dart';
 
 class PopularProductAndCategory extends StatelessWidget {
-  PopularProductAndCategory({super.key});
+  const PopularProductAndCategory({super.key});
 
-  final List<Map<String, String>> popularProducts = [
-    {
-      "image": "https://picsum.photos/200/300",
-      "name": "Stylish Jacket",
-      "price": "\$49.99",
-    },
-    {
-      "image": "https://picsum.photos/200/301",
-      "name": "Classic Watch",
-      "price": "\$79.99",
-    },
-    {
-      "image": "https://picsum.photos/200/302",
-      "name": "Running Shoes",
-      "price": "\$59.99",
-    },
-    {
-      "image": "https://picsum.photos/200/303",
-      "name": "Leather Bag",
-      "price": "\$89.99",
-    },
-    {
-      "image": "https://picsum.photos/200/300",
-      "name": "Stylish Jacket",
-      "price": "\$49.99",
-    },
-    {
-      "image": "https://picsum.photos/200/301",
-      "name": "Classic Watch",
-      "price": "\$79.99",
-    },
-    {
-      "image": "https://picsum.photos/200/302",
-      "name": "Running Shoes",
-      "price": "\$59.99",
-    },
-    {
-      "image": "https://picsum.photos/200/303",
-      "name": "Leather Bag",
-      "price": "\$89.99",
-    },
-    {
-      "image": "https://picsum.photos/200/300",
-      "name": "Stylish Jacket",
-      "price": "\$49.99",
-    },
-    {
-      "image": "https://picsum.photos/200/301",
-      "name": "Classic Watch",
-      "price": "\$79.99",
-    },
-    {
-      "image": "https://picsum.photos/200/302",
-      "name": "Running Shoes",
-      "price": "\$59.99",
-    },
-    {
-      "image": "https://picsum.photos/200/303",
-      "name": "Leather Bag",
-      "price": "\$89.99",
-    },
-  ];
+  Widget buildProductImage(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return Icon(Icons.image_not_supported);
+    }
+    return Image.network(Global.imageUrl + imageUrl, fit: BoxFit.cover);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,119 +28,152 @@ class PopularProductAndCategory extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ----------- Popular Category -----------
-            Text(
-              "Popular Category",
-              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-            ),
+            //------------------ POPULAR CATEGORY -------------------//
+            Text("Popular Category",
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
             SizedBox(height: 10.h),
+            Consumer<PopularCategoryProvider>(
+              builder: (context, provider, _) {
+                if (provider.loading && provider.allCategories.isEmpty) {
+                  return const Center(child: SpinKitThreeBounce(
+                          color: AppColor.primaryColor, 
+                          size: 30.0,
+                        ),);
+                }
 
-            SizedBox(
-              height: 290.h,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: (popularProducts.length / 2).ceil(),
-                itemBuilder: (context, index) {
-                  final startIndex = index * 2;
-                  final endIndex = startIndex + 2;
-                  final columnProducts = popularProducts.sublist(
-                    startIndex,
-                    endIndex > popularProducts.length
-                        ? popularProducts.length
-                        : endIndex,
-                  );
+                final items = provider.allCategories;
+                final columnCount = (items.length / 2).ceil();
 
-                  return Padding(
-                    padding: EdgeInsets.only(right: 12.w),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: columnProducts.map((product) {
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: 10.h),
-                          child: CustomProductTile(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => PopularCategoryDetailScreen(),
-                                ),
-                              );
-                            },
-                            imageUrl: product["image"]!,
-                            name: product["name"]!,
-                            // price: product["price"]!,
-                            // 👇 Optional badges (call where needed)
-                            // discountText: "20% OFF",
-                            saveText: "Save Rs: 500",
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  );
-                },
-              ),
+                return SizedBox(
+                  height: 280.h,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: columnCount + (provider.hasMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == columnCount) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          provider.fetchPopularCategories(loadMore: true);
+                        });
+                        return const Center(child: SpinKitThreeBounce(
+                          color: AppColor.primaryColor, 
+                          size: 30.0,
+                        ),);
+                      }
+
+                      final start = index * 2;
+                      final end = start + 2;
+
+                      final columnItems =
+                          items.sublist(start, end > items.length ? items.length : end);
+
+                      return Padding(
+                        padding: EdgeInsets.only(right: 12.w),
+                        child: Column(
+                          children: columnItems.map((item) {
+                            return Padding(
+                              padding: EdgeInsets.only(bottom: 4.h),
+                              child: CustomProductTile(
+                                imageUrl: item.categoryImage != null
+                                    ? Global.imageUrl + item.categoryImage!
+                                    : "",
+                                name: item.categoryName ?? "",
+                                saveText:
+                                    "Save upto: ${item.averageDiscountPercentage ?? 0}%",
+                                   onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => Categoryscreen(
+                                        profileId: item.profileId ?? '',
+                                        categoryId: item.categoryId ?? '',
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
             ),
 
-            // ----------- Popular Products -----------
-            Text(
-              "Popular Products",
-              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-            ),
+            //------------------ POPULAR PRODUCTS -------------------//
+            Text("Popular Products",
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
             SizedBox(height: 10.h),
+            Consumer<PopularProductProvider>(
+              builder: (context, provider, _) {
+                if (provider.loading && provider.fetchedCount == 0) {
+                  return const Center(child: SpinKitThreeBounce(
+                          color: AppColor.primaryColor, 
+                          size: 30.0,
+                        ),);
+                }
 
-            SizedBox(
-              height: 290.h,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: (popularProducts.length / 2).ceil(),
-                itemBuilder: (context, index) {
-                  final startIndex = index * 2;
-                  final endIndex = startIndex + 2;
-                  final columnProducts = popularProducts.sublist(
-                    startIndex,
-                    endIndex > popularProducts.length
-                        ? popularProducts.length
-                        : endIndex,
-                  );
+                final products = provider.popularProducts?.products ?? [];
+                final columnCount = (products.length / 2).ceil();
 
-                  return Padding(
-                    padding: EdgeInsets.only(right: 12.w),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: columnProducts.map((product) {
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: 10.h),
-                          child: CustomProductTile(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ProductDetailScreen(
-                                    profileId: "profileId",
-                                    categoryId: "categoryId",
-                                    productId: "productId",
-                                  ),
-                                ),
-                              );
-                            },
-                            imageUrl: product["image"]!,
-                            name: product["name"]!,
-                            price: product["price"]!,
-                            // 👇 Optional (show only if needed)
-                            discountText: "15% OFF",
-                            // saveText: "Save 300 Rupees",
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  );
-                },
-              ),
-            ),
+                return SizedBox(
+                  height: 290.h,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: columnCount + (provider.hasMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == columnCount) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          provider.fetchPopularProducts(loadMore: true);
+                        });
+                        return  Center(child: SpinKitThreeBounce(
+                          color: AppColor.primaryColor, 
+                          size: 30.0,
+                        ),);
+                      }
 
-            Text(
-              "All Products",
-              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+                      final start = index * 2;
+                      final end = start + 2;
+
+                      final columnProducts = products.sublist(
+                          start, end > products.length ? products.length : end);
+
+                      return Padding(
+                        padding: EdgeInsets.only(right: 12.w),
+                        child: Column(
+                          children: columnProducts.map((product) {
+                            return Padding(
+                              padding: EdgeInsets.only(bottom: 8.h),
+                              child: CustomProductTile(
+                                imageUrl: product.image != null
+                                    ? Global.imageUrl + product.image!
+                                    : "",
+                                name: product.name ?? '',
+                                price: "Rs ${product.afterDiscountPrice ?? 0}",
+                                discountText:
+                                    "Save Rs ${product.discountAmount ?? 0}",
+                               onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ProductDetailScreen(
+                                        profileId: product.profileId ?? '',
+                                        categoryId: product.categoryId ?? '',
+                                        productId: product.productId ?? '',
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
             ),
           ],
         ),

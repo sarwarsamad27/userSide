@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/view/auth/loginView.dart';
+import 'package:user_side/view/dashboard/homeScreen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -25,27 +27,26 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(seconds: 3),
     )..repeat();
 
-    // ⏳ Navigate to Login after 5 sec (optional)
-    Timer(const Duration(seconds: 5), () {
+    // ⏳ Check token and navigate after 2 seconds
+    Timer(const Duration(seconds: 2), navigateNext);
+  }
+
+  Future<void> navigateNext() async {
+    final token = await LocalStorage.getToken();
+
+    if (token != null && token.isNotEmpty) {
+      // ✅ User already logged in → go to Home
       Navigator.pushReplacement(
         context,
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 800),
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const LoginScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            final tween = Tween(
-              begin: const Offset(0, 1),
-              end: Offset.zero,
-            ).chain(CurveTween(curve: Curves.easeOut));
-            return SlideTransition(
-              position: animation.drive(tween),
-              child: FadeTransition(opacity: animation, child: child),
-            );
-          },
-        ),
+        MaterialPageRoute(builder: (_) => const HomeNavBarScreen()),
       );
-    });
+    } else {
+      // ❌ User not logged in → go to Login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    }
   }
 
   @override

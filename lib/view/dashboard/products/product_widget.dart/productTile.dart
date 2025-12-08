@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:user_side/resources/appColor.dart';
 
 class CustomProductTile extends StatelessWidget {
   final String imageUrl;
@@ -29,12 +30,17 @@ class CustomProductTile extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10.r),
-                child: Image.network(
-                  imageUrl,
-                  height: 100.h,
-                  width: 100.w,
-                  fit: BoxFit.cover,
-                ),
+                child: imageUrl.isNotEmpty
+                    ? Image.network(
+                        imageUrl,
+                        width: 100.w,
+                        height: 100.h,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return placeholder();
+                        },
+                      )
+                    : placeholder(),
               ),
 
               /// Discount Badge (optional)
@@ -101,11 +107,24 @@ class CustomProductTile extends StatelessWidget {
               style: TextStyle(
                 fontSize: 9.sp,
                 fontWeight: FontWeight.w600,
-                color: Colors.deepPurpleAccent,
+                color: AppColor.primaryColor,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget placeholder() {
+    return Container(
+      width: 100.w,
+      height: 100.h,
+      color: Colors.grey[300],
+      child: Icon(
+        Icons.image_not_supported,
+        size: 50.sp,
+        color: Colors.grey[600],
       ),
     );
   }

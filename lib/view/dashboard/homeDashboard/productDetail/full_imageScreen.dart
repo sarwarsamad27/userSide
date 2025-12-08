@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:user_side/resources/global.dart';
 
 class FullScreenImageGallery extends StatelessWidget {
   final List<String> images;
@@ -11,6 +12,12 @@ class FullScreenImageGallery extends StatelessWidget {
     required this.images,
     required this.initialIndex,
   });
+  String getValidImageUrl(String url) {
+    if (url.startsWith('http')) {
+      return url; // full URL, use directly
+    }
+    return Global.imageUrl + url; // relative path from backend
+  }
 
   @override
   Widget build(BuildContext context) {

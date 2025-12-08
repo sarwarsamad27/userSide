@@ -10,6 +10,7 @@ class CustomButton extends StatelessWidget {
   final bool isGradient;
   final bool isDisabled;
   final Color? borderColor;
+  final bool second; // NEW FLAG
 
   const CustomButton({
     super.key,
@@ -20,6 +21,7 @@ class CustomButton extends StatelessWidget {
     this.width = double.infinity,
     this.isGradient = true,
     this.isDisabled = false,
+    this.second = false, // default false, behavior unchanged
   });
 
   @override
@@ -31,18 +33,25 @@ class CustomButton extends StatelessWidget {
         width: width.w,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          border: Border.all(color: borderColor ?? Colors.white),
-          gradient: isGradient
-              ? LinearGradient(
-                  colors: [
-                    AppColor.primaryColor,
-                    AppColor.primaryColor.withOpacity(0.8),
-                  ],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                )
-              : null,
-          color: isGradient ? null : AppColor.primaryColor,
+          border: Border.all(
+              color: second ? AppColor.primaryColor : (borderColor ?? Colors.white)),
+          gradient: second
+              ? null
+              : (isGradient
+                  ? LinearGradient(
+                      colors: [
+                        AppColor.primaryColor,
+                        AppColor.primaryColor.withOpacity(0.8),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    )
+                  : null),
+          color: second
+              ? Colors.white
+              : (isGradient
+                  ? null
+                  : AppColor.primaryColor),
           borderRadius: BorderRadius.circular(14.r),
           boxShadow: [
             BoxShadow(
@@ -55,7 +64,7 @@ class CustomButton extends StatelessWidget {
         child: Text(
           text,
           style: TextStyle(
-            color: Colors.white,
+            color: second ? AppColor.primaryColor : Colors.white,
             fontSize: 16.sp,
             fontWeight: FontWeight.bold,
           ),

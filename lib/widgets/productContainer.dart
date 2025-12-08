@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/resources/global.dart';
 
-/// ✅ Reusable custom category tile widget
 class CategoryTile extends StatelessWidget {
   final String name;
   final String image;
@@ -16,12 +16,16 @@ class CategoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ✔ Final Image URL Handle
+    final String finalImageUrl = (image.isNotEmpty)
+        ? "${Global.imageUrl}$image"
+        : ""; // means no image
+
     return GestureDetector(
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 🖼️ Full Image Container
           Container(
             height: 170.h,
             width: double.infinity,
@@ -40,13 +44,17 @@ class CategoryTile extends StatelessWidget {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: Image.network(
-                      image ??
-                          'https://www.freeiconspng.com/uploads/no-image-icon-4.png',
-                      fit: BoxFit.cover,
-                    ),
+                    child: finalImageUrl.isEmpty
+                        ? buildPlaceholder() 
+                        : Image.network(
+                            finalImageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                buildPlaceholder(),
+                          ),
                   ),
-                  // gradient overlay for effect
+
+                  // gradient overlay
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
@@ -68,6 +76,8 @@ class CategoryTile extends StatelessWidget {
           ),
 
           SizedBox(height: 10.h),
+
+          // Name container
           Container(
             padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 12.w),
             decoration: BoxDecoration(
@@ -96,6 +106,20 @@ class CategoryTile extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// 🟦 PROFESSIONAL Placeholder Widget
+  Widget buildPlaceholder() {
+    return Container(
+      color: Colors.grey.shade200,
+      child: Center(
+        child: Icon(
+          Icons.image_not_supported_outlined,
+          size: 48,
+          color: Colors.grey.shade500,
+        ),
       ),
     );
   }

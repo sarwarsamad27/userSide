@@ -1,92 +1,58 @@
 import 'package:flutter/material.dart';
-import 'package:user_side/models/cart_manager.dart';
+import 'package:provider/provider.dart';
+import 'package:user_side/resources/toast.dart';
+import 'package:user_side/viewModel/provider/favouriteProvider/addToFavourite_provider.dart';
 import 'package:user_side/widgets/customButton.dart';
 
 class AddToCart extends StatelessWidget {
-  final List<String> imageUrls;
-  final String name;
-  final String description;
-  final String price;
-  final String brandName;
-   AddToCart({super.key,
-   required this.imageUrls,
-    required this.name,
-    required this.description,
-    required this.price,
-    required this.brandName,
+  final String productId;
+  final List<String> selectedSizes;
+  final List<String> selectedColors;
+
+  AddToCart({
+    super.key,
+    required this.selectedColors,
+    required this.selectedSizes,
+    required this.productId,
   });
-  List<String> selectedColors = [];
-  List<String> selectedSizes = [];
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-                    child: CustomButton(
-                      text: "Add to Cart",
-                      onTap: () {
-                        final selectedColor = selectedColors.isNotEmpty
-                            ? selectedColors.first
-                            : null;
-                        final selectedSize = selectedSizes.isNotEmpty
-                            ? selectedSizes.first
-                            : null;
+      child: Consumer<AddToFavouriteProvider>(
+        builder: (context, provider, _) => CustomButton(
+          second: true,
+          text: provider.loading ? "Adding..." : "Add to Favourite",
+          onTap: () async {
+            if (selectedColors.isEmpty || selectedSizes.isEmpty) {
+              AppToast.warning("Please select both color and size");
+              return;
+            }
 
-                        if (selectedColor == null || selectedSize == null) {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text("Select Options"),
-                              content: const Text(
-                                "Please select both color and size first.",
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text("OK"),
-                                ),
-                              ],
-                            ),
-                          );
-                          return;
-                        }
+            await provider.addToFavourite(
+              productId: productId,
+              selectedSizes: selectedSizes,
+              selectedColors: selectedColors,
+            );
 
-                        final alreadyExists = CartManager.items.any(
-                          (item) =>
-                              item.name == name &&
-                              item.colors == selectedColors &&
-                              item.sizes == selectedSizes,
-                        );
+            final response = provider.favouriteResponse;
 
-                        if (alreadyExists) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                "This product is already in favourite list",
-                              ),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                          return;
-                        }
+            if (response == null) {
+              AppToast.error("Something went wrong");
+              return;
+            }
 
-                        CartManager.addToCart(
-                          CartItem(
-                            name: name,
-                            imageUrl: imageUrls.first,
-                            price: price,
-                            colors: selectedColors,
-                            sizes: selectedSizes,
-                          ),
-                        );
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Product added to favourites!"),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                    ),
-                  );
+            /// ⭐ Handle backend messages properly
+            if (response.success == true) {
+              AppToast.success(
+                response.message ?? "Added to favourite successfully",
+              );
+            } else {
+              AppToast.error(response.message ?? "Failed to add to favourite");
+            }
+          },
+        ),
+      ),
+    );
   }
 }
