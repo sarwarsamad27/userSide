@@ -14,17 +14,19 @@ class AllProducts extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      padding: EdgeInsets.symmetric(horizontal: 8.w),
       sliver: Consumer<GetAllProductProvider>(
         builder: (context, provider, child) {
           final products = provider.filteredProducts;
 
           if (provider.loading && products.isEmpty) {
-            return  SliverToBoxAdapter(
-              child: Center(child:SpinKitThreeBounce(
-                          color: AppColor.primaryColor, 
-                          size: 30.0,
-                        ),),
+            return SliverToBoxAdapter(
+              child: Center(
+                child: SpinKitThreeBounce(
+                  color: AppColor.primaryColor,
+                  size: 30.0,
+                ),
+              ),
             );
           }
 
@@ -37,8 +39,8 @@ class AllProducts extends StatelessWidget {
 
               final product = products[index];
 
-              final imageUrl = (product.images != null &&
-                      product.images!.isNotEmpty)
+              final imageUrl =
+                  (product.images != null && product.images!.isNotEmpty)
                   ? product.images!.first
                   : ''; // empty instead of placeholder
 
@@ -57,8 +59,8 @@ class AllProducts extends StatelessWidget {
                 },
                 imageUrl: imageUrl.isNotEmpty
                     ? (imageUrl.startsWith('http')
-                        ? Global.imageUrl + imageUrl
-                        : imageUrl)
+                          ? Global.imageUrl + imageUrl
+                          : imageUrl)
                     : '', // pass empty to show icon in ProductCard
                 price: "${product.afterDiscountPrice ?? 0}",
                 name: product.name ?? "",

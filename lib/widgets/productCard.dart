@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
 
@@ -7,25 +8,26 @@ class ProductCard extends StatelessWidget {
   final String name;
   final String price;
   final String imageUrl;
-  final String? description;
-
   final VoidCallback? onTap;
+  final String description;
 
-  final String? discountText;
-  final String? saveText;
+  /// 👇 Optional badges
+  final String? discountText; // e.g. "20% OFF"
+  final String? saveText; // e.g. "Save Rs.100"
 
-  final String? originalPrice;
+  /// 👇 Optional original price (cut wali)
+  final String? originalPrice; // e.g. "Rs. 2000"
 
   const ProductCard({
     Key? key,
     required this.name,
     required this.price,
-    this.description,
     required this.imageUrl,
     this.onTap,
     this.discountText,
     this.saveText,
     this.originalPrice,
+    required this.description,
   }) : super(key: key);
 
   @override
@@ -33,8 +35,8 @@ class ProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 150.w,
-        margin: EdgeInsets.only(bottom: 16.h),
+        width: 150.w, // ✅ fixed responsive width for horizontal scroll
+        margin: EdgeInsets.only(bottom: 8.h),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16.r),
@@ -49,6 +51,7 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ---------- Product Image + Badges ----------
             Stack(
               children: [
                 ClipRRect(
@@ -59,38 +62,27 @@ class ProductCard extends StatelessWidget {
                   child: SizedBox(
                     height: 140.h,
                     width: double.infinity,
-                    child: imageUrl.isNotEmpty
-                        ? Image.network(
-                            imageUrl.startsWith('http')
-                                ? imageUrl
-                                : Global.imageUrl + imageUrl,
-                            fit: BoxFit.cover,
-                            loadingBuilder: (context, child, progress) {
-                              if (progress == null) return child;
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
-                                  color: Colors.grey[200],
-                                  alignment: Alignment.center,
-                                  child: const Icon(
-                                    Icons.image_not_supported,
-                                    color: Colors.grey,
-                                    size: 40,
-                                  ),
-                                ),
-                          )
-                        : Container(
-                            color: Colors.grey[200],
-                            alignment: Alignment.center,
-                            child: const Icon(
-                              Icons.image_not_supported,
-                              color: Colors.grey,
-                              size: 40,
-                            ),
+                    child: Image.network(
+                      Global.imageUrl + imageUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return Center(
+                          child: SpinKitThreeBounce(
+                            color: AppColor.primaryColor,
+                            size: 30.0,
                           ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Colors.grey[200],
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.broken_image,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
 
@@ -118,6 +110,7 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
 
+                /// 👇 Save Badge
                 if (saveText != null)
                   Positioned(
                     top: 8.h,
@@ -144,6 +137,7 @@ class ProductCard extends StatelessWidget {
               ],
             ),
 
+            // ---------- Product Info ----------
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
               child: Column(
@@ -161,44 +155,45 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 6.h),
+                  Text(
+                    description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 11.sp, color: Colors.grey[600]),
+                  ),
+                  SizedBox(height: 4.h),
 
+                  // ---------- Price Row ----------
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
+                          /// Current Price
                           Text(
-                            "Rs: $price",
+                            "Rs. $price",
                             style: TextStyle(
                               fontSize: 12.sp,
                               fontWeight: FontWeight.bold,
-                              color: AppColor.primaryColor,
+                              color: AppColor.appimagecolor,
                             ),
                           ),
 
+                          /// 👇 Original Price (Cut Wali)
                           if (originalPrice != null) ...[
-                            SizedBox(width: 5.w),
+                            SizedBox(width: 4.w),
                             Text(
                               originalPrice!,
                               style: TextStyle(
-                                fontSize: 12.sp,
-                                color: Colors.grey.shade600,
+                                fontSize: 11.sp,
+                                color: Colors.grey,
                                 decoration: TextDecoration.lineThrough,
-                                decorationThickness: 2,
-                                decorationColor: Colors.redAccent,
-                                height: 1.2,
                               ),
                             ),
                           ],
                         ],
                       ),
                     ],
-                  ),
-                  Text(
-                    description ?? "",
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 14, color: Colors.black87),
                   ),
                 ],
               ),

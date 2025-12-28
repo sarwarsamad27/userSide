@@ -23,7 +23,7 @@ class TermsConditionScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColor.primaryColor,
         elevation: 0,
         centerTitle: true,
         title: Text(

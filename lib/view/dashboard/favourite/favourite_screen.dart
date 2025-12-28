@@ -76,7 +76,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: AppColor.appimagecolor,
       ),
       body: CustomBgContainer(
         child: Consumer<FavouriteProvider>(
@@ -366,6 +366,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
                           );
                         },
                       ),
+                      SizedBox(height: 80.h),
                     ],
                   ),
                 ),

@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:user_side/models/GetProfileAndProductModel/getSingleProduct_model.dart'
-    hide UserId;
-
-import 'package:user_side/models/ProductAndCategoryModel/editReview_model.dart';
+import 'package:user_side/models/GetProfileAndProductModel/getSingleProduct_model.dart';
 import 'package:user_side/resources/appColor.dart';
-import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/review/deleteButton.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/review/editDialogBox.dart';
+import 'package:user_side/models/ProductAndCategoryModel/editReview_model.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getSingleProduct_provider.dart';
-import 'package:user_side/viewModel/provider/productProvider/createReview_provider.dart';
-import 'package:user_side/widgets/customButton.dart';
-import 'package:user_side/widgets/customTextFeld.dart';
 
 class Review extends StatefulWidget {
   final String productId;
@@ -26,13 +20,54 @@ class Review extends StatefulWidget {
 
 class _ReviewState extends State<Review> {
   bool showAllReviews = false;
-  int selectedRating = 0;
-  final TextEditingController reviewController = TextEditingController();
   Map<String, bool> showEditDelete =
       {}; // Track temporary edit/delete for each review
 
+  // NEW: Track view/hide reply per review
+  final Map<String, bool> showReply = {};
+
+  String _monthName(int month) {
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return months[month - 1];
+  }
+
+  String _formatTime(DateTime date) {
+    int hour = date.hour;
+    String period = hour >= 12 ? "PM" : "AM";
+    hour = hour % 12;
+    if (hour == 0) hour = 12;
+    String minute = date.minute.toString().padLeft(2, '0');
+    return "$hour:$minute $period";
+  }
+
+  String formatDate(String isoDate) {
+    try {
+      final date = DateTime.parse(isoDate).toLocal();
+      return "${date.day.toString().padLeft(2, '0')} "
+          "${_monthName(date.month)} "
+          "${date.year} - ${_formatTime(date)}";
+    } catch (e) {
+      return isoDate;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<GetSingleProductProvider>();
+    final data = provider.productData!;
     List<Reviews> apiReviews = widget.reviews;
 
     return GestureDetector(
@@ -41,125 +76,6 @@ class _ReviewState extends State<Review> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// ADD REVIEW SECTION
-          Text(
-            "Add Your Review",
-            style: TextStyle(
-              fontSize: 16.sp,
-              color: AppColor.primaryColor,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          SizedBox(height: 10.h),
-
-          Row(
-            children: List.generate(5, (index) {
-              return GestureDetector(
-                onTap: () {
-                  setState(() => selectedRating = index + 1);
-                },
-                child: Icon(
-                  Icons.star,
-                  size: 26.sp,
-                  color: index < selectedRating
-                      ? AppColor.primaryColor
-                      : Colors.grey.shade400,
-                ),
-              );
-            }),
-          ),
-
-          CustomTextField(
-            height: 100.h,
-            controller: reviewController,
-            hintText: "Write your review...",
-          ),
-
-          SizedBox(height: 10.h),
-
-          Align(
-            alignment: Alignment.centerRight,
-            child: CustomButton(
-              text: "Submit Review",
-              onTap: () async {
-                if (selectedRating == 0 || reviewController.text.trim().isEmpty)
-                  return;
-
-                final userId = await LocalStorage.getUserId();
-
-                final reviewProvider = Provider.of<CreateReviewProvider>(
-                  context,
-                  listen: false,
-                );
-
-                await reviewProvider.createReview(
-                  productId: widget.productId,
-                  userId: userId.toString(),
-                  stars: selectedRating.toString(),
-                  text: reviewController.text.trim(),
-                );
-
-                if (reviewProvider.reviewResponse?.success == true) {
-                  final getProductProvider =
-                      Provider.of<GetSingleProductProvider>(
-                        context,
-                        listen: false,
-                      );
-
-                  // ⭐ Safely get email
-                  final dynamic userMap =
-                      reviewProvider.reviewResponse?.review?.userId;
-                  String userEmail = "User";
-
-                  if (userMap != null) {
-                    if (userMap is UserId) {
-                      userEmail = userMap.email ?? "User";
-                    } else if (userMap is Map) {
-                      userEmail =
-                          userMap['email']?.toString() ??
-                          userMap['userEmail']?.toString() ??
-                          "User";
-                    } else if (userMap is String) {
-                      userEmail = userMap;
-                    } else {
-                      try {
-                        final emailValue = (userMap as dynamic).email;
-                        if (emailValue != null)
-                          userEmail = emailValue.toString();
-                      } catch (_) {}
-                    }
-                  }
-                  final realReviewId =
-                      reviewProvider.reviewResponse?.review?.sId ?? "";
-                  Reviews newReview = Reviews(
-                    sId: realReviewId,
-                    userEmail: userEmail.contains("@")
-                        ? userEmail.split("@").first
-                        : userEmail,
-                    stars: selectedRating,
-                    text: reviewController.text.trim(),
-                  );
-
-                  // ⭐ Insert into provider (auto UI refresh)
-                  getProductProvider.addNewReview(newReview);
-
-                  // ⭐ Show temporary edit/delete
-                  showTemporaryEditDelete(
-                    newReview.sId ?? DateTime.now().toString(),
-                  );
-
-                  // Clear fields
-                  setState(() {
-                    selectedRating = 0;
-                    reviewController.clear();
-                  });
-                }
-              },
-            ),
-          ),
-
-          SizedBox(height: 20.h),
-
           Text(
             "Customer Reviews",
             style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700),
@@ -182,8 +98,11 @@ class _ReviewState extends State<Review> {
                         : (apiReviews.length > 3 ? 3 : apiReviews.length),
                     (index) {
                       final r = apiReviews[index];
-
                       bool canEditDelete = showEditDelete[r.sId] ?? false;
+
+                      // NEW: reply visible state (default false)
+                      final bool isReplyVisible =
+                          showReply[r.sId ?? ""] ?? false;
 
                       return Container(
                         margin: EdgeInsets.only(bottom: 12.h),
@@ -191,7 +110,7 @@ class _ReviewState extends State<Review> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12.r),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
                               color: Colors.black12,
                               blurRadius: 4,
@@ -233,6 +152,7 @@ class _ReviewState extends State<Review> {
 
                             SizedBox(height: 6.h),
 
+                            /// REVIEW TEXT
                             Text(
                               r.text ?? "",
                               style: TextStyle(
@@ -241,6 +161,20 @@ class _ReviewState extends State<Review> {
                               ),
                             ),
 
+                            // NOTE: (Your existing condition kept as-is)
+                            if (r.repliedAt != null)
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: Text(
+                                  formatDate(r.createdAt!),
+                                  style: TextStyle(
+                                    fontSize: 11.sp,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+
+                            /// EDIT/DELETE BUTTONS (if allowed)
                             if (canEditDelete || r.userEmail == "StaticUser")
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
@@ -262,8 +196,7 @@ class _ReviewState extends State<Review> {
                                         },
                                       );
                                     },
-
-                                    child: Text("Edit"),
+                                    child: const Text("Edit"),
                                   ),
                                   TextButton(
                                     onPressed: () {
@@ -275,10 +208,95 @@ class _ReviewState extends State<Review> {
                                         });
                                       });
                                     },
-
-                                    child: Text("Delete"),
+                                    child: const Text("Delete"),
                                   ),
                                 ],
+                              ),
+
+                            /// VIEW REPLY (button only) - reply hidden by default
+                            if (r.replyText != null && r.replyText!.isNotEmpty)
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      final key = r.sId ?? "";
+                                      showReply[key] =
+                                          !(showReply[key] ?? false);
+                                    });
+                                  },
+                                  child: Text(
+                                    isReplyVisible
+                                        ? "Hide Reply"
+                                        : "View Reply",
+                                    style: TextStyle(
+                                      color: AppColor.primaryColor,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13.sp,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                            /// ⭐ SELLER REPLY (only when view reply clicked)
+                            if ((r.replyText != null &&
+                                    r.replyText!.isNotEmpty) &&
+                                isReplyVisible)
+                              Container(
+                                margin: EdgeInsets.only(top: 10.h),
+                                padding: EdgeInsets.all(10.w),
+                                decoration: BoxDecoration(
+                                  color: AppColor.primaryColor.withOpacity(
+                                    0.05,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10.r),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      Icons.reply,
+                                      color: AppColor.primaryColor,
+                                      size: 18.sp,
+                                    ),
+                                    SizedBox(width: 8.w),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            data.profileName ?? "Seller",
+                                            style: TextStyle(
+                                              color: AppColor.primaryColor,
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 13.sp,
+                                            ),
+                                          ),
+                                          SizedBox(height: 4.h),
+                                          Text(
+                                            r.replyText ?? "",
+                                            style: TextStyle(
+                                              fontSize: 13.sp,
+                                              color: Colors.grey[800],
+                                            ),
+                                          ),
+                                          if (r.repliedAt != null)
+                                            Align(
+                                              alignment: Alignment.bottomRight,
+                                              child: Text(
+                                                formatDate(r.repliedAt!),
+                                                style: TextStyle(
+                                                  fontSize: 11.sp,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                           ],
                         ),
@@ -287,6 +305,7 @@ class _ReviewState extends State<Review> {
                   ),
                 ),
 
+          /// SEE MORE / LESS
           if (apiReviews.length > 3)
             GestureDetector(
               onTap: () => setState(() => showAllReviews = !showAllReviews),
@@ -313,7 +332,7 @@ class _ReviewState extends State<Review> {
       showEditDelete[reviewId] = true;
     });
 
-    Future.delayed(Duration(minutes: 5), () {
+    Future.delayed(const Duration(minutes: 5), () {
       setState(() {
         showEditDelete[reviewId] = false;
       });

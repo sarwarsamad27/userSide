@@ -1,20 +1,32 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 class LocalStorage {
+  static const String _deviceKey = "deviceId";
+
+  /// -------- DEVICE ID (GUEST + LOGIN BOTH) --------
+  static Future<String> getOrCreateDeviceId() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    String? deviceId = prefs.getString(_deviceKey);
+
+    if (deviceId == null) {
+      deviceId = const Uuid().v4();
+      await prefs.setString(_deviceKey, deviceId);
+    }
+
+    return deviceId;
+  }
+
   /// -------------------- TOKEN --------------------
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("token", token);
   }
 
-  static Future<String?>   getToken() async {
+  static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString("token");
-  }
-
-  static Future<void> clearToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove("token");
   }
 
   /// -------------------- USER ID --------------------
@@ -26,11 +38,6 @@ class LocalStorage {
   static Future<String?> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString("userId");
-  }
-
-  static Future<void> clearUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove("userId");
   }
 
   /// -------------------- CLEAR ALL --------------------

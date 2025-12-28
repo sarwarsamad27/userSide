@@ -64,7 +64,6 @@ class Product {
   List<String>? images;
   int? beforeDiscountPrice;
   int? afterDiscountPrice;
-  int? discountPercentage;
   List<String>? size;
   List<String>? color;
   int? stock;
@@ -81,7 +80,6 @@ class Product {
     this.images,
     this.beforeDiscountPrice,
     this.afterDiscountPrice,
-    this.discountPercentage,
     this.size,
     this.color,
     this.stock,
@@ -99,7 +97,6 @@ class Product {
     images = json['images'].cast<String>();
     beforeDiscountPrice = json['beforeDiscountPrice'];
     afterDiscountPrice = json['afterDiscountPrice'];
-    discountPercentage = json['discountPercentage'];
     size = json['size'].cast<String>();
     color = json['color'].cast<String>();
     stock = json['stock'];
@@ -118,7 +115,6 @@ class Product {
     data['images'] = this.images;
     data['beforeDiscountPrice'] = this.beforeDiscountPrice;
     data['afterDiscountPrice'] = this.afterDiscountPrice;
-    data['discountPercentage'] = this.discountPercentage;
     data['size'] = this.size;
     data['color'] = this.color;
     data['stock'] = this.stock;
@@ -131,77 +127,50 @@ class Product {
 
 class Reviews {
   String? sId;
-  String? productId;
-  UserId? userId;
   int? stars;
   String? text;
-  String? createdAt;
-  String? updatedAt;
-  int? iV;
   String? userEmail;
   String? avatar;
+  String? replyText;
+  String? repliedAt;
+  String? createdAt;
+  String? updatedAt;
 
   Reviews({
     this.sId,
-    this.productId,
-    this.userId,
     this.stars,
     this.text,
-    this.createdAt,
-    this.updatedAt,
-    this.iV,
     this.userEmail,
     this.avatar,
+    this.replyText,
+    this.repliedAt,
+    this.createdAt,
+    this.updatedAt,
   });
 
   Reviews.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
-    productId = json['productId'];
-    userId = json['userId'] != null
-        ? new UserId.fromJson(json['userId'])
-        : null;
     stars = json['stars'];
     text = json['text'];
-    createdAt = json['createdAt'];
-    updatedAt = json['updatedAt'];
-    iV = json['__v'];
     userEmail = json['userEmail'];
     avatar = json['avatar'];
+    replyText = json['replyText'];
+    repliedAt = json['repliedAt'];
+    createdAt = json['createdAt'];
+    updatedAt = json['updatedAt'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['_id'] = this.sId;
-    data['productId'] = this.productId;
-    if (this.userId != null) {
-      data['userId'] = this.userId!.toJson();
-    }
     data['stars'] = this.stars;
     data['text'] = this.text;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
     data['userEmail'] = this.userEmail;
     data['avatar'] = this.avatar;
-    return data;
-  }
-}
-
-class UserId {
-  String? sId;
-  String? email;
-
-  UserId({this.sId, this.email});
-
-  UserId.fromJson(Map<String, dynamic> json) {
-    sId = json['_id'];
-    email = json['email'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['email'] = this.email;
+    data['replyText'] = this.replyText;
+    data['repliedAt'] = this.repliedAt;
+    data['createdAt'] = this.createdAt;
+    data['updatedAt'] = this.updatedAt;
     return data;
   }
 }

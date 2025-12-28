@@ -1,0 +1,333 @@
+import 'dart:developer';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import 'package:user_side/models/GetProfileAndProductModel/getSingleProduct_model.dart';
+import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/resources/global.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfileScreen.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/productImage.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/review/review.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/widgets/premiumSurface.dart';
+import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getSingleProduct_provider.dart';
+import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/productDetailUI_provider.dart';
+
+class ProductMainCard extends StatelessWidget {
+  final GetSingleProductModel data;
+
+  const ProductMainCard({super.key, required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final product = data.product!;
+    log(data.profileImage.toString());
+
+    final before = product.beforeDiscountPrice ?? 0;
+    final after = product.afterDiscountPrice ?? 0;
+
+    int discountPercent = 0;
+    if (before > 0 && after > 0 && before > after) {
+      discountPercent = (((before - after) / before) * 100).round();
+    }
+
+    String getValidImageUrl(String? url) {
+      if (url == null) return '';
+      if (url.startsWith('http')) return url;
+      return Global.imageUrl + url;
+    }
+
+    return Column(
+      children: [
+        Consumer<ProductDetailUiProvider>(
+          builder: (_, ui, __) {
+            return ProductImage(
+              imageUrls: product.images ?? [],
+              onImageChange: (index) {
+                ui.onImageChange(index);
+              },
+            );
+          },
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 12.h),
+          child: PremiumSurface(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ───────────── Image (unchanged) ─────────────
+                SizedBox(height: 12.h),
+
+                // ───────── Brand/Company row ─────────
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CompanyProfileScreen(
+                          companyName: data.profileName ?? "",
+                          logoUrl: Global.imageUrl + (data.profileImage ?? ""),
+                          profileId: data.product!.profileId ?? "",
+                          categoryId: data.product!.categoryId ?? "",
+                          description: data.profileDescription ?? "",
+                          phoneNumber: data.profilephoneNumber ?? "",
+                          email: data.profileEmail ?? "",
+                        ),
+                      ),
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(2.w),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColor.primaryColor.withOpacity(0.9),
+                              AppColor.primaryColor.withOpacity(0.35),
+                            ],
+                          ),
+                        ),
+                        child: Container(
+                          padding: EdgeInsets.all(2.w),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                          ),
+                          child: CircleAvatar(
+                            radius: 22.r,
+                            backgroundColor: const Color(0xFFF3F4F6),
+                            backgroundImage: data.profileImage != null
+                                ? NetworkImage(
+                                    getValidImageUrl(data.profileImage),
+                                  )
+                                : null,
+                            child: data.profileImage == null
+                                ? Icon(
+                                    Icons.storefront_outlined,
+                                    color: const Color(0xFF6B7280),
+                                    size: 20.sp,
+                                  )
+                                : null,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              data.profileName ?? "",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: const Color(0xFF111827),
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            SizedBox(height: 2.h),
+                            Text(
+                              "View brand profile",
+                              style: TextStyle(
+                                color: const Color(0xFF6B7280),
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.w,
+                          vertical: 7.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F4F6),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: const Color(0xFFE5E7EB)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.verified_outlined,
+                              size: 14.sp,
+                              color: AppColor.primaryColor,
+                            ),
+                            SizedBox(width: 6.w),
+                            Text(
+                              "Brand",
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF111827),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(height: 16.h),
+                const DividerLine(),
+                SizedBox(height: 16.h),
+
+                // ───────── Product name ─────────
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      product.name ?? "",
+                      style: TextStyle(
+                        color: const Color(0xFF111827),
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.w900,
+                        height: 1.15,
+                      ),
+                    ),
+                    Container(
+                      height: 30.h,
+                      width: 70.w,
+                      decoration: BoxDecoration(
+                        color: product.stock != null && product.stock! > 0
+                            ? Colors.green
+                            : Colors.red,
+                        borderRadius: BorderRadius.circular(20.r),
+                      ),
+                      child: Center(
+                        child: Text(
+                          product.stock != null && product.stock! > 0
+                              ? " In Stock"
+                              : " Out of Stock",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 10.h),
+
+                // ───────── Price + discount badge ─────────
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Rs: ${product.afterDiscountPrice ?? 0}",
+                      style: TextStyle(
+                        color: const Color(0xFF0F172A),
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
+                    if ((product.beforeDiscountPrice ?? 0) > 0)
+                      Text(
+                        "Rs: ${product.beforeDiscountPrice ?? 0}",
+                        style: TextStyle(
+                          color: const Color(0xFF9CA3AF),
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w700,
+                          decoration: TextDecoration.lineThrough,
+                          decorationThickness: 2,
+                        ),
+                      ),
+                    const Spacer(),
+                    if (discountPercent > 0) const SizedBox.shrink(),
+                    if (discountPercent > 0)
+                      PillBadge(
+                        text: "$discountPercent% OFF",
+                        background: const Color(0xFF16A34A),
+                        border: const Color(0xFFDCFCE7),
+                      ),
+                  ],
+                ),
+
+                SizedBox(height: 16.h),
+
+                // ───────── Description ─────────
+                const SectionHeader(title: "Description"),
+                SizedBox(height: 8.h),
+                Text(
+                  product.description ?? "",
+                  style: TextStyle(
+                    color: const Color(0xFF4B5563),
+                    height: 1.55,
+                    fontSize: 13.5.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+
+                SizedBox(height: 18.h),
+                const DividerLine(),
+                SizedBox(height: 16.h),
+
+                // ───────── Colors ─────────
+                const SectionHeader(title: "Select Color"),
+                SizedBox(height: 10.h),
+                Consumer<ProductDetailUiProvider>(
+                  builder: (_, ui, __) {
+                    return Wrap(
+                      spacing: 10.w,
+                      runSpacing: 10.h,
+                      children: (product.color ?? []).map((color) {
+                        final selected = ui.selectedColors.contains(color);
+                        return ChoicePill(
+                          text: color,
+                          selected: selected,
+                          onTap: () => ui.toggleColor(color),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+
+                SizedBox(height: 18.h),
+
+                // ───────── Sizes ─────────
+                const SectionHeader(title: "Select Size"),
+                SizedBox(height: 10.h),
+                Consumer<ProductDetailUiProvider>(
+                  builder: (_, ui, __) {
+                    return Wrap(
+                      spacing: 10.w,
+                      runSpacing: 10.h,
+                      children: (product.size ?? []).map((size) {
+                        final selected = ui.selectedSizes.contains(size);
+                        return ChoicePill(
+                          text: size,
+                          selected: selected,
+                          onTap: () => ui.toggleSize(size),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+
+                SizedBox(height: 18.h),
+
+                // ───────── Reviews (unchanged call) ─────────
+                Consumer<GetSingleProductProvider>(
+                  builder: (_, provider, __) {
+                    return Review(
+                      productId: product.sId ?? '',
+                      reviews: provider.productData?.reviews ?? [],
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

@@ -50,12 +50,14 @@ class _CategoryWiseProductsWidgetState
     return Consumer<GetCategoryWiseProductProvider>(
       builder: (context, provider, child) {
         if (provider.loading) {
-          return  Padding(
+          return Padding(
             padding: EdgeInsets.all(20),
-            child: Center(child: SpinKitThreeBounce(
-                          color: AppColor.primaryColor, 
-                          size: 30.0,
-                        ),),
+            child: Center(
+              child: SpinKitThreeBounce(
+                color: AppColor.primaryColor,
+                size: 30.0,
+              ),
+            ),
           );
         }
 
@@ -93,8 +95,8 @@ class _CategoryWiseProductsWidgetState
             // Agar image nahi hai to empty string pass karenge
             final imageUrl =
                 (product.images != null && product.images!.isNotEmpty)
-                    ? Global.imageUrl + product.images!.first
-                    : '';
+                ? product.images!.first
+                : '';
 
             return ProductCard(
               onTap: () {
@@ -109,7 +111,8 @@ class _CategoryWiseProductsWidgetState
                   ),
                 );
               },
-              imageUrl: imageUrl, // ProductCard me empty string ke liye icon show hoga
+              imageUrl:
+                  imageUrl, // ProductCard me empty string ke liye icon show hoga
               price: "${product.afterDiscountPrice ?? 0}",
               name: product.name ?? "",
               description: product.description ?? "",

@@ -36,6 +36,11 @@ class _CompanyHomeScreenState extends State<HomeNavBarScreen> {
       designSize: const Size(390, 844),
       builder: (context, child) {
         return Scaffold(
+          extendBody: _currentIndex == 3
+              ? true
+              : _currentIndex == 2
+              ? true
+              : false,
           backgroundColor: Color(0xFFF9FAFB),
           body: screens[_currentIndex],
 

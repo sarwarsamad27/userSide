@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/view/dashboard/profile/order/orderHistoryDetail.dart';
+import 'package:user_side/view/dashboard/profile/order/reviewScreen.dart';
 import 'package:user_side/viewModel/provider/orderProvider/getMyOrder_provider.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 
@@ -50,7 +52,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColor.appimagecolor,
         elevation: 0,
         centerTitle: true,
         title: Text(
@@ -62,11 +64,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           ),
         ),
       ),
-
       body: CustomBgContainer(
         child: Consumer<GetMyOrderProvider>(
           builder: (context, provider, child) {
-            // initial loading
+            /// INITIAL LOADING
             if (provider.isLoading && provider.orderList.isEmpty) {
               return const Center(
                 child: SpinKitThreeBounce(
@@ -76,7 +77,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               );
             }
 
-            // no data
+            /// NO DATA
             if (provider.orderList.isEmpty) {
               return const Center(child: Text("No orders found"));
             }
@@ -89,23 +90,22 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     provider.orderList.length +
                     (provider.isMoreLoading ? 1 : 0),
                 separatorBuilder: (_, __) => SizedBox(height: 12.h),
-
                 itemBuilder: (context, index) {
                   /// PAGINATION LOADER
                   if (index == provider.orderList.length) {
-                    return Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                      child: Center(
-                        child: SpinKitThreeBounce(
-                          color: AppColor.whiteColor,
-                          size: 30.0,
-                        ),
+                    return const Center(
+                      child: SpinKitThreeBounce(
+                        color: AppColor.whiteColor,
+                        size: 30.0,
                       ),
                     );
                   }
 
                   final order = provider.orderList[index];
                   final product = order.product;
+
+                  final bool isReturned = order.status == "Returned";
+                  final bool isDelivered = order.status == "Delivered";
 
                   return Container(
                     padding: EdgeInsets.all(12.w),
@@ -121,17 +121,25 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     ),
                     child: Row(
                       children: [
-                        /// PRODUCT IMAGE
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10.r),
-                          child: Image.network(
-                            product?.images?.isNotEmpty == true
-                                ? Global.imageUrl + product!.images!.first
-                                : "",
-                            height: 70.h,
-                            width: 70.w,
-                            fit: BoxFit.cover,
-                          ),
+                          child: product?.images?.isNotEmpty == true
+                              ? Image.network(
+                                  Global.imageUrl + product!.images!.first,
+                                  height: 70.h,
+                                  width: 70.w,
+                                  fit: BoxFit.cover,
+                                )
+                              : Container(
+                                  height: 70.h,
+                                  width: 70.w,
+                                  color: Colors.grey[200],
+                                  child: Icon(
+                                    Icons.image_not_supported,
+                                    color: Colors.grey[500],
+                                    size: 30.sp,
+                                  ),
+                                ),
                         ),
 
                         SizedBox(width: 12.w),
@@ -165,6 +173,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
                               SizedBox(height: 6.h),
 
+                              /// STATUS + PRICE
                               Row(
                                 children: [
                                   Container(
@@ -173,13 +182,17 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                       vertical: 4.h,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.green.withOpacity(0.15),
+                                      color: isReturned
+                                          ? Colors.red.withOpacity(0.15)
+                                          : Colors.green.withOpacity(0.15),
                                       borderRadius: BorderRadius.circular(8.r),
                                     ),
                                     child: Text(
-                                      "Delivered",
+                                      order.status ?? "",
                                       style: TextStyle(
-                                        color: Colors.green,
+                                        color: isReturned
+                                            ? Colors.red
+                                            : Colors.green,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 12.sp,
                                       ),
@@ -189,7 +202,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                   const Spacer(),
 
                                   Text(
-                                    "Rs ${order.grandTotal}",
+                                    "Rs ${product!.price}",
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14.sp,
@@ -198,6 +211,35 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                 ],
                               ),
 
+                              /// ADD REVIEW (ONLY DELIVERED)
+                              /// ADD REVIEW (ONLY DELIVERED)
+                              if (isDelivered)
+                                Padding(
+                                  padding: EdgeInsets.only(top: 6.h),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => ReviewScreen(
+                                            productId: product.productId!,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      "Add Review",
+                                      style: TextStyle(
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColor.primaryColor,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                              /// VIEW DETAILS
                               Align(
                                 alignment: Alignment.bottomRight,
                                 child: TextButton.icon(

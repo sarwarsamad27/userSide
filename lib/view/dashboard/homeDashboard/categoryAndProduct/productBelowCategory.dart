@@ -56,10 +56,9 @@ class _ProductBelowCategoryState extends State<ProductBelowCategory> {
     final media = MediaQuery.of(context).size;
 
     if (provider.isLoading) {
-      return  Center(child: SpinKitThreeBounce(
-                          color: AppColor.primaryColor, 
-                          size: 30.0,
-                        ),);
+      return Center(
+        child: SpinKitThreeBounce(color: AppColor.primaryColor, size: 30.0),
+      );
     }
 
     if (provider.data == null ||
@@ -69,7 +68,7 @@ class _ProductBelowCategoryState extends State<ProductBelowCategory> {
     }
 
     return GridView.builder(
-      padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 16.w),
+      padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 12.w),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: provider.data!.products!.length,

@@ -68,80 +68,74 @@ class _ProductScreenState extends State<ProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (_) => GetCategoryWiseProductProvider(),
-        ),
-      ],
-      child: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: Scaffold(
-          body: SafeArea(
-            child: RefreshIndicator(
-              onRefresh: () => _fetchAll(refresh: true),
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: StickyHeaderDelegate(
-                      minHeight: 130.h,
-                      maxHeight: 130.h,
-                      child: Container(
-                        color: Colors.white,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16.w,
-                          vertical: 8.h,
-                        ),
-                        child: SearchbarCategorylist(
-                          onCategorySelected: (category) {
-                            setState(() {
-                              selectedCategory = category;
-                            });
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        body: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: () => _fetchAll(refresh: true),
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: StickyHeaderDelegate(
+                    minHeight: 130.h,
+                    maxHeight: 130.h,
+                    child: Container(
+                      color: Colors.white,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 5.h,
+                      ),
+                      child: SearchbarCategorylist(
+                        onCategorySelected: (category) {
+                          setState(() {
+                            selectedCategory = category;
+                          });
 
-                            if (category != "All") {
-                              final catProvider =
-                                  Provider.of<GetCategoryWiseProductProvider>(
+                          if (category != "All") {
+                            final catProvider =
+                                Provider.of<GetCategoryWiseProductProvider>(
+                                  context,
+                                  listen: false,
+                                );
+                            catProvider.fetchCategoryProducts(
+                              category,
+                              refresh: true,
+                            );
+                          }
+
+                          final allProvider =
+                              Provider.of<GetAllProductProvider>(
                                 context,
                                 listen: false,
                               );
-                              catProvider.fetchCategoryProducts(
-                                  category,
-                                  refresh: true);
-                            }
 
-                            final allProvider =
-                                Provider.of<GetAllProductProvider>(
-                              context,
-                              listen: false,
-                            );
-
-                            if (category == "All") {
-                              allProvider.clearFilter();
-                              allProvider.fetchProducts();
-                            } else {
-                              allProvider.filterByCategory(category);
-                            }
-                          },
-                        ),
+                          if (category == "All") {
+                            allProvider.clearFilter();
+                            allProvider.fetchProducts();
+                          } else {
+                            allProvider.filterByCategory(category);
+                          }
+                        },
                       ),
                     ),
                   ),
+                ),
 
-                  if (selectedCategory == "All") ...[
-                    PopularProductAndCategory(),
-                    AllProducts(),
-                  ],
-
-                  if (selectedCategory != "All")
-                    SliverToBoxAdapter(
-                      child: CategoryWiseProductsWidget(
-                        category: selectedCategory,
-                      ),
-                    ),
+                if (selectedCategory == "All") ...[
+                  PopularProductAndCategory(),
+                  AllProducts(),
                 ],
-              ),
+
+                if (selectedCategory != "All")
+                  SliverToBoxAdapter(
+                    child: CategoryWiseProductsWidget(
+                      category: selectedCategory,
+                    ),
+                  ),
+              ],
             ),
           ),
         ),

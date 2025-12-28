@@ -12,6 +12,7 @@ import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/get
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getAllProfile_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getSingleProduct_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/otherProduct_provider.dart';
+import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/recommendedProduct_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/relatedProduct_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/createOrder_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/getMyOrder_provider.dart';
@@ -55,6 +56,7 @@ class AppMultiProvider extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => OtherProductProvider()),
         ChangeNotifierProvider(create: (_) => GetMyOrderProvider()),
         ChangeNotifierProvider(create: (_) => GetCategoryWiseProductProvider()),
+        ChangeNotifierProvider(create: (_) => RecommendationProvider()),
       ],
       child: child,
     );
