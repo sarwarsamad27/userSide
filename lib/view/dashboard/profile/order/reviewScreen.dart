@@ -5,130 +5,127 @@ import 'package:user_side/models/GetProfileAndProductModel/getSingleProduct_mode
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getSingleProduct_provider.dart';
+import 'package:user_side/viewModel/provider/orderProvider/review_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/createReview_provider.dart';
 import 'package:user_side/widgets/customButton.dart';
 import 'package:user_side/widgets/customTextFeld.dart';
 
-class ReviewScreen extends StatefulWidget {
+class ReviewScreen extends StatelessWidget {
   final String productId;
   const ReviewScreen({super.key, required this.productId});
 
   @override
-  State<ReviewScreen> createState() => _ReviewScreenState();
-}
-
-class _ReviewScreenState extends State<ReviewScreen> {
-  int selectedRating = 0;
-  TextEditingController reviewController = TextEditingController();
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Add Review"),
-        backgroundColor: AppColor.appimagecolor,
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Add Your Review",
-              style: TextStyle(
-                fontSize: 16.sp,
-                color: AppColor.primaryColor,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            SizedBox(height: 10.h),
-
-            // ⭐ Rating Stars
-            Row(
-              children: List.generate(5, (index) {
-                return GestureDetector(
-                  onTap: () {
-                    setState(() => selectedRating = index + 1);
-                  },
-                  child: Icon(
-                    Icons.star,
-                    size: 26.sp,
-                    color: index < selectedRating
-                        ? AppColor.primaryColor
-                        : Colors.grey.shade400,
+    return ChangeNotifierProvider(
+      create: (_) => ReviewFormProvider(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Add Review"),
+          backgroundColor: AppColor.appimagecolor,
+        ),
+        body: Padding(
+          padding: EdgeInsets.all(16.w),
+          child: Consumer3<ReviewFormProvider, CreateReviewProvider, ReviewProvider>(
+            builder: (context, form, reviewProvider, reviewedProvider, child) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Add Your Review",
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      color: AppColor.primaryColor,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                );
-              }),
-            ),
+                  SizedBox(height: 10.h),
 
-            SizedBox(height: 10.h),
+                  /// ⭐ Rating Stars
+                  Row(
+                    children: List.generate(5, (index) {
+                      final starValue = index + 1;
+                      return GestureDetector(
+                        onTap: () => form.setRating(starValue),
+                        child: Icon(
+                          Icons.star,
+                          size: 26.sp,
+                          color: index < form.selectedRating
+                              ? AppColor.primaryColor
+                              : Colors.grey.shade400,
+                        ),
+                      );
+                    }),
+                  ),
 
-            // ⭐ Review Text
-            CustomTextField(
-              height: 100.h,
-              controller: reviewController,
-              hintText: "Write your review...",
-            ),
+                  SizedBox(height: 10.h),
 
-            SizedBox(height: 10.h),
+                  /// ⭐ Review Text
+                  CustomTextField(
+                    height: 100.h,
+                    controller: form.reviewController,
+                    hintText: "Write your review...",
+                  ),
 
-            // ⭐ Submit Button
-            Align(
-              alignment: Alignment.centerRight,
-              child: CustomButton(
-                text: "Submit Review",
-                onTap: () async {
-                  if (selectedRating == 0 || reviewController.text.trim().isEmpty) return;
+                  SizedBox(height: 10.h),
 
-                  final userId = await LocalStorage.getUserId();
+                  /// ⭐ Submit Button
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: CustomButton(
+                      text: "Submit Review",
+                      onTap: () async {
+                        if (!form.canSubmit) return;
 
-                  final reviewProvider = Provider.of<CreateReviewProvider>(
-                    context,
-                    listen: false,
-                  );
+                        final userId = await LocalStorage.getUserId();
 
-                  await reviewProvider.createReview(
-                    productId: widget.productId,
-                    userId: userId.toString(),
-                    stars: selectedRating.toString(),
-                    text: reviewController.text.trim(),
-                  );
+                        await reviewProvider.createReview(
+                          productId: productId,
+                          userId: userId.toString(),
+                          stars: form.selectedRating.toString(),
+                          text: form.trimmedText,
+                        );
 
-                  if (reviewProvider.reviewResponse?.success == true) {
-                    final getProductProvider = Provider.of<GetSingleProductProvider>(
-                      context,
-                      listen: false,
-                    );
+                        if (reviewProvider.reviewResponse?.success == true) {
+                          final getProductProvider =
+                              Provider.of<GetSingleProductProvider>(
+                            context,
+                            listen: false,
+                          );
 
-                    final reviewData = reviewProvider.reviewResponse?.review;
-                    String userEmail = "User";
+                          final reviewData = reviewProvider.reviewResponse?.review;
+                          String userEmail = "User";
 
-                    if (reviewData?.userId != null) {
-                      userEmail = reviewData!.userId!.email ?? "User";
-                    }
+                          if (reviewData?.userId != null) {
+                            userEmail = reviewData!.userId!.email ?? "User";
+                          }
 
-                    Reviews newReview = Reviews(
-                      sId: reviewData?.sId ?? DateTime.now().toString(),
-                      userEmail: userEmail.contains("@") ? userEmail.split("@").first : userEmail,
-                      stars: selectedRating,
-                      text: reviewController.text.trim(),
-                    );
+                          Reviews newReview = Reviews(
+                            sId: reviewData?.sId ?? DateTime.now().toString(),
+                            userEmail: userEmail.contains("@")
+                                ? userEmail.split("@").first
+                                : userEmail,
+                            stars: form.selectedRating,
+                            text: form.trimmedText,
+                          );
 
-                    // Add to provider for immediate UI refresh
-                    getProductProvider.addNewReview(newReview);
+                          /// Add to provider for immediate UI refresh
+                          getProductProvider.addNewReview(newReview);
 
-                    // Clear fields
-                    setState(() {
-                      selectedRating = 0;
-                      reviewController.clear();
-                    });
+                          /// Mark reviewed in SharedPreferences (and provider memory)
+                          await reviewedProvider.markReviewed(productId);
 
-                    Navigator.pop(context); // Close screen after submission
-                  }
-                },
-              ),
-            ),
-          ],
+                          /// Clear fields
+                          form.reset();
+
+                          Navigator.pop(context, true);
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

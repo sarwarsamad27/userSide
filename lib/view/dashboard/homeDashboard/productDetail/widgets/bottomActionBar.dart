@@ -12,6 +12,11 @@ class BottomActionBar extends StatelessWidget {
   final String description;
   final String price;
   final String brandName;
+  final String stockStatus;
+
+  /// 🔥 NEW (API based flags)
+  final bool productHasColors;
+  final bool productHasSizes;
 
   const BottomActionBar({
     super.key,
@@ -21,6 +26,9 @@ class BottomActionBar extends StatelessWidget {
     required this.description,
     required this.price,
     required this.brandName,
+    required this.productHasColors,
+    required this.productHasSizes,
+    required this.stockStatus,
   });
 
   @override
@@ -33,32 +41,28 @@ class BottomActionBar extends StatelessWidget {
           right: 0,
           child: Container(
             padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 12.h),
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(22.r),
-                topRight: Radius.circular(22.r),
-              ),
-            ),
+            decoration: BoxDecoration(color: Colors.transparent),
             child: Row(
               children: [
                 AddToCart(
+                  productId: productId,
                   selectedColors: ui.selectedColors,
                   selectedSizes: ui.selectedSizes,
-                  productId: productId,
+                  productHasColors: productHasColors,
+                  productHasSizes: productHasSizes,
+                   stockStatus: stockStatus, 
                 ),
                 SizedBox(width: 12.w),
                 BuyNowButton(
-                  imageUrls: imageUrls,
+                  productId: productId,
                   name: name,
-                  description: description,
                   price: price,
-                  brandName: brandName,
+                  selectedImage: ui.currentImage,
                   selectedColors: ui.selectedColors,
                   selectedSizes: ui.selectedSizes,
-                  selectedImage: ui.currentImage,
-                  productId: productId,
+                  productHasColors: productHasColors,
+                  productHasSizes: productHasSizes,
+                  stockStatus: stockStatus,
                 ),
               ],
             ),

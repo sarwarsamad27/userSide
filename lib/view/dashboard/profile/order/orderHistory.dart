@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
-import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/view/dashboard/profile/order/orderHistoryDetail.dart';
 import 'package:user_side/view/dashboard/profile/order/reviewScreen.dart';
 import 'package:user_side/viewModel/provider/orderProvider/getMyOrder_provider.dart';
@@ -37,6 +36,12 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         provider.fetchMyOrders();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   String formatDate(String date) {
@@ -87,8 +92,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               child: ListView.separated(
                 controller: _scrollController,
                 itemCount:
-                    provider.orderList.length +
-                    (provider.isMoreLoading ? 1 : 0),
+                    provider.orderList.length + (provider.isMoreLoading ? 1 : 0),
                 separatorBuilder: (_, __) => SizedBox(height: 12.h),
                 itemBuilder: (context, index) {
                   /// PAGINATION LOADER
@@ -106,6 +110,12 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
                   final bool isReturned = order.status == "Returned";
                   final bool isDelivered = order.status == "Delivered";
+
+                  final String? productId = product?.productId;
+
+                  /// ✅ SHOW ONLY IF: Delivered AND review is null
+                  final bool canShowAddReview =
+                      isDelivered && productId != null && product?.review == null;
 
                   return Container(
                     padding: EdgeInsets.all(12.w),
@@ -141,7 +151,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                   ),
                                 ),
                         ),
-
                         SizedBox(width: 12.w),
 
                         /// INFO
@@ -157,7 +166,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-
                               SizedBox(height: 4.h),
 
                               /// DATE
@@ -170,7 +178,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                   color: Colors.grey[600],
                                 ),
                               ),
-
                               SizedBox(height: 6.h),
 
                               /// STATUS + PRICE
@@ -198,11 +205,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                       ),
                                     ),
                                   ),
-
                                   const Spacer(),
-
                                   Text(
-                                    "Rs ${product!.price}",
+                                    "Rs ${product?.price ?? ""}",
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14.sp,
@@ -211,21 +216,27 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                 ],
                               ),
 
-                              /// ADD REVIEW (ONLY DELIVERED)
-                              /// ADD REVIEW (ONLY DELIVERED)
-                              if (isDelivered)
+                              /// ADD REVIEW (model-based)
+                              if (canShowAddReview)
                                 Padding(
                                   padding: EdgeInsets.only(top: 6.h),
                                   child: GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
+                                    onTap: () async {
+                                      final submitted =
+                                          await Navigator.push<bool>(
                                         context,
                                         MaterialPageRoute(
                                           builder: (_) => ReviewScreen(
-                                            productId: product.productId!,
+                                            productId: productId!,
                                           ),
                                         ),
                                       );
+
+                                      /// ✅ After submit, refresh orders so review comes in model
+                                      if (submitted == true) {
+                                        await provider.fetchMyOrders(
+                                            isRefresh: true);
+                                      }
                                     },
                                     child: Text(
                                       "Add Review",

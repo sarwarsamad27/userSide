@@ -45,7 +45,7 @@ class CategoryTile extends StatelessWidget {
                 children: [
                   Positioned.fill(
                     child: finalImageUrl.isEmpty
-                        ? buildPlaceholder() 
+                        ? buildPlaceholder()
                         : Image.network(
                             finalImageUrl,
                             fit: BoxFit.cover,
@@ -58,7 +58,6 @@ class CategoryTile extends StatelessWidget {
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: AppColor.underlineColor),
                         gradient: LinearGradient(
                           colors: [
                             Colors.black.withOpacity(0.0),

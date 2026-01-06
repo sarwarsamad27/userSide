@@ -10,16 +10,15 @@ import 'package:user_side/view/dashboard/products/product_widget.dart/productTil
 import 'package:user_side/viewModel/provider/productProvider/getPopularCategory_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/getPopularProduct_provider.dart';
 
-class PopularProductAndCategory extends StatelessWidget {
+class PopularProductAndCategory extends StatefulWidget {
   const PopularProductAndCategory({super.key});
 
-  Widget buildProductImage(String? imageUrl) {
-    if (imageUrl == null || imageUrl.isEmpty) {
-      return Icon(Icons.image_not_supported);
-    }
-    return Image.network(Global.imageUrl + imageUrl, fit: BoxFit.cover);
-  }
+  @override
+  State<PopularProductAndCategory> createState() =>
+      _PopularProductAndCategoryState();
+}
 
+class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
   @override
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
@@ -29,42 +28,53 @@ class PopularProductAndCategory extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             //------------------ POPULAR CATEGORY -------------------//
-            Text("Popular Category",
-                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
+            Text(
+              "Popular Category",
+              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+            ),
             SizedBox(height: 10.h),
+
             Consumer<PopularCategoryProvider>(
               builder: (context, provider, _) {
+                // Initial loader only
                 if (provider.loading && provider.allCategories.isEmpty) {
-                  return const Center(child: SpinKitThreeBounce(
-                          color: AppColor.primaryColor, 
-                          size: 30.0,
-                        ),);
+                  return const Center(
+                    child: SpinKitThreeBounce(
+                      color: AppColor.primaryColor,
+                      size: 30.0,
+                    ),
+                  );
                 }
 
                 final items = provider.allCategories;
+
+                if (items.isEmpty) {
+                  return SizedBox(
+                    height: 120.h,
+                    child: Center(
+                      child: Text(
+                        "No categories found",
+                        style: TextStyle(fontSize: 13.sp),
+                      ),
+                    ),
+                  );
+                }
+
                 final columnCount = (items.length / 2).ceil();
 
                 return SizedBox(
-                  height: 280.h,
+                  height: 290.h,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: columnCount + (provider.hasMore ? 1 : 0),
+                    itemCount: columnCount,
                     itemBuilder: (context, index) {
-                      if (index == columnCount) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          provider.fetchPopularCategories(loadMore: true);
-                        });
-                        return const Center(child: SpinKitThreeBounce(
-                          color: AppColor.primaryColor, 
-                          size: 30.0,
-                        ),);
-                      }
-
                       final start = index * 2;
                       final end = start + 2;
 
-                      final columnItems =
-                          items.sublist(start, end > items.length ? items.length : end);
+                      final columnItems = items.sublist(
+                        start,
+                        end > items.length ? items.length : end,
+                      );
 
                       return Padding(
                         padding: EdgeInsets.only(right: 12.w),
@@ -73,13 +83,13 @@ class PopularProductAndCategory extends StatelessWidget {
                             return Padding(
                               padding: EdgeInsets.only(bottom: 4.h),
                               child: CustomProductTile(
-                                imageUrl: item.categoryImage != null
-                                    ? Global.imageUrl + item.categoryImage!
-                                    : "",
+                                imageUrl:
+                                    //  item.categoryImage != null
+                                    Global.imageUrl + item.categoryImage!,
                                 name: item.categoryName ?? "",
                                 saveText:
-                                    "Save upto: ${item.averageDiscountPercentage ?? 0}%",
-                                   onTap: () {
+                                    "Save upto: ${(item.averageDiscountPercentage ?? 0).toStringAsFixed(0)}%",
+                                onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -101,43 +111,58 @@ class PopularProductAndCategory extends StatelessWidget {
               },
             ),
 
+            SizedBox(height: 16.h),
+
             //------------------ POPULAR PRODUCTS -------------------//
-            Text("Popular Products",
-                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
+            Text(
+              "Popular Products",
+              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+            ),
             SizedBox(height: 10.h),
+
             Consumer<PopularProductProvider>(
               builder: (context, provider, _) {
-                if (provider.loading && provider.fetchedCount == 0) {
-                  return const Center(child: SpinKitThreeBounce(
-                          color: AppColor.primaryColor, 
-                          size: 30.0,
-                        ),);
+                // Initial loader only
+                if (provider.loading &&
+                    (provider.popularProducts?.products == null ||
+                        provider.popularProducts!.products!.isEmpty)) {
+                  return const Center(
+                    child: SpinKitThreeBounce(
+                      color: AppColor.primaryColor,
+                      size: 30.0,
+                    ),
+                  );
                 }
 
                 final products = provider.popularProducts?.products ?? [];
+
+                if (products.isEmpty) {
+                  return SizedBox(
+                    height: 120.h,
+                    child: Center(
+                      child: Text(
+                        "No products found",
+                        style: TextStyle(fontSize: 13.sp),
+                      ),
+                    ),
+                  );
+                }
+
                 final columnCount = (products.length / 2).ceil();
 
                 return SizedBox(
-                  height: 290.h,
+                  height: 300.h,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: columnCount + (provider.hasMore ? 1 : 0),
+                    itemCount: columnCount,
                     itemBuilder: (context, index) {
-                      if (index == columnCount) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          provider.fetchPopularProducts(loadMore: true);
-                        });
-                        return  Center(child: SpinKitThreeBounce(
-                          color: AppColor.primaryColor, 
-                          size: 30.0,
-                        ),);
-                      }
-
                       final start = index * 2;
                       final end = start + 2;
 
                       final columnProducts = products.sublist(
-                          start, end > products.length ? products.length : end);
+                        start,
+                        end > products.length ? products.length : end,
+                      );
 
                       return Padding(
                         padding: EdgeInsets.only(right: 12.w),
@@ -153,7 +178,7 @@ class PopularProductAndCategory extends StatelessWidget {
                                 price: "Rs ${product.afterDiscountPrice ?? 0}",
                                 discountText:
                                     "Save Rs ${product.discountAmount ?? 0}",
-                               onTap: () {
+                                onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(

@@ -50,9 +50,9 @@ class OtherProductsSection extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: 12.w,
+                crossAxisSpacing: 6.w,
                 mainAxisSpacing: 12.h,
-                childAspectRatio: 0.72,
+                childAspectRatio: 0.67,
               ),
               itemBuilder: (context, index) {
                 final item = op.otherModel!.otherProducts![index];
@@ -62,6 +62,9 @@ class OtherProductsSection extends StatelessWidget {
                   originalPrice: item.beforeDiscountPrice != null
                       ? "${item.beforeDiscountPrice}"
                       : null,
+                  averageRating: item.averageRating != null
+                      ? item.averageRating!.toDouble()
+                      : 0.0,
                   saveText: item.beforeDiscountPrice != null
                       ? "Save Rs.${(item.beforeDiscountPrice! - item.afterDiscountPrice!).abs()}"
                       : null,

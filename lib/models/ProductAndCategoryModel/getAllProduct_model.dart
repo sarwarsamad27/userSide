@@ -65,24 +65,27 @@ class Products {
   int? discountPercentage;
   List<String>? size;
   List<String>? color;
-  int? stock;
+  String? stock;
+  double? averageRating; // ⭐ NEW
   String? createdAt;
 
-  Products(
-      {this.productId,
-      this.categoryId,
-      this.profileId,
-      this.name,
-      this.description,
-      this.images,
-      this.beforeDiscountPrice,
-      this.afterDiscountPrice,
-      this.discountAmount,
-      this.discountPercentage,
-      this.size,
-      this.color,
-      this.stock,
-      this.createdAt});
+  Products({
+    this.productId,
+    this.categoryId,
+    this.profileId,
+    this.name,
+    this.description,
+    this.images,
+    this.beforeDiscountPrice,
+    this.afterDiscountPrice,
+    this.discountAmount,
+    this.discountPercentage,
+    this.size,
+    this.color,
+    this.stock,
+    this.averageRating,
+    this.createdAt,
+  });
 
   Products.fromJson(Map<String, dynamic> json) {
     productId = json['productId'];
@@ -99,6 +102,9 @@ class Products {
     color = json['color'].cast<String>();
     stock = json['stock'];
     createdAt = json['createdAt'];
+    averageRating = json['averageRating'] != null
+        ? (json['averageRating'] as num).toDouble()
+        : 0.0;
   }
 
   Map<String, dynamic> toJson() {
@@ -116,6 +122,7 @@ class Products {
     data['size'] = this.size;
     data['color'] = this.color;
     data['stock'] = this.stock;
+    data['averageRating'] = this.averageRating;
     data['createdAt'] = this.createdAt;
     return data;
   }
@@ -128,8 +135,13 @@ class Pagination {
   int? totalPages;
   bool? hasMore;
 
-  Pagination(
-      {this.totalCount, this.page, this.limit, this.totalPages, this.hasMore});
+  Pagination({
+    this.totalCount,
+    this.page,
+    this.limit,
+    this.totalPages,
+    this.hasMore,
+  });
 
   Pagination.fromJson(Map<String, dynamic> json) {
     totalCount = json['totalCount'];

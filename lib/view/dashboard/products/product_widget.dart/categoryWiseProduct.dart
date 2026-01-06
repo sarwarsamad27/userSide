@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
-import 'package:user_side/resources/global.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/viewModel/provider/productProvider/categoryWiseProduct_provider.dart';
 import 'package:user_side/widgets/productCard.dart';
@@ -83,11 +82,11 @@ class _CategoryWiseProductsWidgetState
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: provider.products.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2, // 2 items in a row
-            crossAxisSpacing: 10, // horizontal spacing
+            crossAxisSpacing: 4, // horizontal spacing
             mainAxisSpacing: 10, // vertical spacing
-            childAspectRatio: 0.7, // adjust height/width ratio as needed
+            childAspectRatio: 0.68, // adjust height/width ratio as needed
           ),
           itemBuilder: (context, index) {
             final product = provider.products[index];
@@ -115,6 +114,7 @@ class _CategoryWiseProductsWidgetState
                   imageUrl, // ProductCard me empty string ke liye icon show hoga
               price: "${product.afterDiscountPrice ?? 0}",
               name: product.name ?? "",
+              averageRating: product.averageRating ?? 0.0,
               description: product.description ?? "",
               discountText: "${product.discountPercentage ?? 0}% OFF",
               originalPrice: "${product.beforeDiscountPrice ?? 0}",

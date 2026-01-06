@@ -5,6 +5,11 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/view/dashboard/homeDashboard/categoryAndProduct/productBelowCategory.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfile/widget/ContactAction.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfile/widget/PillInfo.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfile/widget/actionTile.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfile/widget/premiumCard.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/widgets/premiumSurface.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getAllCategoryProfileWise_provider.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 
@@ -115,7 +120,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
               ),
               SizedBox(height: 6.h),
 
-              _ActionTile(
+              ActionTile(
                 icon: Icons.phone,
                 iconBg: const Color(0xFFEFF6FF),
                 iconColor: const Color(0xFF2563EB),
@@ -132,7 +137,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                 },
               ),
               SizedBox(height: 10.h),
-              _ActionTile(
+              ActionTile(
                 icon: Icons.phone_android_outlined,
                 iconBg: const Color(0xFFECFDF5),
                 iconColor: const Color(0xFF16A34A),
@@ -309,7 +314,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
             // ───────────────── Main info card ─────────────────
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: _PremiumCard(
+              child: PremiumCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -328,13 +333,13 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
 
                     Row(
                       children: [
-                        _PillInfo(
+                        PillInfo(
                           icon: Icons.people_alt_outlined,
                           text:
                               "${(followerCount / 1000).toStringAsFixed(1)}k Followers",
                         ),
                         SizedBox(width: 10.w),
-                        _PillInfo(
+                        PillInfo(
                           icon: Icons.verified_outlined,
                           text: "Company",
                         ),
@@ -354,14 +359,14 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                     ),
 
                     SizedBox(height: 14.h),
-                    const _DividerLine(),
+                    const DividerLine(),
                     SizedBox(height: 14.h),
 
                     // Contact actions (same logic)
                     Row(
                       children: [
                         Expanded(
-                          child: _ContactAction(
+                          child: ContactAction(
                             icon: Icons.phone,
                             title: "Contact",
                             subtitle: "Call / WhatsApp",
@@ -373,7 +378,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                         ),
                         SizedBox(width: 12.w),
                         Expanded(
-                          child: _ContactAction(
+                          child: ContactAction(
                             icon: Icons.email_outlined,
                             title: "Email",
                             subtitle: widget.email,
@@ -394,7 +399,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
             // ───────────────── Categories header ─────────────────
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: _SectionHeader(title: "Categories"),
+              child: SectionHeader(title: "Categories"),
             ),
             SizedBox(height: 10.h),
 
@@ -477,7 +482,6 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
 
             SizedBox(height: 16.h),
 
-            // ───────────────── Products list (unchanged call) ─────────────────
             Consumer<GetAllCategoryProfileWiseProvider>(
               builder: (context, provider, child) {
                 if (provider.data == null ||
@@ -499,304 +503,5 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     );
   }
 
-  // kept for compatibility (not used in new UI)
-  Widget contactTile(
-    IconData icon,
-    String title,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12.r),
-      child: Container(
-        width: 70.w,
-        height: 70.h,
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-        decoration: BoxDecoration(
-          color: color.withOpacity(.1),
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 22.sp),
-            SizedBox(height: 5.h),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 13.sp,
-                fontWeight: FontWeight.w500,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
-// ───────────────────────── Premium UI helpers (design only) ─────────────────────────
-
-class _PremiumCard extends StatelessWidget {
-  final Widget child;
-  const _PremiumCard({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(14.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18.r),
-        border: Border.all(color: const Color(0xFFE9EDF2)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0F111827),
-            blurRadius: 18,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-}
-
-class _DividerLine extends StatelessWidget {
-  const _DividerLine();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 1,
-      width: double.infinity,
-      color: const Color(0xFFE5E7EB),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w900,
-            color: const Color(0xFF111827),
-          ),
-        ),
-        const Spacer(),
-        Container(
-          width: 42.w,
-          height: 3.h,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE5E7EB),
-            borderRadius: BorderRadius.circular(999),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _PillInfo extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  const _PillInfo({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 7.h),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14.sp, color: Colors.green),
-          SizedBox(width: 6.w),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF111827),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ContactAction extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color iconBg;
-  final Color iconColor;
-  final VoidCallback onTap;
-
-  const _ContactAction({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.iconBg,
-    required this.iconColor,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16.r),
-      child: Container(
-        padding: EdgeInsets.all(12.w),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 38.w,
-              height: 38.w,
-              decoration: BoxDecoration(
-                color: iconBg,
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
-              ),
-              child: Icon(icon, color: iconColor, size: 18.sp),
-            ),
-            SizedBox(width: 10.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13.5.sp,
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFF111827),
-                    ),
-                  ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11.5.sp,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF6B7280),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 14.sp,
-              color: const Color(0xFF9CA3AF),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ActionTile extends StatelessWidget {
-  final IconData icon;
-  final Color iconBg;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  const _ActionTile({
-    required this.icon,
-    required this.iconBg,
-    required this.iconColor,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16.r),
-      child: Container(
-        padding: EdgeInsets.all(12.w),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF9FAFB),
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40.w,
-              height: 40.w,
-              decoration: BoxDecoration(
-                color: iconBg,
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
-              ),
-              child: Icon(icon, color: iconColor, size: 18.sp),
-            ),
-            SizedBox(width: 10.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 13.5.sp,
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFF111827),
-                    ),
-                  ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11.5.sp,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF6B7280),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.chevron_right_rounded,
-              size: 22.sp,
-              color: const Color(0xFF9CA3AF),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

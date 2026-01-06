@@ -56,15 +56,21 @@ class _ProductBelowCategoryState extends State<ProductBelowCategory> {
     final media = MediaQuery.of(context).size;
 
     if (provider.isLoading) {
-      return Center(
-        child: SpinKitThreeBounce(color: AppColor.primaryColor, size: 30.0),
+      return Padding(
+        padding: const EdgeInsets.only(top: 140),
+        child: Center(
+          child: SpinKitThreeBounce(color: AppColor.primaryColor, size: 30.0),
+        ),
       );
     }
 
     if (provider.data == null ||
         provider.data!.products == null ||
         provider.data!.products!.isEmpty) {
-      return const Center(child: Text("No Products Found"));
+      return Padding(
+        padding: EdgeInsets.only(top: 140.h),
+        child: const Center(child: Text("No Products Found")),
+      );
     }
 
     return GridView.builder(
@@ -76,7 +82,7 @@ class _ProductBelowCategoryState extends State<ProductBelowCategory> {
         crossAxisCount: media.width < 600 ? 2 : 4,
         mainAxisSpacing: 12.h,
         crossAxisSpacing: 12.w,
-        childAspectRatio: media.width < 600 ? 0.72 : 0.8,
+        childAspectRatio: media.width < 600 ? 0.67 : 0.8,
       ),
       itemBuilder: (context, index) {
         final p = provider.data!.products![index];
@@ -92,6 +98,7 @@ class _ProductBelowCategoryState extends State<ProductBelowCategory> {
             price: p.afterDiscountPrice?.toString() ?? "0",
             imageUrl: p.images?.isNotEmpty == true ? p.images!.first : "",
             description: p.description ?? "",
+            averageRating: p.averageRating ?? 0.0,
             originalPrice: p.beforeDiscountPrice?.toString() ?? "0",
             discountText: "$discountPercent% OFF",
             onTap: () {

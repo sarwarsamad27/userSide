@@ -8,7 +8,7 @@ import 'package:user_side/network/base_api_services.dart';
 import 'package:user_side/resources/local_storage.dart';
 
 class NetworkApiServices extends BaseApiServices {
-  // ✅ Static headers (no token)
+  // ✅ Existing headers (WITH token if available) - unchanged
   Future<Map<String, String>> getHeaders({bool isMultipart = false}) async {
     final token = await LocalStorage.getToken();
     print("Token: $token"); // Debugging token value
@@ -20,6 +20,15 @@ class NetworkApiServices extends BaseApiServices {
     };
   }
 
+  // ✅ NEW: Headers WITHOUT token (No Authorization)
+  Future<Map<String, String>> getHeadersNoAuth({bool isMultipart = false}) async {
+    return {
+      "Accept": "application/json",
+      if (!isMultipart) "Content-Type": "application/json",
+    };
+  }
+
+  // ✅ Existing POST (WITH token if available) - unchanged
   @override
   Future<Map<String, dynamic>> postApi(
     String url,
@@ -37,6 +46,24 @@ class NetworkApiServices extends BaseApiServices {
     }
   }
 
+  // ✅ NEW: POST WITHOUT token (for Login/Register/Google)
+  Future<Map<String, dynamic>> postApiNoAuth(
+    String url,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: await getHeadersNoAuth(),
+        body: jsonEncode(body),
+      );
+      return _handleResponse(url, response, body: body);
+    } catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  // ✅ Existing GET (WITH token if available) - unchanged
   @override
   Future<Map<String, dynamic>> getApi(String url) async {
     try {
@@ -50,6 +77,20 @@ class NetworkApiServices extends BaseApiServices {
     }
   }
 
+  // ✅ NEW: GET WITHOUT token
+  Future<Map<String, dynamic>> getApiNoAuth(String url) async {
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: await getHeadersNoAuth(),
+      );
+      return _handleResponse(url, response);
+    } catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  // ✅ Existing PUT - unchanged
   @override
   Future<Map<String, dynamic>> putApi(
     String url,
@@ -101,6 +142,24 @@ class NetworkApiServices extends BaseApiServices {
 
         return _handleResponse(url, response, body: body);
       }
+    } catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  // ✅ NEW (optional): PUT WITHOUT token (JSON only)
+  Future<Map<String, dynamic>> putApiNoAuth(
+    String url,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      final response = await http.put(
+        Uri.parse(url),
+        headers: await getHeadersNoAuth(),
+        body: jsonEncode(body),
+      );
+
+      return _handleResponse(url, response, body: body);
     } catch (e) {
       return _handleError(e);
     }
@@ -175,10 +234,7 @@ class NetworkApiServices extends BaseApiServices {
 
       // Add Image Properly
       if (image != null) {
-        final mimeType = image.path
-            .split(".")
-            .last
-            .toLowerCase(); // jpg/png/jpeg
+        final mimeType = image.path.split(".").last.toLowerCase(); // jpg/png/jpeg
 
         request.files.add(
           await http.MultipartFile.fromPath(
@@ -242,12 +298,26 @@ class NetworkApiServices extends BaseApiServices {
     }
   }
 
+  // ✅ Existing DELETE (WITH token if available) - unchanged
   @override
   Future<Map<String, dynamic>> deleteApi(String url) async {
     try {
       final response = await http.delete(
         Uri.parse(url),
         headers: await getHeaders(),
+      );
+      return _handleResponse(url, response);
+    } catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  // ✅ NEW: DELETE WITHOUT token
+  Future<Map<String, dynamic>> deleteApiNoAuth(String url) async {
+    try {
+      final response = await http.delete(
+        Uri.parse(url),
+        headers: await getHeadersNoAuth(),
       );
       return _handleResponse(url, response);
     } catch (e) {
@@ -263,7 +333,6 @@ class NetworkApiServices extends BaseApiServices {
     if (kDebugMode) {
       print('✅ API URL: $url');
     }
-    // ignore: avoid_print
     if (body != null) print('✅ Request Body: ${jsonEncode(body)}');
     if (kDebugMode) {
       print('✅ Status Code: ${response.statusCode}');

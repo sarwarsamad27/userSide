@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:user_side/models/GetProfileAndProductModel/getAllProfile_model.dart';
+import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/viewModel/repository/homeProfileAndProductRepository/getAllProfile_repository.dart';
 
 class GetAllProfileProvider with ChangeNotifier {

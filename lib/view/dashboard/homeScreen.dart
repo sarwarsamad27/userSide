@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/resources/toast.dart';
 // import 'package:user_side/view/companySide/dashboard/dashboardScreen/dashboardScreen.dart';
 // import 'package:user_side/view/companySide/dashboard/orderScreen/orderScreen.dart';
 // import 'package:user_side/view/companySide/dashboard/productScreen/productCategory/productCategoryScreen.dart';
@@ -21,6 +23,8 @@ class HomeNavBarScreen extends StatefulWidget {
 
 class _CompanyHomeScreenState extends State<HomeNavBarScreen> {
   int _currentIndex = 0;
+  DateTime? _lastBackPress;
+
   String? get productId => widget.productId;
 
   final screens = [
@@ -35,40 +39,79 @@ class _CompanyHomeScreenState extends State<HomeNavBarScreen> {
     return ScreenUtilInit(
       designSize: const Size(390, 844),
       builder: (context, child) {
-        return Scaffold(
-          extendBody: _currentIndex == 3
-              ? true
-              : _currentIndex == 2
-              ? true
-              : false,
-          backgroundColor: Color(0xFFF9FAFB),
-          body: screens[_currentIndex],
+        return PopScope(
+          canPop: false,
+          onPopInvoked: (didPop) async {
+            if (didPop) return;
 
-          /// 🔹 Animated Bottom Navbar
-          bottomNavigationBar: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(24.r),
-                topRight: Radius.circular(24.r),
+            final now = DateTime.now();
+
+            /// 🟢 First back press → snackbar
+            if (_lastBackPress == null ||
+                now.difference(_lastBackPress!) > const Duration(seconds: 2)) {
+              _lastBackPress = now;
+
+              AppToast.success("Press back again to exit the app");
+              return;
+            }
+
+            /// 🟠 Second back press → exit dialog
+            final shouldExit = await showDialog<bool>(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => AlertDialog(
+                title: const Text("Exit App"),
+                content: const Text("Do you want to exit the application?"),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text("No"),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text("Yes"),
+                  ),
+                ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 15,
-                  offset: const Offset(0, -5),
+            );
+
+            /// 🔴 Exit app
+            if (shouldExit == true) {
+              SystemNavigator.pop(); // recommended
+              // exit(0); // agar force exit chahiye
+            }
+          },
+          child: Scaffold(
+            extendBody: _currentIndex == 3 || _currentIndex == 2,
+            backgroundColor: const Color(0xFFF9FAFB),
+            body: screens[_currentIndex],
+
+            /// 🔹 Animated Bottom Navbar
+            bottomNavigationBar: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24.r),
+                  topRight: Radius.circular(24.r),
                 ),
-              ],
-            ),
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                navItem(LucideIcons.home, "Home", 0),
-                navItem(LucideIcons.package, "Products", 1),
-                navItem(LucideIcons.shoppingCart, "Favourite", 2),
-                navItem(LucideIcons.user, "Profile", 3),
-              ],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 15,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  navItem(LucideIcons.home, "Home", 0),
+                  navItem(LucideIcons.package, "Products", 1),
+                  navItem(LucideIcons.shoppingCart, "Favourite", 2),
+                  navItem(LucideIcons.user, "Profile", 3),
+                ],
+              ),
             ),
           ),
         );

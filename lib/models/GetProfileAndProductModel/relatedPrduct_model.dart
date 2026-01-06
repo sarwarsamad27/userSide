@@ -21,100 +21,108 @@ class RelatedProductModel {
     page = json['page'];
     limit = json['limit'];
     totalPages = json['totalPages'];
+
     if (json['relatedProducts'] != null) {
-      relatedProducts = <RelatedProducts>[];
-      json['relatedProducts'].forEach((v) {
-        relatedProducts!.add(new RelatedProducts.fromJson(v));
-      });
+      relatedProducts = List<RelatedProducts>.from(
+        json['relatedProducts'].map(
+          (x) => RelatedProducts.fromJson(x),
+        ),
+      );
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['message'] = this.message;
-    data['total'] = this.total;
-    data['page'] = this.page;
-    data['limit'] = this.limit;
-    data['totalPages'] = this.totalPages;
-    if (this.relatedProducts != null) {
-      data['relatedProducts'] = this.relatedProducts!
-          .map((v) => v.toJson())
-          .toList();
-    }
-    return data;
+    return {
+      'message': message,
+      'total': total,
+      'page': page,
+      'limit': limit,
+      'totalPages': totalPages,
+      'relatedProducts':
+          relatedProducts?.map((e) => e.toJson()).toList(),
+    };
   }
 }
 
 class RelatedProducts {
-  String? sId;
+  String? id;
   String? profileId;
   String? categoryId;
   String? name;
   String? description;
-  List<String>? images;
+  List<String> images;
   int? beforeDiscountPrice;
   int? afterDiscountPrice;
-  int? discountPercentage;
-  List<String>? size;
-  List<String>? color;
-  int? stock;
+  List<String> size;
+  List<String> color;
+  String? stock;
   String? createdAt;
   String? updatedAt;
-  int? iV;
+  int? v;
+
+  /// ⭐ Rating
+  double averageRating;
 
   RelatedProducts({
-    this.sId,
+    this.id,
     this.profileId,
     this.categoryId,
     this.name,
     this.description,
-    this.images,
+    this.images = const [],
     this.beforeDiscountPrice,
     this.afterDiscountPrice,
-    this.discountPercentage,
-    this.size,
-    this.color,
+    this.size = const [],
+    this.color = const [],
     this.stock,
     this.createdAt,
     this.updatedAt,
-    this.iV,
+    this.v,
+    this.averageRating = 0.0,
   });
 
-  RelatedProducts.fromJson(Map<String, dynamic> json) {
-    sId = json['_id'];
-    profileId = json['profileId'];
-    categoryId = json['categoryId'];
-    name = json['name'];
-    description = json['description'];
-    images = json['images'].cast<String>();
-    beforeDiscountPrice = json['beforeDiscountPrice'];
-    afterDiscountPrice = json['afterDiscountPrice'];
-    discountPercentage = json['discountPercentage'];
-    size = json['size'].cast<String>();
-    color = json['color'].cast<String>();
-    stock = json['stock'];
-    createdAt = json['createdAt'];
-    updatedAt = json['updatedAt'];
-    iV = json['__v'];
-  }
+  RelatedProducts.fromJson(Map<String, dynamic> json)
+      : id = json['_id'],
+        profileId = json['profileId'],
+        categoryId = json['categoryId'],
+        name = json['name'],
+        description = json['description'],
+        images = json['images'] != null
+            ? List<String>.from(json['images'])
+            : [],
+        beforeDiscountPrice = json['beforeDiscountPrice'],
+        afterDiscountPrice = json['afterDiscountPrice'],
+        size = json['size'] != null
+            ? List<String>.from(json['size'])
+            : [],
+        color = json['color'] != null
+            ? List<String>.from(json['color'])
+            : [],
+        stock = json['stock'],
+        createdAt = json['createdAt'],
+        updatedAt = json['updatedAt'],
+        v = json['__v'],
+        averageRating = json['averageRating'] != null
+            ? (json['averageRating'] as num).toDouble()
+            : 0.0;
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['profileId'] = this.profileId;
-    data['categoryId'] = this.categoryId;
-    data['name'] = this.name;
-    data['description'] = this.description;
-    data['images'] = this.images;
-    data['beforeDiscountPrice'] = this.beforeDiscountPrice;
-    data['afterDiscountPrice'] = this.afterDiscountPrice;
-    data['discountPercentage'] = this.discountPercentage;
-    data['size'] = this.size;
-    data['color'] = this.color;
-    data['stock'] = this.stock;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
-    return data;
+    return {
+      '_id': id,
+      'profileId': profileId,
+      'categoryId': categoryId,
+      'name': name,
+      'description': description,
+      'images': images,
+      'beforeDiscountPrice': beforeDiscountPrice,
+      'afterDiscountPrice': afterDiscountPrice,
+      'size': size,
+      'color': color,
+      'stock': stock,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+      '__v': v,
+      'averageRating': averageRating,
+    };
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:user_side/viewModel/provider/authProvider/forgotPassword_provider.dart';
 import 'package:user_side/viewModel/provider/authProvider/login_provider.dart';
+import 'package:user_side/viewModel/provider/authProvider/signInWithGoogle_provider.dart';
 import 'package:user_side/viewModel/provider/authProvider/signUp_provider.dart';
 import 'package:user_side/viewModel/provider/authProvider/updatePassword_provider.dart';
 import 'package:user_side/viewModel/provider/authProvider/verifyCode_provider.dart';
@@ -16,6 +17,7 @@ import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/rec
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/relatedProduct_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/createOrder_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/getMyOrder_provider.dart';
+import 'package:user_side/viewModel/provider/orderProvider/review_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/categoryWiseProduct_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/createReview_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/getAllProduct_provider.dart';
@@ -57,6 +59,9 @@ class AppMultiProvider extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => GetMyOrderProvider()),
         ChangeNotifierProvider(create: (_) => GetCategoryWiseProductProvider()),
         ChangeNotifierProvider(create: (_) => RecommendationProvider()),
+        ChangeNotifierProvider(create: (_) => GoogleLoginProvider()),
+        ChangeNotifierProvider(create: (_) => ReviewFormProvider()),
+        ChangeNotifierProvider(create: (_) => ReviewProvider()..loadReviewedProducts()),
       ],
       child: child,
     );

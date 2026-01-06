@@ -47,6 +47,57 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
 
   int quantity = 1;
 
+  Future<void> _placeOrder() async {
+    setState(() => isLoading = true);
+
+    final provider = Provider.of<CreateOrderProvider>(context, listen: false);
+
+    List<Map<String, dynamic>> productList = [];
+
+    if (widget.favouriteItems != null && widget.favouriteItems!.isNotEmpty) {
+      for (var item in widget.favouriteItems!) {
+        productList.add({
+          "productId": item["productId"] ?? "",
+          "quantity": item["quantity"] ?? 1,
+          "selectedColor": item["colors"] ?? [],
+          "selectedSize": item["sizes"] ?? [],
+        });
+      }
+    } else {
+      productList.add({
+        "productId": widget.productId,
+        "quantity": quantity,
+        "selectedColor": widget.colors ?? [],
+        "selectedSize": widget.sizes ?? [],
+      });
+    }
+
+    await provider.placeOrder(
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      phone: _phoneController.text.trim(),
+      address: _addressController.text.trim(),
+      additionalNote: _additionalNoteController.text.trim(),
+      products: productList,
+      shipmentCharges: 200,
+    );
+
+    setState(() => isLoading = false);
+
+    if (provider.orderData != null && provider.orderData!.order != null) {
+      Provider.of<FavouriteProvider>(
+        context,
+        listen: false,
+      ).deleteAllFavourites();
+
+      AppToast.success("Order placed successfully");
+
+      Navigator.pop(context);
+    } else {
+      AppToast.error(provider.errorMessage ?? "Failed to place order");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isFromFavourite =
@@ -62,18 +113,28 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
+        backgroundColor: AppColor.appimagecolor,
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+            child: CustomButton(text: "Place Order", onTap: _placeOrder),
+          ),
+        ),
         body: Stack(
           children: [
             CustomBgContainer(
               child: SafeArea(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 30.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 24.w,
+                    vertical: 30.h,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (isFromFavourite)
                         SizedBox(
-                          height: 100.h,
+                          height: 110.h,
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             itemCount: widget.favouriteItems!.length,
@@ -86,7 +147,9 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                 decoration: BoxDecoration(
                                   color: Colors.transparent,
                                   borderRadius: BorderRadius.circular(10.r),
-                                  border: Border.all(color: AppColor.primaryColor),
+                                  border: Border.all(
+                                    color: AppColor.primaryColor,
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
@@ -185,13 +248,26 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                       fontSize: 14.sp,
                                     ),
                                   ),
-                                  Text(
-                                    "Colors: ${widget.colors?.join(', ') ?? ''}\nSizes: ${widget.sizes?.join(', ') ?? ''}",
-                                    style: TextStyle(
-                                      color: Colors.grey[700],
-                                      fontSize: 13.sp,
+
+                                  // Show only if available (and no extra space)
+                                  if (widget.colors != null &&
+                                      widget.colors!.isNotEmpty)
+                                    Text(
+                                      "Colors: ${widget.colors!.join(', ')}",
+                                      style: TextStyle(
+                                        color: Colors.grey[700],
+                                        fontSize: 13.sp,
+                                      ),
                                     ),
-                                  ),
+                                  if (widget.sizes != null &&
+                                      widget.sizes!.isNotEmpty)
+                                    Text(
+                                      "Sizes: ${widget.sizes!.join(', ')}",
+                                      style: TextStyle(
+                                        color: Colors.grey[700],
+                                        fontSize: 13.sp,
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),
@@ -215,7 +291,9 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(8.r),
-                                  border: Border.all(color: AppColor.primaryColor),
+                                  border: Border.all(
+                                    color: AppColor.primaryColor,
+                                  ),
                                 ),
                                 child: const Icon(Icons.remove, size: 20),
                               ),
@@ -239,7 +317,9 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(8.r),
-                                  border: Border.all(color: AppColor.primaryColor),
+                                  border: Border.all(
+                                    color: AppColor.primaryColor,
+                                  ),
                                 ),
                                 child: const Icon(Icons.add, size: 20),
                               ),
@@ -319,79 +399,6 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                       ),
                                     ],
                                   ),
-
-                                  SizedBox(height: 30.h),
-
-                                  CustomButton(
-                                    text: "Place Order",
-                                    onTap: () async {
-                                      setState(() => isLoading = true);
-
-                                      final provider =
-                                          Provider.of<CreateOrderProvider>(
-                                        context,
-                                        listen: false,
-                                      );
-
-                                      List<Map<String, dynamic>> productList = [];
-
-                                      if (widget.favouriteItems != null &&
-                                          widget.favouriteItems!.isNotEmpty) {
-                                        for (var item
-                                            in widget.favouriteItems!) {
-                                          productList.add({
-                                            "productId": item["productId"] ?? "",
-                                            "quantity": item["quantity"] ?? 1,
-                                            "selectedColor":
-                                                item["colors"] ?? [],
-                                            "selectedSize":
-                                                item["sizes"] ?? [],
-                                          });
-                                        }
-                                      } else {
-                                        productList.add({
-                                          "productId": widget.productId,
-                                          "quantity": quantity,
-                                          "selectedColor": widget.colors ?? [],
-                                          "selectedSize": widget.sizes ?? [],
-                                        });
-                                      }
-
-                                      await provider.placeOrder(
-                                        name: _nameController.text.trim(),
-                                        email: _emailController.text.trim(),
-                                        phone: _phoneController.text.trim(),
-                                        address:
-                                            _addressController.text.trim(),
-                                        additionalNote:
-                                            _additionalNoteController.text
-                                                .trim(),
-                                        products: productList,
-                                        shipmentCharges: 200,
-                                      );
-
-                                      setState(() => isLoading = false);
-
-                                      if (provider.orderData != null &&
-                                          provider.orderData!.order != null) {
-                                        Provider.of<FavouriteProvider>(
-                                          context,
-                                          listen: false,
-                                        ).deleteAllFavourites();
-
-                                        AppToast.success(
-                                          "Order placed successfully",
-                                        );
-
-                                        Navigator.pop(context);
-                                      } else {
-                                        AppToast.error(
-                                          provider.errorMessage ??
-                                              "Failed to place order",
-                                        );
-                                      }
-                                    },
-                                  ),
                                 ],
                               ),
                             ),
@@ -404,7 +411,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
               ),
             ),
 
-            /// 🔥 FULL SCREEN LOADER
+            /// FULL SCREEN LOADER
             if (isLoading)
               Container(
                 color: Colors.black.withOpacity(0.4),

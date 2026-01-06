@@ -11,17 +11,17 @@ class GetAllProductCategoryWiseModel {
     if (json['products'] != null) {
       products = <Products>[];
       json['products'].forEach((v) {
-        products!.add(new Products.fromJson(v));
+        products!.add(Products.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['message'] = this.message;
-    data['total'] = this.total;
-    if (this.products != null) {
-      data['products'] = this.products!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = {};
+    data['message'] = message;
+    data['total'] = total;
+    if (products != null) {
+      data['products'] = products!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -39,27 +39,32 @@ class Products {
   int? discountPercentage;
   List<String>? size;
   List<String>? color;
-  int? stock;
+  String? stock;
   String? createdAt;
   String? updatedAt;
   int? iV;
 
-  Products(
-      {this.sId,
-      this.profileId,
-      this.categoryId,
-      this.name,
-      this.description,
-      this.images,
-      this.beforeDiscountPrice,
-      this.afterDiscountPrice,
-      this.discountPercentage,
-      this.size,
-      this.color,
-      this.stock,
-      this.createdAt,
-      this.updatedAt,
-      this.iV});
+  // ✅ ADDED
+  double? averageRating;
+
+  Products({
+    this.sId,
+    this.profileId,
+    this.categoryId,
+    this.name,
+    this.description,
+    this.images,
+    this.beforeDiscountPrice,
+    this.afterDiscountPrice,
+    this.discountPercentage,
+    this.size,
+    this.color,
+    this.stock,
+    this.createdAt,
+    this.updatedAt,
+    this.iV,
+    this.averageRating, // ✅
+  });
 
   Products.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -67,35 +72,43 @@ class Products {
     categoryId = json['categoryId'];
     name = json['name'];
     description = json['description'];
-    images = json['images'].cast<String>();
+    images = json['images']?.cast<String>();
     beforeDiscountPrice = json['beforeDiscountPrice'];
     afterDiscountPrice = json['afterDiscountPrice'];
     discountPercentage = json['discountPercentage'];
-    size = json['size'].cast<String>();
-    color = json['color'].cast<String>();
+    size = json['size']?.cast<String>();
+    color = json['color']?.cast<String>();
     stock = json['stock'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     iV = json['__v'];
+
+    // ✅ SAFE
+    averageRating = json['averageRating'] != null
+        ? (json['averageRating'] as num).toDouble()
+        : 0.0;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['profileId'] = this.profileId;
-    data['categoryId'] = this.categoryId;
-    data['name'] = this.name;
-    data['description'] = this.description;
-    data['images'] = this.images;
-    data['beforeDiscountPrice'] = this.beforeDiscountPrice;
-    data['afterDiscountPrice'] = this.afterDiscountPrice;
-    data['discountPercentage'] = this.discountPercentage;
-    data['size'] = this.size;
-    data['color'] = this.color;
-    data['stock'] = this.stock;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
+    final Map<String, dynamic> data = {};
+    data['_id'] = sId;
+    data['profileId'] = profileId;
+    data['categoryId'] = categoryId;
+    data['name'] = name;
+    data['description'] = description;
+    data['images'] = images;
+    data['beforeDiscountPrice'] = beforeDiscountPrice;
+    data['afterDiscountPrice'] = afterDiscountPrice;
+    data['discountPercentage'] = discountPercentage;
+    data['size'] = size;
+    data['color'] = color;
+    data['stock'] = stock;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
+
+    // ✅ ADDED
+    data['averageRating'] = averageRating;
     return data;
   }
 }

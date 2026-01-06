@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:user_side/models/GetProfileAndProductModel/getSingleProduct_model.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
-import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfileScreen.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfile/companyProfileScreen.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productImage.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/review/review.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/widgets/premiumSurface.dart';
@@ -177,42 +177,75 @@ class ProductMainCard extends StatelessWidget {
                 const DividerLine(),
                 SizedBox(height: 16.h),
 
-                // ───────── Product name ─────────
+                //yhn average rating lgao
+
+                //yhn average rating lgao
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    Icon(Icons.star, color: Colors.amber, size: 18.sp),
+                    SizedBox(width: 4.w),
                     Text(
-                      product.name ?? "",
+                      (data.averageRating ?? 0).toStringAsFixed(1),
                       style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w700,
                         color: const Color(0xFF111827),
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.w900,
-                        height: 1.15,
                       ),
                     ),
-                    Container(
-                      height: 30.h,
-                      width: 70.w,
-                      decoration: BoxDecoration(
-                        color: product.stock != null && product.stock! > 0
-                            ? Colors.green
-                            : Colors.red,
-                        borderRadius: BorderRadius.circular(20.r),
-                      ),
-                      child: Center(
-                        child: Text(
-                          product.stock != null && product.stock! > 0
-                              ? " In Stock"
-                              : " Out of Stock",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                    SizedBox(width: 6.w),
+                    Text(
+                      "(${data.reviews?.length ?? 0} reviews)",
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF6B7280),
                       ),
                     ),
                   ],
                 ),
+
+                SizedBox(height: 8.h),
+
+Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    Text(
+      product.name ?? "",
+      style: TextStyle(
+        color: const Color(0xFF111827),
+        fontSize: 20.sp,
+        fontWeight: FontWeight.w900,
+        height: 1.15,
+      ),
+    ),
+    Builder(
+      builder: (_) {
+        final String stockText = (product.stock ?? "In Stock").trim();
+        final bool isOutOfStock = stockText.toLowerCase() == "out of stock";
+        final Color bgColor = isOutOfStock ? const Color(0xFFFEE2E2) : const Color(0xFFFFEDD5);
+        final Color borderColor = isOutOfStock ? const Color(0xFFFCA5A5) : const Color(0xFFFDBA74);
+        final Color textColor = isOutOfStock ? const Color(0xFFB91C1C) : const Color(0xFFC2410C);
+
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: borderColor),
+          ),
+          child: Text(
+            stockText.isEmpty ? "In Stock" : stockText,
+            style: TextStyle(
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w700,
+              color: textColor,
+            ),
+          ),
+        );
+      },
+    ),
+  ],
+),
 
                 SizedBox(height: 10.h),
 
@@ -270,49 +303,51 @@ class ProductMainCard extends StatelessWidget {
                 const DividerLine(),
                 SizedBox(height: 16.h),
 
-                // ───────── Colors ─────────
-                const SectionHeader(title: "Select Color"),
-                SizedBox(height: 10.h),
-                Consumer<ProductDetailUiProvider>(
-                  builder: (_, ui, __) {
-                    return Wrap(
-                      spacing: 10.w,
-                      runSpacing: 10.h,
-                      children: (product.color ?? []).map((color) {
-                        final selected = ui.selectedColors.contains(color);
-                        return ChoicePill(
-                          text: color,
-                          selected: selected,
-                          onTap: () => ui.toggleColor(color),
-                        );
-                      }).toList(),
-                    );
-                  },
-                ),
-
-                SizedBox(height: 18.h),
+                // ───────── Colors ───
+                if (product.color != null && product.color!.isNotEmpty) ...[
+                  const SectionHeader(title: "Select Color"),
+                  SizedBox(height: 10.h),
+                  Consumer<ProductDetailUiProvider>(
+                    builder: (_, ui, __) {
+                      return Wrap(
+                        spacing: 10.w,
+                        runSpacing: 10.h,
+                        children: product.color!.map((color) {
+                          final selected = ui.selectedColors.contains(color);
+                          return ChoicePill(
+                            text: color,
+                            selected: selected,
+                            onTap: () => ui.toggleColor(color),
+                          );
+                        }).toList(),
+                      );
+                    },
+                  ),
+                  SizedBox(height: 18.h),
+                ],
 
                 // ───────── Sizes ─────────
-                const SectionHeader(title: "Select Size"),
-                SizedBox(height: 10.h),
-                Consumer<ProductDetailUiProvider>(
-                  builder: (_, ui, __) {
-                    return Wrap(
-                      spacing: 10.w,
-                      runSpacing: 10.h,
-                      children: (product.size ?? []).map((size) {
-                        final selected = ui.selectedSizes.contains(size);
-                        return ChoicePill(
-                          text: size,
-                          selected: selected,
-                          onTap: () => ui.toggleSize(size),
-                        );
-                      }).toList(),
-                    );
-                  },
-                ),
-
-                SizedBox(height: 18.h),
+                if (product.size != null && product.size!.isNotEmpty) ...[
+                  const SectionHeader(title: "Select Size"),
+                  SizedBox(height: 10.h),
+                  Consumer<ProductDetailUiProvider>(
+                    builder: (_, ui, __) {
+                      return Wrap(
+                        spacing: 10.w,
+                        runSpacing: 10.h,
+                        children: product.size!.map((size) {
+                          final selected = ui.selectedSizes.contains(size);
+                          return ChoicePill(
+                            text: size,
+                            selected: selected,
+                            onTap: () => ui.toggleSize(size),
+                          );
+                        }).toList(),
+                      );
+                    },
+                  ),
+                  SizedBox(height: 18.h),
+                ],
 
                 // ───────── Reviews (unchanged call) ─────────
                 Consumer<GetSingleProductProvider>(

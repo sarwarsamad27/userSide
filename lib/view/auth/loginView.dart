@@ -7,6 +7,7 @@ import 'package:user_side/view/auth/forgotScreen.dart';
 import 'package:user_side/view/auth/signUpScreen.dart';
 import 'package:user_side/view/dashboard/homeScreen.dart';
 import 'package:user_side/viewModel/provider/authProvider/login_provider.dart';
+import 'package:user_side/viewModel/provider/authProvider/signInWithGoogle_provider.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 import 'package:user_side/widgets/customButton.dart';
 import 'package:user_side/widgets/customContainer.dart';
@@ -28,6 +29,7 @@ class LoginScreen extends StatelessWidget {
           onTap: () => FocusScope.of(context).unfocus(),
 
           child: Scaffold(
+            backgroundColor: AppColor.appimagecolor,
             resizeToAvoidBottomInset: true,
             body: CustomBgContainer(
               child: SafeArea(
@@ -189,7 +191,32 @@ class LoginScreen extends StatelessWidget {
                                 socialButton(
                                   icon: FontAwesomeIcons.google,
                                   color: Colors.redAccent,
-                                  onTap: () => print("Google login"),
+                                  onTap: () async {
+                                    final provider =
+                                        Provider.of<GoogleLoginProvider>(
+                                          context,
+                                          listen: false,
+                                        );
+                                    await provider.loginWithGoogle();
+
+                                    if (provider.loginData?.token != null &&
+                                        provider.loginData!.token!.isNotEmpty) {
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => HomeNavBarScreen(),
+                                        ),
+                                      );
+                                    } else {
+                                      AppToast.error(
+                                        provider.errorMessage ??
+                                            "Google login failed",
+                                      );
+                                      print(
+                                        "Google login failed: ${provider.errorMessage}",
+                                      );
+                                    }
+                                  },
                                 ),
                                 SizedBox(width: 25.w),
                                 socialButton(

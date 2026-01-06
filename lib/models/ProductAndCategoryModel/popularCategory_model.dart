@@ -6,13 +6,14 @@ class PopularCategoryModel {
   int? totalPages;
   List<Categories>? categories;
 
-  PopularCategoryModel(
-      {this.success,
-      this.page,
-      this.limit,
-      this.totalCategories,
-      this.totalPages,
-      this.categories});
+  PopularCategoryModel({
+    this.success,
+    this.page,
+    this.limit,
+    this.totalCategories,
+    this.totalPages,
+    this.categories,
+  });
 
   PopularCategoryModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
@@ -48,15 +49,16 @@ class Categories {
   String? categoryName;
   String? categoryImage;
   int? totalProducts;
-  int? averageDiscountPercentage;
+  double? averageDiscountPercentage;
 
-  Categories(
-      {this.categoryId,
-      this.profileId,
-      this.categoryName,
-      this.categoryImage,
-      this.totalProducts,
-      this.averageDiscountPercentage});
+  Categories({
+    this.categoryId,
+    this.profileId,
+    this.categoryName,
+    this.categoryImage,
+    this.totalProducts,
+    this.averageDiscountPercentage,
+  });
 
   Categories.fromJson(Map<String, dynamic> json) {
     categoryId = json['categoryId'];
@@ -64,7 +66,10 @@ class Categories {
     categoryName = json['categoryName'];
     categoryImage = json['categoryImage'];
     totalProducts = json['totalProducts'];
-    averageDiscountPercentage = json['averageDiscountPercentage'];
+    // ✅ Convert int to double if necessary
+    averageDiscountPercentage = json['averageDiscountPercentage'] != null
+        ? (json['averageDiscountPercentage'] as num).toDouble()
+        : null;
   }
 
   Map<String, dynamic> toJson() {

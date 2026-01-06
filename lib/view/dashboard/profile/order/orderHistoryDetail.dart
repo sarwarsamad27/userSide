@@ -100,14 +100,57 @@ class OrderDetailScreen extends StatelessWidget {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10.r),
-                        child: Image.network(
-                          (p.images?.isNotEmpty == true)
-                              ? Global.imageUrl + p.images!.first
-                              : "",
-                          height: 80.h,
-                          width: 80.w,
-                          fit: BoxFit.cover,
-                        ),
+                        child:
+                            (p.images?.isNotEmpty == true &&
+                                (p.images!.first).isNotEmpty)
+                            ? Image.network(
+                                Global.imageUrl + p.images!.first,
+                                height: 80.h,
+                                width: 80.w,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    height: 80.h,
+                                    width: 80.w,
+                                    alignment: Alignment.center,
+                                    color: Colors.grey.shade200,
+                                    child: Icon(
+                                      Icons.image_not_supported_outlined,
+                                      size: 28.sp,
+                                      color: Colors.grey,
+                                    ),
+                                  );
+                                },
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        height: 80.h,
+                                        width: 80.w,
+                                        alignment: Alignment.center,
+                                        color: Colors.grey.shade200,
+                                        child: SizedBox(
+                                          height: 20.sp,
+                                          width: 20.sp,
+                                          child:
+                                              const CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                        ),
+                                      );
+                                    },
+                              )
+                            : Container(
+                                height: 80.h,
+                                width: 80.w,
+                                alignment: Alignment.center,
+                                color: Colors.grey.shade200,
+                                child: Icon(
+                                  Icons.image_outlined,
+                                  size: 28.sp,
+                                  color: Colors.grey,
+                                ),
+                              ),
                       ),
                       SizedBox(width: 12.w),
                       Expanded(

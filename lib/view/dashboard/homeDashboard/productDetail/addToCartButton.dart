@@ -8,50 +8,73 @@ class AddToCart extends StatelessWidget {
   final String productId;
   final List<String> selectedSizes;
   final List<String> selectedColors;
+  final bool productHasColors;
+  final bool productHasSizes;
 
-  AddToCart({
+  // ✅ NEW
+  final String stockStatus;
+
+  const AddToCart({
     super.key,
+    required this.productId,
     required this.selectedColors,
     required this.selectedSizes,
-    required this.productId,
+    required this.productHasColors,
+    required this.productHasSizes,
+    required this.stockStatus, // ✅ NEW
   });
 
   @override
   Widget build(BuildContext context) {
+    final bool isOutOfStock =
+        stockStatus.trim().toLowerCase() == "out of stock";
+
     return Expanded(
       child: Consumer<AddToFavouriteProvider>(
         builder: (context, provider, _) => CustomButton(
           second: true,
-          text: provider.loading ? "Adding..." : "Add to Favourite",
-          onTap: () async {
-            if (selectedColors.isEmpty || selectedSizes.isEmpty) {
-              AppToast.warning("Please select both color and size");
-              return;
-            }
+          text: isOutOfStock
+              ? "Out of Stock"
+              : (provider.loading ? "Adding..." : "Add to Favourite"),
 
-            await provider.addToFavourite(
-              productId: productId,
-              selectedSizes: selectedSizes,
-              selectedColors: selectedColors,
-            );
+          // ✅ IMPORTANT: disable when out of stock OR when loading
+          onTap: (){
+            (isOutOfStock || provider.loading)
+              ? null
+              : () async {
+                  // 🔥 VALIDATION ONLY IF OPTION EXISTS
+                  if ((productHasColors && selectedColors.isEmpty) ||
+                      (productHasSizes && selectedSizes.isEmpty)) {
+                    AppToast.warning("Please select required options");
+                    return;
+                  }
 
-            final response = provider.favouriteResponse;
+                  await provider.addToFavourite(
+                    productId: productId,
+                    selectedSizes: selectedSizes,
+                    selectedColors: selectedColors,
+                  );
 
-            if (response == null) {
-              AppToast.error("Something went wrong");
-              return;
-            }
+                  final response = provider.favouriteResponse;
+                  if (response == null) {
+                    AppToast.error("Something went wrong");
+                    return;
+                  }
 
-            /// ⭐ Handle backend messages properly
-            if (response.success == true) {
-              AppToast.success(
-                response.message ?? "Added to favourite successfully",
-              );
-            } else {
-              AppToast.error(response.message ?? "Failed to add to favourite");
-            }
-          },
-        ),
+                  if (response.success == true) {
+                    AppToast.success(
+                      response.message ?? "Added to favourite successfully",
+                    );
+                  } else {
+                    AppToast.error(
+                      response.message ?? "Failed to add to favourite",
+                    );
+                  }
+                };
+              }
+          
+        )
+        
       ),
     );
   }

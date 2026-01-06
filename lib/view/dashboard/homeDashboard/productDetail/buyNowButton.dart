@@ -1,64 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:user_side/resources/global.dart';
+import 'package:user_side/resources/toast.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productBuyForm.dart';
 import 'package:user_side/widgets/customButton.dart';
 
 class BuyNowButton extends StatelessWidget {
-  final List<String> imageUrls;
-  final String name;
-  final String description;
-  final String price;
-  final String brandName;
   final String productId;
-
+  final String name;
+  final String price;
+  final String selectedImage;
+  final String stockStatus;
   final List<String> selectedColors;
   final List<String> selectedSizes;
-  final String selectedImage;
 
-  BuyNowButton({
+  final bool productHasColors;
+  final bool productHasSizes;
+
+  const BuyNowButton({
     super.key,
-    required this.imageUrls,
+    required this.productId,
     required this.name,
-    required this.description,
     required this.price,
-    required this.brandName,
+    required this.selectedImage,
     required this.selectedColors,
     required this.selectedSizes,
-    required this.selectedImage,
-    required this.productId,
+    required this.productHasColors,
+    required this.productHasSizes,
+    required this.stockStatus,
   });
 
   @override
   Widget build(BuildContext context) {
+    final String s = stockStatus.trim().toLowerCase();
+    final bool isOutOfStock = s == "out of stock";
     return Expanded(
       child: CustomButton(
-       
         text: "Buy Now",
         onTap: () {
-          final selectedColor = selectedColors.isNotEmpty
-              ? selectedColors.first
-              : null;
-          final selectedSize = selectedSizes.isNotEmpty
-              ? selectedSizes.first
-              : null;
-
-          if (selectedColor == null || selectedSize == null) {
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text("Select Options"),
-                content: const Text(
-                  "Please select both color and size before proceeding.",
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text("OK"),
-                  ),
-                ],
-              ),
-            );
+          if (isOutOfStock) {
+            null;
           } else {
+            if ((productHasColors && selectedColors.isEmpty) ||
+                (productHasSizes && selectedSizes.isEmpty)) {
+              AppToast.warning("Please select required options");
+              return;
+            }
+
             Navigator.push(
               context,
               MaterialPageRoute(

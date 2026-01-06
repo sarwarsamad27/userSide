@@ -25,45 +25,42 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      if (!_initialFetchDone) _fetchAll();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!_initialFetchDone) {
+        await _fetchAll();
+        _initialFetchDone = true;
+      }
     });
   }
 
-  Future<void> _fetchAll({bool refresh = false}) async {
-    if (_initialFetchDone && !refresh) return;
+  Future<void> _fetchAll() async {
+    final allProductProvider = context.read<GetAllProductProvider>();
+    final popularProductProvider = context.read<PopularProductProvider>();
+    final popularCategoryProvider = context.read<PopularCategoryProvider>();
 
-    final allProductProvider = Provider.of<GetAllProductProvider>(
-      context,
-      listen: false,
-    );
-    final popularProductProvider = Provider.of<PopularProductProvider>(
-      context,
-      listen: false,
-    );
-    final popularCategoryProvider = Provider.of<PopularCategoryProvider>(
-      context,
-      listen: false,
-    );
-
-    if (refresh) {
-      allProductProvider.allProducts.clear();
-      allProductProvider.filteredProducts.clear();
-      popularProductProvider.popularProducts = null;
-      popularCategoryProvider.allCategories.clear();
-
-      allProductProvider.isFetchedOnce = false;
-      popularProductProvider.isFetchedOnce = false;
-      popularCategoryProvider.isFetchedOnce = false;
-    }
-
+    // ✅ these providers should self-skip if already fetched once
     await Future.wait([
       allProductProvider.fetchProducts(),
       popularProductProvider.fetchPopularProducts(),
       popularCategoryProvider.fetchPopularCategories(),
     ]);
+  }
 
-    _initialFetchDone = true;
+  Future<void> _refreshAll() async {
+    final allProductProvider = context.read<GetAllProductProvider>();
+    final popularProductProvider = context.read<PopularProductProvider>();
+    final popularCategoryProvider = context.read<PopularCategoryProvider>();
+
+    // ✅ refresh = force API hit
+    allProductProvider.isFetchedOnce = false;
+    popularProductProvider.isFetchedOnce = false;
+
+    await Future.wait([
+      allProductProvider.fetchProducts(),
+      popularProductProvider.fetchPopularProducts(),
+      popularCategoryProvider.refresh(), // ✅ force refresh
+    ]);
   }
 
   @override
@@ -73,7 +70,7 @@ class _ProductScreenState extends State<ProductScreen> {
       child: Scaffold(
         body: SafeArea(
           child: RefreshIndicator(
-            onRefresh: () => _fetchAll(refresh: true),
+            onRefresh: _refreshAll,
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
@@ -90,34 +87,25 @@ class _ProductScreenState extends State<ProductScreen> {
                       ),
                       child: SearchbarCategorylist(
                         onCategorySelected: (category) {
-                          setState(() {
-                            selectedCategory = category;
-                          });
+                          setState(() => selectedCategory = category);
 
-                          if (category != "All") {
-                            final catProvider =
-                                Provider.of<GetCategoryWiseProductProvider>(
-                                  context,
-                                  listen: false,
-                                );
-                            catProvider.fetchCategoryProducts(
-                              category,
-                              refresh: true,
-                            );
-                          }
-
-                          final allProvider =
-                              Provider.of<GetAllProductProvider>(
-                                context,
-                                listen: false,
-                              );
+                          final allProvider = context
+                              .read<GetAllProductProvider>();
 
                           if (category == "All") {
+                            // ✅ only reset filter; DO NOT call fetch again
                             allProvider.clearFilter();
-                            allProvider.fetchProducts();
-                          } else {
-                            allProvider.filterByCategory(category);
+                            return;
                           }
+
+                          allProvider.filterByCategory(category);
+
+                          final catProvider = context
+                              .read<GetCategoryWiseProductProvider>();
+                          catProvider.fetchCategoryProducts(
+                            category,
+                            refresh: true,
+                          );
                         },
                       ),
                     ),
@@ -125,8 +113,8 @@ class _ProductScreenState extends State<ProductScreen> {
                 ),
 
                 if (selectedCategory == "All") ...[
-                  PopularProductAndCategory(),
-                  AllProducts(),
+                  const PopularProductAndCategory(),
+                  const AllProducts(),
                 ],
 
                 if (selectedCategory != "All")

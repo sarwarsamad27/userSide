@@ -32,13 +32,12 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 🔹 Existing APIs (NO CHANGE)
+      /// ───────── Existing APIs (NO CHANGE) ─────────
       context.read<GetSingleProductProvider>().fetchSingleProduct(
         widget.profileId,
         widget.categoryId,
@@ -50,31 +49,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         widget.categoryId,
       );
 
-      context.read<OtherProductProvider>().fetchOtherProducts(
-        widget.productId,
-      );
+      context.read<OtherProductProvider>().fetchOtherProducts(widget.productId);
 
-      // 🔥 NEW: Track product view
+      /// ───────── Track product view ─────────
       _trackProductView();
     });
   }
- 
-  /// 🔥 PRODUCT VIEW TRACKING (LOGIN REQUIRED NAHI)
+
+  /// 🔥 PRODUCT VIEW TRACKING (login required nahi)
   Future<void> _trackProductView() async {
     try {
       final deviceId = await LocalStorage.getOrCreateDeviceId();
 
-      await NetworkApiServices().postApi(
-        Global.TrackProduct,
-        {
-          "deviceId": deviceId,
-          "productId": widget.productId,
-          "categoryId": widget.categoryId,
-          "profileId": widget.profileId,
-        },
-      );
+      await NetworkApiServices().postApi(Global.TrackProduct, {
+        "deviceId": deviceId,
+        "productId": widget.productId,
+        "categoryId": widget.categoryId,
+        "profileId": widget.profileId,
+      });
     } catch (e) {
-      // UX disturb nahi karna
       debugPrint("Product tracking failed: $e");
     }
   }
@@ -83,6 +76,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<GetSingleProductProvider>();
 
+    /// ───────── Loading State ─────────
     if (provider.loading || provider.productData == null) {
       return GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -90,7 +84,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         child: Scaffold(
           backgroundColor: const Color(0xFFF6F7F9),
           body: Center(
-            child: SpinKitThreeBounce(color: AppColor.primaryColor, size: 30.0),
+            child: SpinKitThreeBounce(color: AppColor.primaryColor, size: 30),
           ),
         ),
       );
@@ -98,21 +92,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     final data = provider.productData!;
     if (data.product == null) {
-      return GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: Scaffold(
-          backgroundColor: const Color(0xFFF6F7F9),
-          body: Center(
-            child: Text(
-              "Product not found",
-              style: TextStyle(color: Colors.red, fontSize: 18.sp),
-            ),
+      return Scaffold(
+        backgroundColor: const Color(0xFFF6F7F9),
+        body: Center(
+          child: Text(
+            "Product not found",
+            style: TextStyle(color: Colors.red, fontSize: 18.sp),
           ),
         ),
       );
     }
 
     final product = data.product!;
+
+    /// 🔥 IMPORTANT FLAGS (API based)
+    final bool productHasColors =
+        product.color != null && product.color!.isNotEmpty;
+    final bool productHasSizes =
+        product.size != null && product.size!.isNotEmpty;
+    final String stockStatus = (product.stock ?? "In Stock").trim();
 
     return ChangeNotifierProvider<ProductDetailUiProvider>(
       create: (_) =>
@@ -121,37 +119,39 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         backgroundColor: const Color(0xFFF6F7F9),
         body: Stack(
           children: [
+            /// ───────── Scroll Content ─────────
             SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: 100.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Main card includes ProductImage, brand row, description, colors/sizes, reviews
+                  /// Main product card
                   ProductMainCard(data: data),
 
                   SizedBox(height: 14.h),
 
-                  // Related Products
+                  /// Related products
                   const RelatedProductsSection(),
 
                   SizedBox(height: 14.h),
 
-                  // Other Products
+                  /// Other products
                   const OtherProductsSection(),
-
-                  SizedBox(height: 28.h),
                 ],
               ),
             ),
 
-            // Bottom Buttons (same design/placement)
+            /// ───────── Bottom Action Bar ─────────
             BottomActionBar(
               productId: product.sId ?? '',
               imageUrls: product.images ?? <String>[],
               name: product.name ?? '',
-              
               description: product.description ?? '',
               price: '${product.afterDiscountPrice ?? 0}',
               brandName: data.profileName ?? '',
+              productHasColors: productHasColors,
+              productHasSizes: productHasSizes,
+              stockStatus: stockStatus,
             ),
           ],
         ),

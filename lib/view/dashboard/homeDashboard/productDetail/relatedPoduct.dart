@@ -44,7 +44,7 @@ class RelatedProductsSection extends StatelessWidget {
               const SectionHeader(title: "Related Products"),
               SizedBox(height: 10.h),
               SizedBox(
-                height: 250.h,
+                height: 270.h,
                 child: ListView.separated(
                   padding: EdgeInsets.zero,
                   scrollDirection: Axis.horizontal,
@@ -56,15 +56,16 @@ class RelatedProductsSection extends StatelessWidget {
                     return SizedBox(
                       width: 190.w,
                       child: ProductCard(
+                        averageRating: item.averageRating != null
+                            ? item.averageRating!.toDouble()
+                            : 0.0,
                         name: item.name ?? "",
                         price: "${item.afterDiscountPrice ?? 0}",
                         originalPrice: item.beforeDiscountPrice != null
                             ? "${item.beforeDiscountPrice}"
                             : null,
                         description: item.description ?? "",
-                        discountText: item.discountPercentage != null
-                            ? "${item.discountPercentage}% OFF"
-                            : null,
+
                         saveText: item.beforeDiscountPrice != null
                             ? "Save Rs.${(item.beforeDiscountPrice! - item.afterDiscountPrice!).abs()}"
                             : null,
@@ -79,7 +80,7 @@ class RelatedProductsSection extends StatelessWidget {
                               builder: (_) => ProductDetailScreen(
                                 profileId: item.profileId ?? "",
                                 categoryId: item.categoryId ?? "",
-                                productId: item.sId ?? "",
+                                productId: item.id ?? "",
                               ),
                             ),
                           );

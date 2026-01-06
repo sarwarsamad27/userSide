@@ -4,10 +4,7 @@ class RecommendedProductModel {
   bool success;
   List<RecommendedProduct> products;
 
-  RecommendedProductModel({
-    required this.success,
-    required this.products,
-  });
+  RecommendedProductModel({required this.success, required this.products});
 
   factory RecommendedProductModel.fromJson(Map<String, dynamic> json) {
     return RecommendedProductModel(
@@ -15,7 +12,8 @@ class RecommendedProductModel {
       products: json["products"] == null
           ? []
           : List<RecommendedProduct>.from(
-              json["products"].map((x) => RecommendedProduct.fromJson(x))),
+              json["products"].map((x) => RecommendedProduct.fromJson(x)),
+            ),
     );
   }
 }
@@ -26,6 +24,10 @@ class RecommendedProduct {
   String description;
   List<String> images;
   num afterDiscountPrice;
+
+  // ✅ ADDED
+  double averageRating;
+
   Profile profile;
   Category category;
 
@@ -35,6 +37,7 @@ class RecommendedProduct {
     required this.description,
     required this.images,
     required this.afterDiscountPrice,
+    required this.averageRating, // ✅
     required this.profile,
     required this.category,
   });
@@ -46,6 +49,11 @@ class RecommendedProduct {
       description: json["description"] ?? "",
       images: json["images"] == null ? [] : List<String>.from(json["images"]),
       afterDiscountPrice: json["afterDiscountPrice"] ?? 0,
+
+      averageRating: json['averageRating'] != null
+          ? (json['averageRating'] as num).toDouble()
+          : 0.0,
+
       profile: Profile.fromJson(json["profileId"]),
       category: Category.fromJson(json["categoryId"]),
     );
@@ -75,9 +83,6 @@ class Category {
   Category({required this.id, required this.name});
 
   factory Category.fromJson(Map<String, dynamic> json) {
-    return Category(
-      id: json["_id"],
-      name: json["name"] ?? "",
-    );
+    return Category(id: json["_id"], name: json["name"] ?? "");
   }
 }

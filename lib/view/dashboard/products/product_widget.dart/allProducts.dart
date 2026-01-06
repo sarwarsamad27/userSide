@@ -31,7 +31,11 @@ class AllProducts extends StatelessWidget {
           }
 
           return SliverGrid(
-            delegate: SliverChildBuilderDelegate((context, index) {
+
+            delegate: SliverChildBuilderDelegate(
+              
+              
+              (context, index) {
               // Safety check
               if (index >= products.length) {
                 return const SizedBox();
@@ -65,7 +69,9 @@ class AllProducts extends StatelessWidget {
                 price: "${product.afterDiscountPrice ?? 0}",
                 name: product.name ?? "",
                 description: product.description ?? "",
-                discountText: "${product.discountPercentage ?? 0}% OFF",
+                saveText: "${product.discountPercentage ?? 0}% OFF",
+
+                averageRating: product.averageRating ?? 0.0,
                 originalPrice: "${product.beforeDiscountPrice ?? 0}",
               );
             }, childCount: products.length),
@@ -73,7 +79,7 @@ class AllProducts extends StatelessWidget {
               crossAxisCount: 2,
               mainAxisSpacing: 12.h,
               crossAxisSpacing: 12.w,
-              mainAxisExtent: 250.h,
+              mainAxisExtent: 260.h,
             ),
           );
         },

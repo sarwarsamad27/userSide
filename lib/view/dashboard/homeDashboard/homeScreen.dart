@@ -51,10 +51,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 Expanded(
                   child: provider.isLoading
-                      ?  Center(child: SpinKitThreeBounce(
-                          color: AppColor.primaryColor, 
-                          size: 30.0,
-                        ),)
+                      ? Center(
+                          child: SpinKitThreeBounce(
+                            color: AppColor.primaryColor,
+                            size: 30.0,
+                          ),
+                        )
                       : provider.productData == null ||
                             provider.productData!.profiles == null ||
                             provider.productData!.profiles!.isEmpty
@@ -65,15 +67,16 @@ class _HomeScreenState extends State<HomeScreen> {
                             provider.applySearch(""); // 🔥 RESET search
                           },
                           child: GridView.builder(
+                            padding: EdgeInsets.zero,
                             physics:
                                 const AlwaysScrollableScrollPhysics(), // IMPORTANT
                             itemCount: provider.filteredProfiles.length,
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 2,
-                                  mainAxisExtent: 260.h,
+                                  mainAxisExtent: 230.h,
                                   crossAxisSpacing: 14.w,
-                                  mainAxisSpacing: 5.h,
+                                  mainAxisSpacing: 6.h,
                                 ),
                             itemBuilder: (context, index) {
                               final item = provider.filteredProfiles[index];

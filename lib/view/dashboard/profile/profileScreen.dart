@@ -1,19 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/local_storage.dart';
-import 'package:user_side/view/auth/loginView.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/view/dashboard/profile/helpCenter.dart';
 import 'package:user_side/view/dashboard/profile/offer.dart';
 import 'package:user_side/view/dashboard/profile/order/orderHistory.dart';
 import 'package:user_side/view/dashboard/profile/setting.dart';
 import 'package:user_side/view/dashboard/profile/termAndCondition.dart';
+import 'package:user_side/view/dashboard/profile/widgets/optionTile.dart';
+import 'package:user_side/view/dashboard/profile/widgets/premiumOfferCard.dart';
+import 'package:user_side/viewModel/provider/authProvider/signInWithGoogle_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/recommendedProduct_provider.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 import 'package:user_side/widgets/customButton.dart';
-import 'package:user_side/widgets/customContainer.dart';
 import 'package:user_side/widgets/productCard.dart';
 
 class Profilescreen extends StatefulWidget {
@@ -24,15 +28,87 @@ class Profilescreen extends StatefulWidget {
 }
 
 class _ProfilescreenState extends State<Profilescreen> {
+  // --- Premium Offers Carousel (Circular/Infinite) ---
+  late final PageController _offerPageController;
+  Timer? _offerTimer;
+
+  static const int _kLoopBase = 1000; // start in middle for "infinite"
+  int _pageIndex = _kLoopBase;
+  int _activeIndex = 0;
+
+  // Auto-slide config (increased)
+  final Duration _autoSlideDuration = const Duration(seconds: 4);
+  final Duration _slideAnimationDuration = const Duration(milliseconds: 650);
+
+  final List<OfferCardData> _offers = const [
+    OfferCardData(
+      emoji: "🛍️",
+      title: "Shop 30% OFF",
+      subtitle: "Exclusive Deals for You!",
+      badge: "LIMITED",
+      icon: Icons.local_offer_outlined,
+    ),
+    OfferCardData(
+      emoji: "⚡",
+      title: "Flash Sale",
+      subtitle: "New drops every day",
+      badge: "HOT",
+      icon: Icons.bolt_outlined,
+    ),
+    OfferCardData(
+      emoji: "🎁",
+      title: "Member Perks",
+      subtitle: "Extra savings on bundles",
+      badge: "PREMIUM",
+      icon: Icons.card_giftcard_outlined,
+    ),
+  ];
+
   @override
   void initState() {
     super.initState();
+
+    _offerPageController = PageController(
+      viewportFraction: 0.90,
+      initialPage: _pageIndex,
+    );
+
     _loadRecommendations();
+    _startAutoOffers();
+  }
+
+  @override
+  void dispose() {
+    _offerTimer?.cancel();
+    _offerPageController.dispose();
+    super.dispose();
+  }
+
+  int _mapToOfferIndex(int page) {
+    if (_offers.isEmpty) return 0;
+    final m = page % _offers.length;
+    return m < 0 ? m + _offers.length : m;
+  }
+
+  void _startAutoOffers() {
+    _offerTimer?.cancel();
+    _offerTimer = Timer.periodic(_autoSlideDuration, (_) {
+      if (!mounted) return;
+      if (!_offerPageController.hasClients) return;
+      if (_offers.isEmpty) return;
+
+      _pageIndex = _pageIndex + 1;
+
+      _offerPageController.animateToPage(
+        _pageIndex,
+        duration: _slideAnimationDuration,
+        curve: Curves.easeInOutCubic,
+      );
+    });
   }
 
   Future<void> _loadRecommendations() async {
     final deviceId = await LocalStorage.getOrCreateDeviceId();
-
     if (!mounted) return;
 
     Provider.of<RecommendationProvider>(
@@ -44,6 +120,7 @@ class _ProfilescreenState extends State<Profilescreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColor.appimagecolor,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColor.appimagecolor,
@@ -66,7 +143,6 @@ class _ProfilescreenState extends State<Profilescreen> {
             ),
           ],
         ),
-
         actions: [
           IconButton(
             onPressed: () {
@@ -80,7 +156,6 @@ class _ProfilescreenState extends State<Profilescreen> {
           SizedBox(width: 10.w),
         ],
       ),
-
       body: CustomBgContainer(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16.w),
@@ -89,28 +164,58 @@ class _ProfilescreenState extends State<Profilescreen> {
             children: [
               SizedBox(height: 20.h),
 
-              Container(
-                height: 140.h,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(20.r),
-                  ),
-                  child: Center(
-                    child: Text(
-                      "🛍️ Shop 30% OFF\nExclusive Deals for You!",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+              // ✅ Premium Offer Cards (Circular + Auto change)
+              SizedBox(
+                height: 160.h,
+                child: PageView.builder(
+                  controller: _offerPageController,
+                  itemCount: 1000000, // large for infinite illusion
+                  onPageChanged: (page) {
+                    _pageIndex = page;
+                    _activeIndex = _mapToOfferIndex(page);
+                    setState(() {});
+                  },
+                  itemBuilder: (context, page) {
+                    final offerIndex = _mapToOfferIndex(page);
+                    final data = _offers[offerIndex];
+
+                    final bool isActive = offerIndex == _activeIndex;
+
+                    return AnimatedScale(
+                      duration: const Duration(milliseconds: 300),
+                      scale: isActive ? 1.0 : 0.94,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 6.w,
+                          vertical: 6.h,
+                        ),
+                        child: PremiumOfferCard(data: data, isActive: isActive),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
+              ),
+
+              SizedBox(height: 10.h),
+
+              // Dots Indicator (premium)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(_offers.length, (i) {
+                  final bool active = i == _activeIndex;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    margin: EdgeInsets.symmetric(horizontal: 4.w),
+                    height: 7.h,
+                    width: active ? 22.w : 7.w,
+                    decoration: BoxDecoration(
+                      color: active
+                          ? AppColor.primaryColor
+                          : Colors.black.withOpacity(0.18),
+                      borderRadius: BorderRadius.circular(20.r),
+                    ),
+                  );
+                }),
               ),
 
               SizedBox(height: 15.h),
@@ -124,7 +229,12 @@ class _ProfilescreenState extends State<Profilescreen> {
               Consumer<RecommendationProvider>(
                 builder: (context, provider, _) {
                   if (provider.loading) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Center(
+                      child: SpinKitThreeBounce(
+                        color: AppColor.primaryColor,
+                        size: 30.0,
+                      ),
+                    );
                   }
 
                   if (provider.products.isEmpty) {
@@ -135,7 +245,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                   }
 
                   return SizedBox(
-                    height: 240.h,
+                    height: 260.h,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: provider.products.length,
@@ -147,13 +257,12 @@ class _ProfilescreenState extends State<Profilescreen> {
                           width: 180.w,
                           child: ProductCard(
                             name: product.name,
-
                             price: product.afterDiscountPrice.toString(),
                             imageUrl: product.images.isNotEmpty
                                 ? product.images.first
                                 : "",
+                            averageRating: product.averageRating, // ✅
                             description: product.description,
-
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -205,7 +314,6 @@ class _ProfilescreenState extends State<Profilescreen> {
                   SizedBox(height: 10.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
                     children: [
                       optionTile(
                         context,
@@ -224,48 +332,17 @@ class _ProfilescreenState extends State<Profilescreen> {
                     ],
                   ),
                   SizedBox(height: 10.h),
-
                   CustomButton(
                     text: "Log Out",
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          title: const Text("Logout"),
-                          content: const Text(
-                            "Are you sure you want to log out?",
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text("Cancel"),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                // Clear saved token & userId
-                                await LocalStorage.clearAll();
-
-                                // Close popup
-                                Navigator.pop(context);
-
-                                // Navigate to login screen and clear history
-                                Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const LoginScreen(),
-                                  ),
-                                  (route) => false,
-                                );
-                              },
-                              child: const Text("Logout"),
-                            ),
-                          ],
-                        ),
+                    onTap: () async {
+                      final provider = Provider.of<GoogleLoginProvider>(
+                        context,
+                        listen: false,
                       );
+                      await provider.confirmLogout(context);
                     },
                   ),
-
-                  SizedBox(height: 100.h),
+                  SizedBox(height: 70.h),
                 ],
               ),
             ],
@@ -274,38 +351,20 @@ class _ProfilescreenState extends State<Profilescreen> {
       ),
     );
   }
+}
 
-  Widget optionTile(
-    BuildContext context,
-    IconData icon,
-    String title,
-    Color color,
-    Widget screen,
-  ) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
-      },
-      child: CustomAppContainer(
-        padding: EdgeInsets.symmetric(horizontal: 4.w),
-        width: 170.w,
-        height: 60.h,
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Icon(icon, color: color),
-            SizedBox(width: 4.w),
-            FittedBox(
-              child: Text(
-                title,
-                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+class OfferCardData {
+  final String emoji;
+  final String title;
+  final String subtitle;
+  final String badge;
+  final IconData icon;
+
+  const OfferCardData({
+    required this.emoji,
+    required this.title,
+    required this.subtitle,
+    required this.badge,
+    required this.icon,
+  });
 }

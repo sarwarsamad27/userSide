@@ -196,8 +196,9 @@ class Product {
   List<String>? selectedColor;
   List<String>? selectedSize;
   List<String>? images;
-  int? stock;
+  String? stock;
   String? description;
+  Review? review;
 
   Product(
       {this.productId,
@@ -209,7 +210,8 @@ class Product {
       this.selectedSize,
       this.images,
       this.stock,
-      this.description});
+      this.description,
+      this.review});
 
   Product.fromJson(Map<String, dynamic> json) {
     productId = json['productId'];
@@ -222,6 +224,8 @@ class Product {
     images = json['images'].cast<String>();
     stock = json['stock'];
     description = json['description'];
+    review =
+        json['review'] != null ? new Review.fromJson(json['review']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -236,6 +240,79 @@ class Product {
     data['images'] = this.images;
     data['stock'] = this.stock;
     data['description'] = this.description;
+    if (this.review != null) {
+      data['review'] = this.review!.toJson();
+    }
+    return data;
+  }
+}
+
+class Review {
+  String? sId;
+  String? productId;
+  String? userId;
+  int? stars;
+  String? text;
+  Reply? reply;
+  String? createdAt;
+  String? updatedAt;
+  int? iV;
+
+  Review(
+      {this.sId,
+      this.productId,
+      this.userId,
+      this.stars,
+      this.text,
+      this.reply,
+      this.createdAt,
+      this.updatedAt,
+      this.iV});
+
+  Review.fromJson(Map<String, dynamic> json) {
+    sId = json['_id'];
+    productId = json['productId'];
+    userId = json['userId'];
+    stars = json['stars'];
+    text = json['text'];
+    reply = json['reply'] != null ? new Reply.fromJson(json['reply']) : null;
+    createdAt = json['createdAt'];
+    updatedAt = json['updatedAt'];
+    iV = json['__v'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['_id'] = this.sId;
+    data['productId'] = this.productId;
+    data['userId'] = this.userId;
+    data['stars'] = this.stars;
+    data['text'] = this.text;
+    if (this.reply != null) {
+      data['reply'] = this.reply!.toJson();
+    }
+    data['createdAt'] = this.createdAt;
+    data['updatedAt'] = this.updatedAt;
+    data['__v'] = this.iV;
+    return data;
+  }
+}
+
+class Reply {
+  String? text;
+  String? repliedAt;
+
+  Reply({this.text, this.repliedAt});
+
+  Reply.fromJson(Map<String, dynamic> json) {
+    text = json['text'];
+    repliedAt = json['repliedAt'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['text'] = this.text;
+    data['repliedAt'] = this.repliedAt;
     return data;
   }
 }

@@ -6,6 +6,7 @@ class GetSingleProductModel {
   String? profileDescription;
   String? profileEmail;
   String? profilephoneNumber;
+  double? averageRating;
   List<Reviews>? reviews;
 
   GetSingleProductModel({
@@ -16,6 +17,7 @@ class GetSingleProductModel {
     this.profileDescription,
     this.profileEmail,
     this.profilephoneNumber,
+    this.averageRating,
     this.reviews,
   });
 
@@ -29,6 +31,9 @@ class GetSingleProductModel {
     profileDescription = json['profileDescription'];
     profileEmail = json['profileEmail'];
     profilephoneNumber = json['profilephoneNumber'];
+    averageRating = json['averageRating'] != null
+        ? (json['averageRating'] as num).toDouble()
+        : 0.0;
     if (json['reviews'] != null) {
       reviews = <Reviews>[];
       json['reviews'].forEach((v) {
@@ -48,6 +53,7 @@ class GetSingleProductModel {
     data['profileDescription'] = this.profileDescription;
     data['profileEmail'] = this.profileEmail;
     data['profilephoneNumber'] = this.profilephoneNumber;
+    data['averageRating'] = this.averageRating;
     if (this.reviews != null) {
       data['reviews'] = this.reviews!.map((v) => v.toJson()).toList();
     }
@@ -66,7 +72,7 @@ class Product {
   int? afterDiscountPrice;
   List<String>? size;
   List<String>? color;
-  int? stock;
+  String? stock;
   String? createdAt;
   String? updatedAt;
   int? iV;
