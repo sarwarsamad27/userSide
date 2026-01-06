@@ -1,10 +1,17 @@
+import 'dart:async';
+
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/appTheme.dart';
 import 'package:user_side/view/auth/splashView.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/viewModel/provider/multiProvider/multiProvider.dart';
 
-void main() {
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+void main(){
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const AppWrapper());
 }
 
@@ -19,8 +26,62 @@ class AppWrapper extends StatelessWidget {
   }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final AppLinks _appLinks = AppLinks();
+  StreamSubscription<Uri>? _sub;
+
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinks();
+  }
+
+  Future<void> _initDeepLinks() async {
+    // Cold start
+    final Uri? initialUri = await _appLinks.getInitialLink();
+    if (initialUri != null) {
+      _handleDeepLink(initialUri);
+    }
+
+    // Foreground/background
+    _sub = _appLinks.uriLinkStream.listen((Uri uri) {
+      _handleDeepLink(uri);
+    }, onError: (_) {});
+  }
+
+  void _handleDeepLink(Uri uri) {
+    // expecting: shookoo://product?productId=...&categoryId=...&profileId=...
+    if (uri.scheme != "shookoo" || uri.host != "product") return;
+
+    final productId = uri.queryParameters["productId"];
+    final categoryId = uri.queryParameters["categoryId"];
+    final profileId = uri.queryParameters["profileId"];
+
+    if (productId == null || categoryId == null || profileId == null) return;
+
+    navigatorKey.currentState?.push(
+      MaterialPageRoute(
+        builder: (_) => ProductDetailScreen(
+          profileId: profileId,
+          categoryId: categoryId,
+          productId: productId,
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +89,7 @@ class MyApp extends StatelessWidget {
       designSize: const Size(390, 844),
       builder: (context, child) {
         return MaterialApp(
+          navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
           title: 'SHOOKOO',
           theme: AppTheme.lightTheme,

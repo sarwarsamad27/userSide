@@ -57,7 +57,7 @@ class RelatedProductsSection extends StatelessWidget {
                       width: 190.w,
                       child: ProductCard(
                         averageRating: item.averageRating != null
-                            ? item.averageRating!.toDouble()
+                            ? item.averageRating.toDouble()
                             : 0.0,
                         name: item.name ?? "",
                         price: "${item.afterDiscountPrice ?? 0}",
@@ -70,8 +70,8 @@ class RelatedProductsSection extends StatelessWidget {
                             ? "Save Rs.${(item.beforeDiscountPrice! - item.afterDiscountPrice!).abs()}"
                             : null,
                         imageUrl:
-                            (item.images != null && item.images!.isNotEmpty)
-                            ? item.images!.first
+                            (item.images != null && item.images.isNotEmpty)
+                            ? item.images.first
                             : "",
                         onTap: () {
                           Navigator.push(

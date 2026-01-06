@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+
 import 'package:user_side/models/GetProfileAndProductModel/getSingleProduct_model.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
@@ -12,6 +14,7 @@ import 'package:user_side/view/dashboard/homeDashboard/productDetail/review/revi
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/widgets/premiumSurface.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getSingleProduct_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/productDetailUI_provider.dart';
+import 'package:user_side/viewModel/provider/productProvider/productShare_provider.dart';
 
 class ProductMainCard extends StatelessWidget {
   final GetSingleProductModel data;
@@ -43,9 +46,7 @@ class ProductMainCard extends StatelessWidget {
           builder: (_, ui, __) {
             return ProductImage(
               imageUrls: product.images ?? [],
-              onImageChange: (index) {
-                ui.onImageChange(index);
-              },
+              onImageChange: (index) => ui.onImageChange(index),
             );
           },
         ),
@@ -55,7 +56,6 @@ class ProductMainCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ───────────── Image (unchanged) ─────────────
                 SizedBox(height: 12.h),
 
                 // ───────── Brand/Company row ─────────
@@ -177,9 +177,7 @@ class ProductMainCard extends StatelessWidget {
                 const DividerLine(),
                 SizedBox(height: 16.h),
 
-                //yhn average rating lgao
-
-                //yhn average rating lgao
+                // ───────── Average rating ─────────
                 Row(
                   children: [
                     Icon(Icons.star, color: Colors.amber, size: 18.sp),
@@ -206,46 +204,99 @@ class ProductMainCard extends StatelessWidget {
 
                 SizedBox(height: 8.h),
 
-Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    Text(
-      product.name ?? "",
-      style: TextStyle(
-        color: const Color(0xFF111827),
-        fontSize: 20.sp,
-        fontWeight: FontWeight.w900,
-        height: 1.15,
-      ),
-    ),
-    Builder(
-      builder: (_) {
-        final String stockText = (product.stock ?? "In Stock").trim();
-        final bool isOutOfStock = stockText.toLowerCase() == "out of stock";
-        final Color bgColor = isOutOfStock ? const Color(0xFFFEE2E2) : const Color(0xFFFFEDD5);
-        final Color borderColor = isOutOfStock ? const Color(0xFFFCA5A5) : const Color(0xFFFDBA74);
-        final Color textColor = isOutOfStock ? const Color(0xFFB91C1C) : const Color(0xFFC2410C);
+                // ───────── Name + Share + Stock ─────────
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        product.name ?? "",
+                        style: TextStyle(
+                          color: const Color(0xFF111827),
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.w900,
+                          height: 1.15,
+                        ),
+                      ),
+                    ),
 
-        return Container(
-          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: borderColor),
-          ),
-          child: Text(
-            stockText.isEmpty ? "In Stock" : stockText,
-            style: TextStyle(
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w700,
-              color: textColor,
-            ),
-          ),
-        );
-      },
-    ),
-  ],
-),
+                    // ✅ SHARE ICON
+                    IconButton(
+                      icon: Icon(
+                        Icons.share_outlined,
+                        size: 22.sp,
+                        color: const Color(0xFF111827),
+                      ),
+                      onPressed: () async {
+                        final shareProvider = context
+                            .read<ProductShareProvider>();
+
+                        final link = await shareProvider.fetchShareLink(
+                          productId: product.sId ?? '',
+                          profileId: product.profileId ?? '',
+                        );
+
+                        if (link == null || link.isEmpty) return;
+
+                        final name = product.name ?? '';
+                        final desc = product.description ?? '';
+                        final price = product.afterDiscountPrice ?? 0;
+                        final brand = data.profileName ?? '';
+
+                        final shareText =
+                            '''
+$name
+$desc
+
+Brand: $brand
+Price: Rs: $price
+
+$link
+''';
+
+                        await Share.share(shareText);
+                      },
+                    ),
+
+                    // Stock badge
+                    Builder(
+                      builder: (_) {
+                        final String stockText = (product.stock ?? "In Stock")
+                            .trim();
+                        final bool isOutOfStock =
+                            stockText.toLowerCase() == "out of stock";
+                        final Color bgColor = isOutOfStock
+                            ? const Color(0xFFFEE2E2)
+                            : const Color(0xFFFFEDD5);
+                        final Color borderColor = isOutOfStock
+                            ? const Color(0xFFFCA5A5)
+                            : const Color(0xFFFDBA74);
+                        final Color textColor = isOutOfStock
+                            ? const Color(0xFFB91C1C)
+                            : const Color(0xFFC2410C);
+
+                        return Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10.w,
+                            vertical: 6.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: bgColor,
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Text(
+                            stockText.isEmpty ? "In Stock" : stockText,
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w700,
+                              color: textColor,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
 
                 SizedBox(height: 10.h),
 
@@ -274,7 +325,6 @@ Row(
                         ),
                       ),
                     const Spacer(),
-                    if (discountPercent > 0) const SizedBox.shrink(),
                     if (discountPercent > 0)
                       PillBadge(
                         text: "$discountPercent% OFF",
@@ -286,7 +336,6 @@ Row(
 
                 SizedBox(height: 16.h),
 
-                // ───────── Description ─────────
                 const SectionHeader(title: "Description"),
                 SizedBox(height: 8.h),
                 Text(
@@ -303,7 +352,6 @@ Row(
                 const DividerLine(),
                 SizedBox(height: 16.h),
 
-                // ───────── Colors ───
                 if (product.color != null && product.color!.isNotEmpty) ...[
                   const SectionHeader(title: "Select Color"),
                   SizedBox(height: 10.h),
@@ -326,7 +374,6 @@ Row(
                   SizedBox(height: 18.h),
                 ],
 
-                // ───────── Sizes ─────────
                 if (product.size != null && product.size!.isNotEmpty) ...[
                   const SectionHeader(title: "Select Size"),
                   SizedBox(height: 10.h),
@@ -349,7 +396,6 @@ Row(
                   SizedBox(height: 18.h),
                 ],
 
-                // ───────── Reviews (unchanged call) ─────────
                 Consumer<GetSingleProductProvider>(
                   builder: (_, provider, __) {
                     return Review(

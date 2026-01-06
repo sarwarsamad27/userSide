@@ -1,11 +1,10 @@
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps
 
 class Global {
-  // static var BaseUrl = "http://192.168.100.212:5000/api/auth";
-  // static var imageUrl = "http://192.168.100.212:5000";
-  static var BaseUrl = "http://10.0.2.2:5000/api/auth";
-  static var imageUrl = "http://10.0.2.2:5000";
-
+  static var BaseUrl = "http://192.168.100.49:5000/api/auth";
+  static var imageUrl = "http://192.168.100.49:5000";
+  // static var BaseUrl = "http://10.0.2.2:5000/api/auth";
+  // static var imageUrl = "http://10.0.2.2:5000";
 
   static var SignUp = "${BaseUrl}/buyer/signup";
   static var Login = "${BaseUrl}/buyer/login";
@@ -33,4 +32,5 @@ class Global {
   static var CategoryWiseProduct = "${BaseUrl}/buyer/category";
   static var RecommendedProducts = "${BaseUrl}/buyer/recommended/products";
   static var TrackProduct = "${BaseUrl}/buyer/track/product";
+  static var ShareLink = "${BaseUrl}/buyer/share/link";
 }

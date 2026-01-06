@@ -23,6 +23,7 @@ import 'package:user_side/viewModel/provider/productProvider/createReview_provid
 import 'package:user_side/viewModel/provider/productProvider/getAllProduct_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/getPopularCategory_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/getPopularProduct_provider.dart';
+import 'package:user_side/viewModel/provider/productProvider/productShare_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/reviewEditOrDelete_provider.dart';
 
 class AppMultiProvider extends StatelessWidget {
@@ -62,7 +63,8 @@ class AppMultiProvider extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => GoogleLoginProvider()),
         ChangeNotifierProvider(create: (_) => ReviewFormProvider()),
         ChangeNotifierProvider(create: (_) => ReviewProvider()..loadReviewedProducts()),
-      ],
+     
+     ChangeNotifierProvider(create: (_) => ProductShareProvider()), ],
       child: child,
     );
   }

@@ -70,6 +70,11 @@ class _ReviewState extends State<Review> {
     final data = provider.productData!;
     List<Reviews> apiReviews = widget.reviews;
 
+    // ✅ If no reviews, hide the whole section (no heading, no "No Review Yet")
+    if (apiReviews.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusScope.of(context).unfocus(),
@@ -82,230 +87,203 @@ class _ReviewState extends State<Review> {
           ),
           SizedBox(height: 12.h),
 
-          apiReviews.isEmpty
-              ? Text(
-                  "No Review Yet",
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14.sp,
-                    fontStyle: FontStyle.italic,
+          // ✅ Now always show reviews list (because apiReviews is not empty)
+          Column(
+            children: List.generate(
+              showAllReviews
+                  ? apiReviews.length
+                  : (apiReviews.length > 3 ? 3 : apiReviews.length),
+              (index) {
+                final r = apiReviews[index];
+                bool canEditDelete = showEditDelete[r.sId] ?? false;
+
+                final bool isReplyVisible = showReply[r.sId ?? ""] ?? false;
+
+                return Container(
+                  margin: EdgeInsets.only(bottom: 12.h),
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12.r),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
                   ),
-                )
-              : Column(
-                  children: List.generate(
-                    showAllReviews
-                        ? apiReviews.length
-                        : (apiReviews.length > 3 ? 3 : apiReviews.length),
-                    (index) {
-                      final r = apiReviews[index];
-                      bool canEditDelete = showEditDelete[r.sId] ?? false;
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            (r.userEmail != null && r.userEmail!.contains("@"))
+                                ? r.userEmail!.split("@").first
+                                : r.userEmail ?? "User",
+                            style: TextStyle(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w600,
+                              color: AppColor.primaryColor,
+                            ),
+                          ),
+                          Row(
+                            children: List.generate(5, (i) {
+                              return Icon(
+                                i < (r.stars ?? 0)
+                                    ? Icons.star
+                                    : Icons.star_border,
+                                size: 18.sp,
+                                color: Colors.amber,
+                              );
+                            }),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 6.h),
+                      Text(
+                        r.text ?? "",
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.black87,
+                        ),
+                      ),
 
-                      // NEW: reply visible state (default false)
-                      final bool isReplyVisible =
-                          showReply[r.sId ?? ""] ?? false;
+                      if (r.repliedAt != null)
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: Text(
+                            formatDate(r.createdAt!),
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
 
-                      return Container(
-                        margin: EdgeInsets.only(bottom: 12.h),
-                        padding: EdgeInsets.all(12.w),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12.r),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 4,
-                              offset: Offset(0, 2),
+                      if (canEditDelete || r.userEmail == "StaticUser")
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                openEditReviewDialog(
+                                  context,
+                                  EditReview(
+                                    sId: r.sId,
+                                    stars: r.stars,
+                                    text: r.text,
+                                  ),
+                                  (updatedStars, updatedText) {
+                                    setState(() {
+                                      r.stars = updatedStars;
+                                      r.text = updatedText;
+                                    });
+                                  },
+                                );
+                              },
+                              child: const Text("Edit"),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                openDeleteReviewDialog(context, r, () {
+                                  setState(() {
+                                    widget.reviews.removeWhere(
+                                      (rev) => rev.sId == r.sId,
+                                    );
+                                  });
+                                });
+                              },
+                              child: const Text("Delete"),
                             ),
                           ],
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            /// USER & RATING ROW
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  (r.userEmail != null &&
-                                          r.userEmail!.contains("@"))
-                                      ? r.userEmail!.split("@").first
-                                      : r.userEmail ?? "User",
-                                  style: TextStyle(
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColor.primaryColor,
-                                  ),
-                                ),
-                                Row(
-                                  children: List.generate(5, (i) {
-                                    return Icon(
-                                      i < (r.stars ?? 0)
-                                          ? Icons.star
-                                          : Icons.star_border,
-                                      size: 18.sp,
-                                      color: Colors.amber,
-                                    );
-                                  }),
-                                ),
-                              ],
-                            ),
 
-                            SizedBox(height: 6.h),
-
-                            /// REVIEW TEXT
-                            Text(
-                              r.text ?? "",
+                      if (r.replyText != null && r.replyText!.isNotEmpty)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              setState(() {
+                                final key = r.sId ?? "";
+                                showReply[key] = !(showReply[key] ?? false);
+                              });
+                            },
+                            child: Text(
+                              isReplyVisible ? "Hide Reply" : "View Reply",
                               style: TextStyle(
-                                fontSize: 14.sp,
-                                color: Colors.black87,
+                                color: AppColor.primaryColor,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13.sp,
                               ),
                             ),
+                          ),
+                        ),
 
-                            // NOTE: (Your existing condition kept as-is)
-                            if (r.repliedAt != null)
-                              Align(
-                                alignment: Alignment.bottomRight,
-                                child: Text(
-                                  formatDate(r.createdAt!),
-                                  style: TextStyle(
-                                    fontSize: 11.sp,
-                                    color: Colors.grey,
-                                  ),
-                                ),
+                      if ((r.replyText != null && r.replyText!.isNotEmpty) &&
+                          isReplyVisible)
+                        Container(
+                          margin: EdgeInsets.only(top: 10.h),
+                          padding: EdgeInsets.all(10.w),
+                          decoration: BoxDecoration(
+                            color: AppColor.primaryColor.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.reply,
+                                color: AppColor.primaryColor,
+                                size: 18.sp,
                               ),
-
-                            /// EDIT/DELETE BUTTONS (if allowed)
-                            if (canEditDelete || r.userEmail == "StaticUser")
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  TextButton(
-                                    onPressed: () {
-                                      openEditReviewDialog(
-                                        context,
-                                        EditReview(
-                                          sId: r.sId,
-                                          stars: r.stars,
-                                          text: r.text,
-                                        ),
-                                        (updatedStars, updatedText) {
-                                          setState(() {
-                                            r.stars = updatedStars;
-                                            r.text = updatedText;
-                                          });
-                                        },
-                                      );
-                                    },
-                                    child: const Text("Edit"),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      openDeleteReviewDialog(context, r, () {
-                                        setState(() {
-                                          widget.reviews.removeWhere(
-                                            (rev) => rev.sId == r.sId,
-                                          );
-                                        });
-                                      });
-                                    },
-                                    child: const Text("Delete"),
-                                  ),
-                                ],
-                              ),
-
-                            /// VIEW REPLY (button only) - reply hidden by default
-                            if (r.replyText != null && r.replyText!.isNotEmpty)
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: TextButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      final key = r.sId ?? "";
-                                      showReply[key] =
-                                          !(showReply[key] ?? false);
-                                    });
-                                  },
-                                  child: Text(
-                                    isReplyVisible
-                                        ? "Hide Reply"
-                                        : "View Reply",
-                                    style: TextStyle(
-                                      color: AppColor.primaryColor,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 13.sp,
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                            /// ⭐ SELLER REPLY (only when view reply clicked)
-                            if ((r.replyText != null &&
-                                    r.replyText!.isNotEmpty) &&
-                                isReplyVisible)
-                              Container(
-                                margin: EdgeInsets.only(top: 10.h),
-                                padding: EdgeInsets.all(10.w),
-                                decoration: BoxDecoration(
-                                  color: AppColor.primaryColor.withOpacity(
-                                    0.05,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10.r),
-                                ),
-                                child: Row(
+                              SizedBox(width: 8.w),
+                              Expanded(
+                                child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Icon(
-                                      Icons.reply,
-                                      color: AppColor.primaryColor,
-                                      size: 18.sp,
-                                    ),
-                                    SizedBox(width: 8.w),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            data.profileName ?? "Seller",
-                                            style: TextStyle(
-                                              color: AppColor.primaryColor,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 13.sp,
-                                            ),
-                                          ),
-                                          SizedBox(height: 4.h),
-                                          Text(
-                                            r.replyText ?? "",
-                                            style: TextStyle(
-                                              fontSize: 13.sp,
-                                              color: Colors.grey[800],
-                                            ),
-                                          ),
-                                          if (r.repliedAt != null)
-                                            Align(
-                                              alignment: Alignment.bottomRight,
-                                              child: Text(
-                                                formatDate(r.repliedAt!),
-                                                style: TextStyle(
-                                                  fontSize: 11.sp,
-                                                  color: Colors.grey,
-                                                ),
-                                              ),
-                                            ),
-                                        ],
+                                    Text(
+                                      data.profileName ?? "Seller",
+                                      style: TextStyle(
+                                        color: AppColor.primaryColor,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13.sp,
                                       ),
                                     ),
+                                    SizedBox(height: 4.h),
+                                    Text(
+                                      r.replyText ?? "",
+                                      style: TextStyle(
+                                        fontSize: 13.sp,
+                                        color: Colors.grey[800],
+                                      ),
+                                    ),
+                                    if (r.repliedAt != null)
+                                      Align(
+                                        alignment: Alignment.bottomRight,
+                                        child: Text(
+                                          formatDate(r.repliedAt!),
+                                          style: TextStyle(
+                                            fontSize: 11.sp,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ),
                                   ],
                                 ),
                               ),
-                          ],
+                            ],
+                          ),
                         ),
-                      );
-                    },
+                    ],
                   ),
-                ),
+                );
+              },
+            ),
+          ),
 
-          /// SEE MORE / LESS
           if (apiReviews.length > 3)
             GestureDetector(
               onTap: () => setState(() => showAllReviews = !showAllReviews),
