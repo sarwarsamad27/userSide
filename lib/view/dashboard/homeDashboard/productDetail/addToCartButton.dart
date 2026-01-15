@@ -38,42 +38,39 @@ class AddToCart extends StatelessWidget {
               : (provider.loading ? "Adding..." : "Add to Favourite"),
 
           // ✅ IMPORTANT: disable when out of stock OR when loading
-          onTap: (){
-            (isOutOfStock || provider.loading)
-              ? null
-              : () async {
-                  // 🔥 VALIDATION ONLY IF OPTION EXISTS
-                  if ((productHasColors && selectedColors.isEmpty) ||
-                      (productHasSizes && selectedSizes.isEmpty)) {
-                    AppToast.warning("Please select required options");
-                    return;
-                  }
+        onTap: (isOutOfStock || provider.loading)
+    ? null
+    : () async {
+        // 🔥 VALIDATION ONLY IF OPTION EXISTS
+        if ((productHasColors && selectedColors.isEmpty) ||
+            (productHasSizes && selectedSizes.isEmpty)) {
+          AppToast.warning("Please select required options");
+          return;
+        }
 
-                  await provider.addToFavourite(
-                    productId: productId,
-                    selectedSizes: selectedSizes,
-                    selectedColors: selectedColors,
-                  );
+        await provider.addToFavourite(
+          productId: productId,
+          selectedSizes: selectedSizes,
+          selectedColors: selectedColors,
+        );
 
-                  final response = provider.favouriteResponse;
-                  if (response == null) {
-                    AppToast.error("Something went wrong");
-                    return;
-                  }
+        final response = provider.favouriteResponse;
+        if (response == null) {
+          AppToast.error("Something went wrong");
+          return;
+        }
 
-                  if (response.success == true) {
-                    AppToast.success(
-                      response.message ?? "Added to favourite successfully",
-                    );
-                  } else {
-                    AppToast.error(
-                      response.message ?? "Failed to add to favourite",
-                    );
-                  }
-                };
-              }
-          
-        )
+        if (response.success == true) {
+          AppToast.success(
+            response.message ?? "Added to favourite successfully",
+          );
+        } else {
+          AppToast.error(
+            response.message ?? "Failed to add to favourite",
+          );
+        }
+      },
+ )
         
       ),
     );

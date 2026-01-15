@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:user_side/models/notification_services/notification_services.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/view/auth/loginView.dart';
@@ -20,7 +21,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-
+    NotificationService.initAndRegisterToken();
     // 🔄 Rotation controller (1 rotation every 3 seconds)
     _controller = AnimationController(
       vsync: this,

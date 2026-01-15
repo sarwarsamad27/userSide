@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:user_side/models/notification_services/notification_services.dart';
 import 'package:uuid/uuid.dart';
 
 class LocalStorage {
@@ -38,10 +39,10 @@ class LocalStorage {
     return prefs.getString("token");
   }
 
-  /// -------------------- USER ID --------------------
   static Future<void> saveUserId(String userId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("userId", userId);
+    await NotificationService.initAndRegisterToken();
   }
 
   static Future<String?> getUserId() async {
@@ -49,7 +50,6 @@ class LocalStorage {
     return prefs.getString("userId");
   }
 
-  /// -------------------- REVIEWED PRODUCTS (SharedPreferences) --------------------
   static Future<Set<String>> getReviewedProductIds() async {
     final prefs = await SharedPreferences.getInstance();
     final list = prefs.getStringList(_reviewedProductsKey) ?? <String>[];
@@ -83,7 +83,6 @@ class LocalStorage {
     await prefs.remove(_reviewedProductsKey);
   }
 
-  /// -------------------- CLEAR ALL --------------------
   static Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();

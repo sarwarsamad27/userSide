@@ -4,7 +4,7 @@ import 'package:user_side/resources/appColor.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
-  final VoidCallback onTap;
+  final VoidCallback ? onTap;
   final double height;
   final double width;
   final bool isGradient;
@@ -15,7 +15,7 @@ class CustomButton extends StatelessWidget {
   const CustomButton({
     super.key,
     required this.text,
-    required this.onTap,
+     this.onTap,
     this.borderColor,
     this.height = 55,
     this.width = double.infinity,

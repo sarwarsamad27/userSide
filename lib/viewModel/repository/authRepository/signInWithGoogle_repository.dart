@@ -4,7 +4,7 @@ import 'package:user_side/resources/global.dart';
 
 class GoogleLoginRepository {
   final NetworkApiServices apiService = NetworkApiServices();
-  final String apiUrl = Global.GoogleLogin; // must be /buyer/google/login
+  final String apiUrl = Global.GoogleLogin;
 
   Future<GoogleLoginModel> googleLogin(String idToken) async {
     try {
