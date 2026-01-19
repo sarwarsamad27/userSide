@@ -73,11 +73,9 @@ class NotificationService {
         body: jsonEncode(payload),
       );
       print("response daikho $resp");
-      // optional: log
-      // print("FCM save status: ${resp.statusCode} body: ${resp.body}");
+      print("FCM save status: ${resp.statusCode} body: ${resp.body}");
     } catch (e) {
-      // swallow errors (do not crash app)
-      // print("FCM save failed: $e");
+      print("FCM save failed: $e");
     }
   }
 }

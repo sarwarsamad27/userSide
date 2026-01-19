@@ -8,6 +8,7 @@ import 'package:user_side/viewModel/provider/authProvider/verifyCode_provider.da
 import 'package:provider/provider.dart';
 import 'package:user_side/viewModel/provider/favouriteProvider/addToFavourite_provider.dart';
 import 'package:user_side/viewModel/provider/favouriteProvider/getFavourite_provider.dart';
+import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/followUnFollow_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getAllCategoryProfileWise_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getAllProductCategoryWise_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getAllProfile_provider.dart';
@@ -64,7 +65,9 @@ class AppMultiProvider extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ReviewFormProvider()),
         ChangeNotifierProvider(create: (_) => ReviewProvider()..loadReviewedProducts()),
      
-     ChangeNotifierProvider(create: (_) => ProductShareProvider()), ],
+     ChangeNotifierProvider(create: (_) => ProductShareProvider()), 
+     ChangeNotifierProvider(create: (_) => FollowProvider()), 
+     ],
       child: child,
     );
   }

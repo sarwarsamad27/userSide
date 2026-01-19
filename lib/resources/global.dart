@@ -33,4 +33,6 @@ class Global {
   static var RecommendedProducts = "${BaseUrl}/buyer/recommended/products";
   static var TrackProduct = "${BaseUrl}/buyer/track/product";
   static var ShareLink = "${BaseUrl}/buyer/share/link";
+  static var ToggleFollow = "${BaseUrl}/buyer/toggle/follow";
+  static var GetFollowStatus = "${BaseUrl}/buyer/follow/status";
 }

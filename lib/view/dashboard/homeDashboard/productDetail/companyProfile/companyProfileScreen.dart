@@ -10,8 +10,9 @@ import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProf
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfile/widget/actionTile.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfile/widget/premiumCard.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/widgets/premiumSurface.dart';
+import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/followUnFollow_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getAllCategoryProfileWise_provider.dart';
-import 'package:user_side/widgets/customBgContainer.dart';
+import 'package:user_side/widgets/customButton.dart';
 
 class CompanyProfileScreen extends StatefulWidget {
   final String companyName;
@@ -38,27 +39,44 @@ class CompanyProfileScreen extends StatefulWidget {
 }
 
 class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
-  int selectedCategory = 0;
-  bool isFollowing = false;
-  int followerCount = 1250;
-
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final provider = Provider.of<GetAllCategoryProfileWiseProvider>(
+      // ✅ Fetch categories
+      final categoryProvider = Provider.of<GetAllCategoryProfileWiseProvider>(
         context,
         listen: false,
       );
 
-      await provider.fetchCategories(widget.profileId);
+      await categoryProvider.fetchCategories(widget.profileId);
 
-      if (provider.data != null && provider.data!.categories!.isNotEmpty) {
-        provider.selectCategory(0);
-        setState(() => selectedCategory = 0);
+      if (categoryProvider.data != null &&
+          categoryProvider.data!.categories!.isNotEmpty) {
+        categoryProvider.selectCategory(0);
       }
+
+      // ✅ Fetch follow status
+      final followProvider = Provider.of<FollowProvider>(
+        context,
+        listen: false,
+      );
+      followProvider.getFollowStatus(widget.profileId);
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant CompanyProfileScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.profileId != widget.profileId) {
+      final followProvider = Provider.of<FollowProvider>(
+        context,
+        listen: false,
+      );
+      followProvider.reset();
+      followProvider.getFollowStatus(widget.profileId);
+    }
   }
 
   void showCallOptions(BuildContext context, String phoneNumber) {
@@ -119,7 +137,6 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                 ],
               ),
               SizedBox(height: 6.h),
-
               ActionTile(
                 icon: Icons.phone,
                 iconBg: const Color(0xFFEFF6FF),
@@ -198,7 +215,6 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                     ),
                   ),
                   child: Container(
-                    // subtle overlay to make header premium
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
@@ -233,177 +249,219 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                             ),
                           ],
                         ),
-                        child: Container(
-                          padding: EdgeInsets.all(2.w),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColor.primaryColor.withOpacity(0.95),
-                                AppColor.primaryColor.withOpacity(0.35),
-                              ],
+                        child: GestureDetector(
+                          onTap: () {
+                            print("👆icon BUTTON TAPPED");
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(2.w),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColor.primaryColor.withOpacity(0.95),
+                                  AppColor.primaryColor.withOpacity(0.35),
+                                ],
+                              ),
                             ),
-                          ),
-                          child: CircleAvatar(
-                            radius: 42.r,
-                            backgroundColor: const Color(0xFFF3F4F6),
-                            backgroundImage: NetworkImage(widget.logoUrl),
+                            child: CircleAvatar(
+                              radius: 42.r,
+                              backgroundColor: const Color(0xFFF3F4F6),
+                              backgroundImage: NetworkImage(widget.logoUrl),
+                            ),
                           ),
                         ),
                       ),
 
                       SizedBox(width: 12.w),
 
-                      // Follow button aligned nicely in header
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.bottomRight,
-                          child: SizedBox(
-                            height: 42.h,
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isFollowing
-                                    ? Colors.white
-                                    : AppColor.primaryColor,
-                                elevation: 0,
-                                side: isFollowing
-                                    ? BorderSide(color: AppColor.primaryColor)
-                                    : BorderSide.none,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12.r),
-                                ),
-                                padding: EdgeInsets.symmetric(horizontal: 14.w),
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  isFollowing = !isFollowing;
-                                  followerCount += isFollowing ? 1 : -1;
-                                });
-                              },
-                              icon: Icon(
-                                isFollowing
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                color: isFollowing
-                                    ? AppColor.primaryColor
-                                    : Colors.white,
-                                size: 18.sp,
-                              ),
-                              label: Text(
-                                isFollowing ? "Following" : "Follow",
-                                style: TextStyle(
-                                  color: isFollowing
-                                      ? AppColor.primaryColor
-                                      : Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 13.sp,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      // ✅ FIXED Follow Button
                     ],
                   ),
                 ),
               ],
             ),
 
-            SizedBox(height: 62.h),
+            SizedBox(height: 58.h),
 
             // ───────────────── Main info card ─────────────────
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: PremiumCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.companyName,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.w900,
-                        height: 1.15,
-                        color: const Color(0xFF111827),
-                      ),
-                    ),
-                    SizedBox(height: 6.h),
-
-                    Row(
+              child: Consumer<FollowProvider>(
+                builder: (context, followProvider, child) {
+                  return PremiumCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        PillInfo(
-                          icon: Icons.people_alt_outlined,
-                          text:
-                              "${(followerCount / 1000).toStringAsFixed(1)}k Followers",
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              widget.companyName,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 20.sp,
+                                fontWeight: FontWeight.w900,
+                                height: 1.15,
+                                color: const Color(0xFF111827),
+                              ),
+                            ),
+                            Consumer<FollowProvider>(
+                              builder: (context, followProvider, child) {
+                                print(
+                                  "🎨 BUTTON REBUILD: isLoading=${followProvider.isLoading}, isFollowing=${followProvider.isFollowing}",
+                                );
+
+                                final isDisabled = followProvider.isLoading;
+                                final buttonText = followProvider.isFollowing
+                                    ? "Following"
+                                    : "Follow";
+
+                                return GestureDetector(
+                                  onTap: isDisabled
+                                      ? null
+                                      : () async {
+                                          print("👆 FOLLOW BUTTON TAPPED!");
+                                          print(
+                                            "🔍 ProfileId: ${widget.profileId}",
+                                          );
+
+                                          await followProvider.toggleFollow(
+                                            widget.profileId,
+                                          );
+
+                                          print("✅ toggleFollow completed");
+                                        },
+                                  child: Container(
+                                    height: 42.h,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 20.w,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isDisabled
+                                          ? AppColor.appimagecolor
+                                          : (followProvider.isFollowing
+                                                ? Colors.white
+                                                : AppColor.primaryColor),
+                                      borderRadius: BorderRadius.circular(8.r),
+                                      border: Border.all(
+                                        color: followProvider.isFollowing
+                                            ? AppColor.primaryColor
+                                            : Colors.white,
+                                      ),
+                                    ),
+                                    alignment:
+                                        Alignment.center, // ✅ KEY ADDITION
+                                    child: followProvider.isLoading
+                                        ? SizedBox(
+                                            height: 20.h,
+                                            width: 20.h,
+                                            child:
+                                                const CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                        Color
+                                                      >(Colors.white),
+                                                ),
+                                          )
+                                        : Text(
+                                            buttonText,
+                                            style: TextStyle(
+                                              color: followProvider.isFollowing
+                                                  ? AppColor.primaryColor
+                                                  : Colors.white,
+                                              fontSize: 14.sp,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
-                        SizedBox(width: 10.w),
-                        PillInfo(
-                          icon: Icons.verified_outlined,
-                          text: "Company",
+                        SizedBox(height: 6.h),
+
+                        // ✅ Followers Count - Real-time update
+                        Row(
+                          children: [
+                            PillInfo(
+                              icon: Icons.people_alt_outlined,
+                              text: followProvider.followersCount >= 1000
+                                  ? "${(followProvider.followersCount / 1000).toStringAsFixed(1)}k Followers"
+                                  : "${followProvider.followersCount} Followers",
+                            ),
+                            SizedBox(width: 10.w),
+                            PillInfo(
+                              icon: Icons.verified_outlined,
+                              text: "Company",
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(height: 14.h),
+
+                        Text(
+                          widget.description,
+                          style: TextStyle(
+                            fontSize: 13.5.sp,
+                            color: const Color(0xFF4B5563),
+                            height: 1.55,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+
+                        SizedBox(height: 14.h),
+                        const DividerLine(),
+                        SizedBox(height: 14.h),
+
+                        // Contact actions
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ContactAction(
+                                icon: Icons.phone,
+                                title: "Contact",
+                                subtitle: "Call / WhatsApp",
+                                iconBg: const Color(0xFFEFF6FF),
+                                iconColor: const Color(0xFF2563EB),
+                                onTap: () => showCallOptions(
+                                  context,
+                                  widget.phoneNumber,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: ContactAction(
+                                icon: Icons.email_outlined,
+                                title: "Email",
+                                subtitle: widget.email,
+                                iconBg: const Color(0xFFFFF1F2),
+                                iconColor: const Color(0xFFE11D48),
+                                onTap: () => launchEmail(widget.email),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-
-                    SizedBox(height: 14.h),
-
-                    Text(
-                      widget.description,
-                      style: TextStyle(
-                        fontSize: 13.5.sp,
-                        color: const Color(0xFF4B5563),
-                        height: 1.55,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-
-                    SizedBox(height: 14.h),
-                    const DividerLine(),
-                    SizedBox(height: 14.h),
-
-                    // Contact actions (same logic)
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ContactAction(
-                            icon: Icons.phone,
-                            title: "Contact",
-                            subtitle: "Call / WhatsApp",
-                            iconBg: const Color(0xFFEFF6FF),
-                            iconColor: const Color(0xFF2563EB),
-                            onTap: () =>
-                                showCallOptions(context, widget.phoneNumber),
-                          ),
-                        ),
-                        SizedBox(width: 12.w),
-                        Expanded(
-                          child: ContactAction(
-                            icon: Icons.email_outlined,
-                            title: "Email",
-                            subtitle: widget.email,
-                            iconBg: const Color(0xFFFFF1F2),
-                            iconColor: const Color(0xFFE11D48),
-                            onTap: () => launchEmail(widget.email),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
 
             SizedBox(height: 18.h),
 
-            // ───────────────── Categories header ─────────────────
+            // ───────────────── Categories ─────────────────
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: SectionHeader(title: "Categories"),
             ),
             SizedBox(height: 10.h),
 
-            // ───────────────── Categories chips (premium) ─────────────────
             SizedBox(
               height: 35.h,
               child: Consumer<GetAllCategoryProfileWiseProvider>(
@@ -434,7 +492,6 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                       return InkWell(
                         onTap: () {
                           provider.selectCategory(index);
-                          setState(() => selectedCategory = index);
                         },
                         borderRadius: BorderRadius.circular(999),
                         child: AnimatedContainer(
@@ -482,6 +539,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
 
             SizedBox(height: 16.h),
 
+            // ───────────────── Products ─────────────────
             Consumer<GetAllCategoryProfileWiseProvider>(
               builder: (context, provider, child) {
                 if (provider.data == null ||
@@ -502,6 +560,4 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       ),
     );
   }
-
 }
-

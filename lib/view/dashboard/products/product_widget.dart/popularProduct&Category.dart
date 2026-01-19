@@ -63,7 +63,7 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
                 final columnCount = (items.length / 2).ceil();
 
                 return SizedBox(
-                  height: 290.h,
+                  height: 270.h,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: columnCount,
@@ -80,27 +80,24 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
                         padding: EdgeInsets.only(right: 12.w),
                         child: Column(
                           children: columnItems.map((item) {
-                            return Padding(
-                              padding: EdgeInsets.only(bottom: 4.h),
-                              child: CustomProductTile(
-                                imageUrl:
-                                    //  item.categoryImage != null
-                                    Global.imageUrl + item.categoryImage!,
-                                name: item.categoryName ?? "",
-                                saveText:
-                                    "Save upto: ${(item.averageDiscountPercentage ?? 0).toStringAsFixed(0)}%",
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => Categoryscreen(
-                                        profileId: item.profileId ?? '',
-                                        categoryId: item.categoryId ?? '',
-                                      ),
+                            return CustomProductTile(
+                              imageUrl:
+                                  //  item.categoryImage != null
+                                  Global.imageUrl + item.categoryImage!,
+                              name: item.categoryName ?? "",
+                              saveText:
+                                  "Save upto: ${(item.averageDiscountPercentage ?? 0).toStringAsFixed(0)}%",
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => Categoryscreen(
+                                      profileId: item.profileId ?? '',
+                                      categoryId: item.categoryId ?? '',
                                     ),
-                                  );
-                                },
-                              ),
+                                  ),
+                                );
+                              },
                             );
                           }).toList(),
                         ),
@@ -111,9 +108,6 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
               },
             ),
 
-            SizedBox(height: 16.h),
-
-            //------------------ POPULAR PRODUCTS -------------------//
             Text(
               "Popular Products",
               style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
