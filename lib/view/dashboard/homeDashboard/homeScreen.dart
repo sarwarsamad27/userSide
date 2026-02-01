@@ -4,7 +4,10 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/view/dashboard/homeDashboard/categoryAndProduct/categoryScreen.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/notificationScreen/notificationIcon.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/notificationScreen/notification_screen.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getAllProfile_provider.dart';
+import 'package:user_side/viewModel/provider/notificationProvider/notification_provider.dart';
 import 'package:user_side/widgets/customsearchbar.dart';
 import 'package:user_side/widgets/productContainer.dart';
 
@@ -25,13 +28,15 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         listen: false,
       ).fetchProfiles();
+       Provider.of<NotificationProvider>(context, listen: false).fetch();
     });
   }
+  
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<GetAllProfileProvider>(context);
-
+    final notifProvider = Provider.of<NotificationProvider>(context);
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
@@ -40,11 +45,35 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
             child: Column(
               children: [
-                CustomSearchBar(
-                  hintText: "Search brands...",
-                  onChanged: (value) {
-                    provider.applySearch(value);
-                  },
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomSearchBar(
+                        hintText: "Search brands...",
+                        onChanged: (value) {
+                          provider.applySearch(value);
+                        },
+                      ),
+                    ),
+
+                    SizedBox(width: 12.w),
+
+              
+
+NotificationIconButton(
+  unreadCount: notifProvider.unreadCount,
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const NotificationScreen()),
+    ).then((_) {
+      // screen se wapis aate hi count refresh
+      notifProvider.fetch(showLoader: false);
+    });
+  },
+),
+
+                  ],
                 ),
 
                 SizedBox(height: 16.h),

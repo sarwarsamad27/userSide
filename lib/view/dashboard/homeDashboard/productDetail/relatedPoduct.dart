@@ -49,7 +49,7 @@ class RelatedProductsSection extends StatelessWidget {
                   padding: EdgeInsets.zero,
                   scrollDirection: Axis.horizontal,
                   itemCount: rp.relatedModel!.relatedProducts!.length,
-                  separatorBuilder: (_, __) => SizedBox(width: 12.w),
+                  separatorBuilder: (_, __) => SizedBox(width: 4.w),
                   itemBuilder: (context, index) {
                     final item = rp.relatedModel!.relatedProducts![index];
 

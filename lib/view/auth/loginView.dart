@@ -1,22 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/toast.dart';
 import 'package:user_side/view/auth/forgotScreen.dart';
 import 'package:user_side/view/auth/signUpScreen.dart';
-import 'package:user_side/view/dashboard/homeScreen.dart';
+import 'package:user_side/view/dashboard/DashboardScreen.dart';
 import 'package:user_side/viewModel/provider/authProvider/login_provider.dart';
 import 'package:user_side/viewModel/provider/authProvider/signInWithGoogle_provider.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 import 'package:user_side/widgets/customButton.dart';
 import 'package:user_side/widgets/customContainer.dart';
 import 'package:user_side/widgets/customTextFeld.dart';
+import 'package:user_side/widgets/customValidation.dart';
 import 'package:user_side/widgets/social_button.dart';
-import 'package:provider/provider.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  bool _submitted = false; // ✅ add this
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +37,6 @@ class LoginScreen extends StatelessWidget {
       builder: (context, child) {
         return GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
-
           child: Scaffold(
             backgroundColor: AppColor.appimagecolor,
             resizeToAvoidBottomInset: true,
@@ -43,11 +52,15 @@ class LoginScreen extends StatelessWidget {
                         vertical: 30.h,
                       ),
 
-                      child: SingleChildScrollView(
+                      /// ✅ Form autovalidate only after submit
+                      child: Form(
+                        key: _formKey,
+                        autovalidateMode: _submitted
+                            ? AutovalidateMode.onUserInteraction
+                            : AutovalidateMode.disabled,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            /// App Logo
                             Icon(
                               Icons.shopping_bag_rounded,
                               size: 70.sp,
@@ -64,6 +77,7 @@ class LoginScreen extends StatelessWidget {
                               ),
                             ),
                             SizedBox(height: 6.h),
+
                             Text(
                               "Login to continue your journey",
                               style: TextStyle(
@@ -75,24 +89,31 @@ class LoginScreen extends StatelessWidget {
                             ),
                             SizedBox(height: 30.h),
 
+                            /// ✅ Email
                             CustomTextField(
                               headerText: "Email Address",
                               hintText: "Enter your email",
                               controller: provider.emailController,
                               prefixIcon: Icons.email_outlined,
+                              keyboardType: TextInputType.emailAddress,
+                              // ❌ REMOVE autovalidateMode here
+                              validator: Validators.email,
                             ),
                             SizedBox(height: 18.h),
 
+                            /// ✅ Password
                             CustomTextField(
                               headerText: "Password",
                               hintText: "Enter your password",
                               controller: provider.passwordController,
                               isPassword: true,
                               prefixIcon: Icons.lock_outline,
+                              // ❌ REMOVE autovalidateMode here
+                              validator: (v) =>
+                                  Validators.minLen(v, 6, label: "Password"),
                             ),
                             SizedBox(height: 12.h),
 
-                            /// Forgot Password
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
@@ -116,43 +137,54 @@ class LoginScreen extends StatelessWidget {
                             ),
                             SizedBox(height: 10.h),
 
-                            /// Login Button
+                            /// ✅ Login Button
                             CustomButton(
-                              text: "Login",
-                              onTap: () async {
-                                provider.clearError();
+                              text: provider.loading
+                                  ? "Please wait..."
+                                  : "Login",
+                              onTap: provider.loading
+                                  ? null
+                                  : () async {
+                                      provider.clearError();
 
-                                await provider.loginProvider(
-                                  email: provider.emailController.text.trim(),
-                                  password: provider.passwordController.text
-                                      .trim(),
-                                );
+                                      // ✅ enable validation only after first submit
+                                      if (!_submitted) {
+                                        setState(() => _submitted = true);
+                                      }
 
-                                if (provider.loginData?.token != null &&
-                                    provider.loginData!.token!.isNotEmpty) {
-                                  provider.emailController.text.trim();
+                                      final ok =
+                                          _formKey.currentState?.validate() ??
+                                          false;
+                                      if (!ok) return;
 
-                                  provider.emailController.clear();
-                                  provider.passwordController.clear();
+                                      await provider.loginProvider();
 
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => HomeNavBarScreen(),
-                                    ),
-                                  );
-                                } else {
-                                  AppToast.error(
-                                    provider.errorMessage ??
-                                        "Invalid email or password",
-                                  );
-                                }
-                              },
+                                      if (provider.loginData?.token != null &&
+                                          provider
+                                              .loginData!
+                                              .token!
+                                              .isNotEmpty) {
+                                        provider.emailController.clear();
+                                        provider.passwordController.clear();
+
+                                        if (!mounted) return;
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => HomeNavBarScreen(),
+                                          ),
+                                        );
+                                      } else {
+                                        AppToast.error(
+                                          provider.errorMessage ??
+                                              "Invalid email or password",
+                                        );
+                                      }
+                                    },
                             ),
 
                             SizedBox(height: 20.h),
 
-                            /// Divider
                             Row(
                               children: [
                                 Expanded(
@@ -184,7 +216,6 @@ class LoginScreen extends StatelessWidget {
 
                             SizedBox(height: 20.h),
 
-                            /// Login with Google / Apple Buttons
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -192,15 +223,20 @@ class LoginScreen extends StatelessWidget {
                                   icon: FontAwesomeIcons.google,
                                   color: Colors.redAccent,
                                   onTap: () async {
-                                    final provider =
+                                    final googleProvider =
                                         Provider.of<GoogleLoginProvider>(
                                           context,
                                           listen: false,
                                         );
-                                    await provider.loginWithGoogle();
+                                    await googleProvider.loginWithGoogle();
 
-                                    if (provider.loginData?.token != null &&
-                                        provider.loginData!.token!.isNotEmpty) {
+                                    if (googleProvider.loginData?.token !=
+                                            null &&
+                                        googleProvider
+                                            .loginData!
+                                            .token!
+                                            .isNotEmpty) {
+                                      if (!mounted) return;
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
@@ -209,11 +245,8 @@ class LoginScreen extends StatelessWidget {
                                       );
                                     } else {
                                       AppToast.error(
-                                        provider.errorMessage ??
+                                        googleProvider.errorMessage ??
                                             "Google login failed",
-                                      );
-                                      print(
-                                        "Google login failed: ${provider.errorMessage}",
                                       );
                                     }
                                   },
@@ -222,14 +255,13 @@ class LoginScreen extends StatelessWidget {
                                 socialButton(
                                   icon: Icons.apple,
                                   color: Colors.black,
-                                  onTap: () => print("Apple login"),
+                                  onTap: () => debugPrint("Apple login"),
                                 ),
                               ],
                             ),
 
                             SizedBox(height: 25.h),
 
-                            /// Sign Up Link
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [

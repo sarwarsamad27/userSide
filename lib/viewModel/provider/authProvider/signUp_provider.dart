@@ -13,68 +13,31 @@ class SignUpProvider with ChangeNotifier {
   SignUpModel? get signUpData => _signUpData;
 
   final SignUpRepository repository = SignUpRepository();
- 
 
   Future<void> signUpProvider({
     required String email,
     required String password,
-    required String confirmPassword,
   }) async {
     _loading = true;
     _errorMessage = null;
     notifyListeners();
 
-    if (email.isEmpty) {
-      _errorMessage = "Email is required";
-      _loading = false;
-      notifyListeners();
-      return;
-    }
+    try {
+      _signUpData = await repository.signUp(email, password);
 
-    if (!RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(email)) {
-      _errorMessage = "Invalid email format";
-      _loading = false;
-      notifyListeners();
-      return;
+      if (_signUpData?.newUser == null) {
+        _errorMessage = _signUpData?.message ?? "Signup failed";
+      }
+    } catch (e) {
+      _errorMessage = "Something went wrong. Please try again.";
     }
-
-    if (password.isEmpty) {
-      _errorMessage = "Password is required";
-      _loading = false;
-      notifyListeners();
-      return;
-    }
-
-    if (password.length < 6) {
-      _errorMessage = "Password must be at least 6 characters long";
-      _loading = false;
-      notifyListeners();
-      return;
-    }
-
-    if (confirmPassword.isEmpty) {
-      _errorMessage = "Confirm Password is required";
-      _loading = false;
-      notifyListeners();
-      return;
-    }
-
-    if (password != confirmPassword) {
-      _errorMessage = "Passwords do not match";
-      _loading = false;
-      notifyListeners();
-      return;
-    }
-
-    // If validation passes, make the API call
-    _signUpData = await repository.signUp(email, password);
 
     _loading = false;
     notifyListeners();
+  }
 
-    if (_signUpData?.newUser == null) {
-      _errorMessage = _signUpData?.message ?? "Signup failed";
-      notifyListeners();
-    }
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
   }
 }

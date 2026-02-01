@@ -31,11 +31,7 @@ class AllProducts extends StatelessWidget {
           }
 
           return SliverGrid(
-
-            delegate: SliverChildBuilderDelegate(
-              
-              
-              (context, index) {
+            delegate: SliverChildBuilderDelegate((context, index) {
               // Safety check
               if (index >= products.length) {
                 return const SizedBox();
@@ -78,7 +74,7 @@ class AllProducts extends StatelessWidget {
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: 12.h,
-              crossAxisSpacing: 12.w,
+              crossAxisSpacing: 4.w,
               mainAxisExtent: 260.h,
             ),
           );

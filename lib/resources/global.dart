@@ -1,9 +1,11 @@
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps
 
 class Global {
-  static var imageUrl = "http://192.168.100.49:5000";
-  static var BaseUrl = "http://192.168.100.49:5000/api/auth";
+  static var imageUrl = "http://192.168.100.9:5000";
+
+  static var BaseUrl = "http://192.168.100.9:5000/api/auth";
   // static var BaseUrl = "http://10.0.2.2:5000/api/auth";
+
   // static var imageUrl = "http://10.0.2.2:5000";
 
   static var SignUp = "${BaseUrl}/buyer/signup";
@@ -35,4 +37,11 @@ class Global {
   static var ShareLink = "${BaseUrl}/buyer/share/link";
   static var ToggleFollow = "${BaseUrl}/buyer/toggle/follow";
   static var GetFollowStatus = "${BaseUrl}/buyer/follow/status";
+  static var getBuyerNotifications = "${BaseUrl}/buyer/get/notifications";
+  static var markNotificationRead = "${BaseUrl}/buyer/notifications/mark/read";
+  static var getExchangePdf = "${BaseUrl}/buyer/get/exchange"; 
+  static var getExchangeRequests = "${BaseUrl}/buyer/get/exchange/requests";
+  static var createExchangeRequest = "${BaseUrl}/buyer/create/exchange/request";
+  static var ChatMessages = "${BaseUrl}/buyer/chat/messages";
+  static var ChatThreads = "${BaseUrl}/buyer/chat/threads";
 }

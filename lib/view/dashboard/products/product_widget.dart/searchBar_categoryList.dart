@@ -44,7 +44,7 @@ class _SearchbarCategorylistState extends State<SearchbarCategorylist> {
 
         /// CATEGORY LIST
         SizedBox(
-          height: 35.h,
+          height: 30.h,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: categories.length,

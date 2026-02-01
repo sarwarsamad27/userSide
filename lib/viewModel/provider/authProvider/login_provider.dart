@@ -1,11 +1,14 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:user_side/models/auth/login_model.dart';
+import 'package:user_side/models/notification_services/notification_services.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/viewModel/repository/authRepository/login_repository.dart';
 
 class LoginProvider with ChangeNotifier {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
   bool _loading = false;
   bool get loading => _loading;
 
@@ -17,66 +20,54 @@ class LoginProvider with ChangeNotifier {
 
   final LoginRepository repository = LoginRepository();
 
- Future<void> loginProvider({
-  required String email,
-  required String password,
-}) async {
-  _loading = true;
-  _errorMessage = null;
-  notifyListeners();
+  Future<void> loginProvider() async {
+    _loading = true;
+    _errorMessage = null;
+    notifyListeners();
 
-  // VALIDATIONS
-  if (email.isEmpty) {
-    _errorMessage = "Email is required";
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    try {
+      _loginData = await repository.login(email, password);
+
+      final token = _loginData?.token;
+      final userId = _loginData?.user?.id;
+
+      if (token != null &&
+          token.isNotEmpty &&
+          userId != null &&
+          userId.isNotEmpty) {
+        final fcm = await FirebaseMessaging.instance.getToken();
+
+        // ✅ 1) Save first
+        await LocalStorage.saveToken(token);
+        await LocalStorage.saveUserId(userId);
+
+        // ✅ 2) Then register FCM token (now userId exists)
+        await NotificationService.registerTokenIfLoggedIn();
+        print("FCM TOKEN HINT: ...${fcm?.substring((fcm?.length ?? 10) - 10)}");
+        print("Saved userId: ${await LocalStorage.getUserId()}");
+      } else {
+        _errorMessage = _loginData?.message ?? "Login failed";
+      }
+    } catch (e) {
+      _errorMessage = "Something went wrong. Please try again.";
+    }
+
     _loading = false;
     notifyListeners();
-    return;
   }
-
-  if (!RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(email)) {
-    _errorMessage = "Invalid email format";
-    _loading = false;
-    notifyListeners();
-    return;
-  }
-
-  if (password.isEmpty) {
-    _errorMessage = "Password is required";
-    _loading = false;
-    notifyListeners();
-    return;
-  }
-
-  if (password.length < 6) {
-    _errorMessage = "Password must be at least 6 characters";
-    _loading = false;
-    notifyListeners();
-    return;
-  }
-
-  // API CALL
-  _loginData = await repository.login(email, password);
-
-  _loading = false;
-  notifyListeners();
-
-  if (_loginData?.token != null &&
-      _loginData!.token!.isNotEmpty &&
-      _loginData!.user != null &&
-      _loginData!.user!.id != null) {
-    // Save JWT token
-    await LocalStorage.saveToken(_loginData!.token!);
-
-    // Save user ID separately
-    await LocalStorage.saveUserId(_loginData!.user!.id!);
-  } else {
-    _errorMessage = _loginData?.message ?? "Login failed";
-    notifyListeners();
-  }
-}
 
   void clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 }

@@ -28,7 +28,7 @@ class CustomSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22.r),
         gradient: LinearGradient(
@@ -47,25 +47,6 @@ class CustomSearchBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            height: 36.h,
-            width: 36.h,
-            decoration: BoxDecoration(
-              color: AppColor.primaryColor.withOpacity(0.10),
-              borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(
-                color: AppColor.primaryColor.withOpacity(0.12),
-              ),
-            ),
-            child: Icon(
-              LucideIcons.search,
-              color: AppColor.primaryColor,
-              size: 20.sp,
-            ),
-          ),
-
-          SizedBox(width: 10.w),
-
           Expanded(
             child: Align(
               alignment: Alignment.bottomCenter,

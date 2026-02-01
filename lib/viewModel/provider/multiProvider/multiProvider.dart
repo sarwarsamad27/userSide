@@ -6,6 +6,8 @@ import 'package:user_side/viewModel/provider/authProvider/signUp_provider.dart';
 import 'package:user_side/viewModel/provider/authProvider/updatePassword_provider.dart';
 import 'package:user_side/viewModel/provider/authProvider/verifyCode_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:user_side/viewModel/provider/exchangeProvider/chatThread_provider.dart';
+import 'package:user_side/viewModel/provider/exchangeProvider/exchange_provider.dart';
 import 'package:user_side/viewModel/provider/favouriteProvider/addToFavourite_provider.dart';
 import 'package:user_side/viewModel/provider/favouriteProvider/getFavourite_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/followUnFollow_provider.dart';
@@ -16,6 +18,7 @@ import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/get
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/otherProduct_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/recommendedProduct_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/relatedProduct_provider.dart';
+import 'package:user_side/viewModel/provider/notificationProvider/notification_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/createOrder_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/getMyOrder_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/review_provider.dart';
@@ -67,6 +70,9 @@ class AppMultiProvider extends StatelessWidget {
      
      ChangeNotifierProvider(create: (_) => ProductShareProvider()), 
      ChangeNotifierProvider(create: (_) => FollowProvider()), 
+     ChangeNotifierProvider(create: (_) => NotificationProvider()), 
+     ChangeNotifierProvider(create: (_) => ExchangeProvider()), 
+     ChangeNotifierProvider(create: (_) => ChatThreadProvider()), 
      ],
       child: child,
     );

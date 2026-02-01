@@ -47,11 +47,11 @@ class OtherProductsSection extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
               itemCount: op.otherModel!.otherProducts!.length,
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+              padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 4.h),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 6.w,
-                mainAxisSpacing: 12.h,
+                mainAxisSpacing: 4.h,
                 childAspectRatio: 0.67,
               ),
               itemBuilder: (context, index) {

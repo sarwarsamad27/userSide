@@ -296,78 +296,86 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              widget.companyName,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 20.sp,
-                                fontWeight: FontWeight.w900,
-                                height: 1.15,
-                                color: const Color(0xFF111827),
+                            Expanded(
+                              child: Text(
+                                widget.companyName,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 20.sp,
+                                  fontWeight: FontWeight.w900,
+                                  height: 1.15,
+                                  color: const Color(0xFF111827),
+                                ),
                               ),
                             ),
-                            Consumer<FollowProvider>(
-                              builder: (context, followProvider, child) {
-                                print(
-                                  "🎨 BUTTON REBUILD: isLoading=${followProvider.isLoading}, isFollowing=${followProvider.isFollowing}",
-                                );
+                            SizedBox(width: 12.w),
+                            // ✅ FOLLOW BUTTON
+                            // ✅ FOLLOW BUTTON (FIXED - reliable taps)
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                // ✅ ensures tap works even if child is small / transparent
+                                borderRadius: BorderRadius.circular(8.r),
+                                onTap: followProvider.isLoading
+                                    ? null
+                                    : () async {
+                                        await followProvider.toggleFollow(
+                                          widget.profileId,
+                                        );
 
-                                final isDisabled = followProvider.isLoading;
-                                final buttonText = followProvider.isFollowing
-                                    ? "Following"
-                                    : "Follow";
-
-                                return GestureDetector(
-                                  onTap: isDisabled
-                                      ? null
-                                      : () async {
-                                          print("👆 FOLLOW BUTTON TAPPED!");
-                                          print(
-                                            "🔍 ProfileId: ${widget.profileId}",
+                                        if (followProvider.errorMessage ==
+                                            "You are not login") {
+                                          if (!mounted) return;
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                "Please login to follow",
+                                              ),
+                                              duration: Duration(seconds: 2),
+                                            ),
                                           );
-
-                                          await followProvider.toggleFollow(
-                                            widget.profileId,
-                                          );
-
-                                          print("✅ toggleFollow completed");
-                                        },
-                                  child: Container(
-                                    height: 42.h,
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 20.w,
+                                        }
+                                      },
+                                child: Ink(
+                                  height: 42.h,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 20.w,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: followProvider.isLoading
+                                        ? AppColor.appimagecolor
+                                        : (followProvider.isFollowing
+                                              ? Colors.white
+                                              : AppColor.primaryColor),
+                                    borderRadius: BorderRadius.circular(8.r),
+                                    border: Border.all(
+                                      color: followProvider.isFollowing
+                                          ? AppColor.primaryColor
+                                          : Colors.transparent,
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: isDisabled
-                                          ? AppColor.appimagecolor
-                                          : (followProvider.isFollowing
-                                                ? Colors.white
-                                                : AppColor.primaryColor),
-                                      borderRadius: BorderRadius.circular(8.r),
-                                      border: Border.all(
-                                        color: followProvider.isFollowing
-                                            ? AppColor.primaryColor
-                                            : Colors.white,
-                                      ),
-                                    ),
-                                    alignment:
-                                        Alignment.center, // ✅ KEY ADDITION
+                                  ),
+                                  child: Center(
                                     child: followProvider.isLoading
                                         ? SizedBox(
                                             height: 20.h,
                                             width: 20.h,
-                                            child:
-                                                const CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  valueColor:
-                                                      AlwaysStoppedAnimation<
-                                                        Color
-                                                      >(Colors.white),
-                                                ),
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                    followProvider.isFollowing
+                                                        ? AppColor.primaryColor
+                                                        : Colors.white,
+                                                  ),
+                                            ),
                                           )
                                         : Text(
-                                            buttonText,
+                                            followProvider.isFollowing
+                                                ? "Following"
+                                                : "Follow",
                                             style: TextStyle(
                                               color: followProvider.isFollowing
                                                   ? AppColor.primaryColor
@@ -377,14 +385,14 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                                             ),
                                           ),
                                   ),
-                                );
-                              },
+                                ),
+                              ),
                             ),
                           ],
                         ),
                         SizedBox(height: 6.h),
 
-                        // ✅ Followers Count - Real-time update
+                        // ✅ Followers Count
                         Row(
                           children: [
                             PillInfo(
@@ -400,7 +408,6 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                             ),
                           ],
                         ),
-
                         SizedBox(height: 14.h),
 
                         Text(

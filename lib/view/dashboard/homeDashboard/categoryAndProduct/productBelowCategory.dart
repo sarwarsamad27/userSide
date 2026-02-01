@@ -74,14 +74,14 @@ class _ProductBelowCategoryState extends State<ProductBelowCategory> {
     }
 
     return GridView.builder(
-      padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 12.w),
+      padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 4.w),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: provider.data!.products!.length,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: media.width < 600 ? 2 : 4,
         mainAxisSpacing: 12.h,
-        crossAxisSpacing: 12.w,
+        crossAxisSpacing: 4.w,
         childAspectRatio: media.width < 600 ? 0.67 : 0.8,
       ),
       itemBuilder: (context, index) {
@@ -93,26 +93,29 @@ class _ProductBelowCategoryState extends State<ProductBelowCategory> {
           discountPercent = (((before - after) / before) * 100).round();
         }
         return InkWell(
-          child: ProductCard(
-            name: p.name ?? "",
-            price: p.afterDiscountPrice?.toString() ?? "0",
-            imageUrl: p.images?.isNotEmpty == true ? p.images!.first : "",
-            description: p.description ?? "",
-            averageRating: p.averageRating ?? 0.0,
-            originalPrice: p.beforeDiscountPrice?.toString() ?? "0",
-            discountText: "$discountPercent% OFF",
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ProductDetailScreen(
-                    profileId: p.profileId ?? '',
-                    categoryId: p.categoryId ?? '',
-                    productId: p.sId ?? '',
+          child: SizedBox(
+            height: 220.h,
+            child: ProductCard(
+              name: p.name ?? "",
+              price: p.afterDiscountPrice?.toString() ?? "0",
+              imageUrl: p.images?.isNotEmpty == true ? p.images!.first : "",
+              description: p.description ?? "",
+              averageRating: p.averageRating ?? 0.0,
+              originalPrice: p.beforeDiscountPrice?.toString() ?? "0",
+              discountText: "$discountPercent% OFF",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProductDetailScreen(
+                      profileId: p.profileId ?? '',
+                      categoryId: p.categoryId ?? '',
+                      productId: p.sId ?? '',
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         );
       },

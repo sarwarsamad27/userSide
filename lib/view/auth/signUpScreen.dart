@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/connectivity_plus.dart';
 import 'package:user_side/resources/toast.dart';
@@ -10,27 +11,48 @@ import 'package:user_side/widgets/customBgContainer.dart';
 import 'package:user_side/widgets/customButton.dart';
 import 'package:user_side/widgets/customContainer.dart';
 import 'package:user_side/widgets/customTextFeld.dart';
-import 'package:provider/provider.dart';
+import 'package:user_side/widgets/customValidation.dart'; // Validators
 
-class SignUpScreen extends StatelessWidget {
+class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 
   @override
+  State<SignUpScreen> createState() => _SignUpScreenState();
+}
+
+class _SignUpScreenState extends State<SignUpScreen> {
+  final _formKey = GlobalKey<FormState>();
+  bool _submitted = false;
+
+  late final TextEditingController emailController;
+  late final TextEditingController passwordController;
+  late final TextEditingController confirmPasswordController;
+
+  @override
+  void initState() {
+    super.initState();
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
+    confirmPasswordController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-    final confirmPasswordController = TextEditingController();
-
     final provider = Provider.of<SignUpProvider>(context, listen: false);
-
-    final formKey = GlobalKey<FormState>();
 
     return ScreenUtilInit(
       designSize: const Size(390, 844),
       builder: (context, child) {
         return GestureDetector(
-                onTap: () => FocusScope.of(context).unfocus(),
-
+          onTap: () => FocusScope.of(context).unfocus(),
           child: Scaffold(
             resizeToAvoidBottomInset: true,
             body: Stack(
@@ -47,8 +69,13 @@ class SignUpScreen extends StatelessWidget {
                             vertical: 30.h,
                           ),
                           child: Form(
-                            key: formKey,
-                            autovalidateMode: AutovalidateMode.disabled,
+                            key: _formKey,
+
+                            /// ✅ validation only after submit
+                            autovalidateMode: _submitted
+                                ? AutovalidateMode.onUserInteraction
+                                : AutovalidateMode.disabled,
+
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -58,7 +85,7 @@ class SignUpScreen extends StatelessWidget {
                                   color: AppColor.primaryColor,
                                 ),
                                 SizedBox(height: 18.h),
-          
+
                                 Text(
                                   "Create Account",
                                   style: TextStyle(
@@ -72,71 +99,85 @@ class SignUpScreen extends StatelessWidget {
                                   "Join us and start your journey today!",
                                   style: TextStyle(
                                     fontSize: 14.sp,
-                                    color: AppColor.textSecondaryColor
-                                        .withOpacity(0.8),
+                                    color: AppColor.textSecondaryColor.withOpacity(0.8),
                                   ),
                                 ),
                                 SizedBox(height: 30.h),
-          
+
+                                /// ✅ Email
                                 CustomTextField(
                                   headerText: "Email Address",
                                   hintText: "Enter your email",
                                   controller: emailController,
                                   prefixIcon: Icons.email_outlined,
+                                  keyboardType: TextInputType.emailAddress,
+                                  validator: Validators.email,
                                 ),
-          
                                 SizedBox(height: 18.h),
-          
+
+                                /// ✅ Password
                                 CustomTextField(
                                   headerText: "Password",
                                   hintText: "Enter your password",
                                   controller: passwordController,
                                   isPassword: true,
                                   prefixIcon: Icons.lock_outline,
+                                  validator: (v) => Validators.minLen(v, 6, label: "Password"),
                                 ),
-          
                                 SizedBox(height: 18.h),
-          
+
+                                /// ✅ Confirm Password (match)
                                 CustomTextField(
                                   headerText: "Confirm Password",
                                   hintText: "Re-enter your password",
                                   controller: confirmPasswordController,
                                   isPassword: true,
                                   prefixIcon: Icons.lock_reset_outlined,
+                                  validator: (v) {
+                                    final val = (v ?? "").trim();
+                                    if (val.isEmpty) return "Confirm Password is required";
+                                    if (val != passwordController.text.trim()) {
+                                      return "Passwords do not match";
+                                    }
+                                    return null;
+                                  },
                                 ),
-          
+
                                 SizedBox(height: 25.h),
-          
+
                                 CustomButton(
                                   text: "Create Account",
                                   onTap: () async {
-                                    if (!formKey.currentState!.validate()) {
+                                    provider.clearError();
+
+                                    /// ✅ enable validation after first submit
+                                    if (!_submitted) {
+                                      setState(() => _submitted = true);
+                                    }
+
+                                    if (!(_formKey.currentState?.validate() ?? false)) {
                                       return;
                                     }
-          
+
                                     if (!await isConnected()) {
                                       AppToast.error("No internet connection");
                                       return;
                                     }
-          
+
                                     await provider.signUpProvider(
                                       email: emailController.text.trim(),
                                       password: passwordController.text.trim(),
-                                      confirmPassword: confirmPasswordController
-                                          .text
-                                          .trim(),
                                     );
-          
-                                    /// API RESPONSE CHECK
+
                                     if (provider.signUpData?.message ==
                                         "User registered successfully") {
-                                      /// CLEAR FIELDS
                                       emailController.clear();
                                       passwordController.clear();
                                       confirmPasswordController.clear();
-          
+
                                       AppToast.success("User registered Successful");
-          
+
+                                      if (!mounted) return;
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -150,9 +191,9 @@ class SignUpScreen extends StatelessWidget {
                                     }
                                   },
                                 ),
-          
+
                                 SizedBox(height: 25.h),
-          
+
                                 Row(
                                   children: [
                                     Expanded(
@@ -162,9 +203,7 @@ class SignUpScreen extends StatelessWidget {
                                       ),
                                     ),
                                     Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 10.w,
-                                      ),
+                                      padding: EdgeInsets.symmetric(horizontal: 10.w),
                                       child: Text(
                                         "Or continue with",
                                         style: TextStyle(
@@ -181,9 +220,9 @@ class SignUpScreen extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-          
+
                                 SizedBox(height: 20.h),
-          
+
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -199,8 +238,7 @@ class SignUpScreen extends StatelessWidget {
                                         Navigator.pushReplacement(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) =>
-                                                const LoginScreen(),
+                                            builder: (context) => const LoginScreen(),
                                           ),
                                         );
                                       },
@@ -224,6 +262,8 @@ class SignUpScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+
+                /// Loader overlay (same as your code)
                 Consumer<SignUpProvider>(
                   builder: (context, value, child) {
                     return value.loading
@@ -232,10 +272,10 @@ class SignUpScreen extends StatelessWidget {
                             width: double.infinity,
                             color: Colors.black.withOpacity(0.3),
                             child: const Center(
-                              child:  SpinKitThreeBounce(
-                            color: AppColor.primaryColor, 
-                            size: 30.0,
-                          ),
+                              child: SpinKitThreeBounce(
+                                color: AppColor.primaryColor,
+                                size: 30.0,
+                              ),
                             ),
                           )
                         : const SizedBox();

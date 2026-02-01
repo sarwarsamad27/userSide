@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:user_side/models/order/myOrderModel.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
+import 'package:user_side/view/dashboard/userChat/exchangeRequestSheet.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 
 class OrderDetailScreen extends StatelessWidget {
@@ -21,8 +22,9 @@ class OrderDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Handle single product or multiple products
-    final List<Product> products = [];
+final deliveredRef = order.createdAt;
+final eligible = canExchange(order.status, deliveredRef);  
+  final List<Product> products = [];
     if (order.product != null) {
       products.add(order.product!);
     }
@@ -43,11 +45,7 @@ class OrderDetailScreen extends StatelessWidget {
                 "Order ID: ${order.orderId ?? 'N/A'}",
                 style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 4.h),
-              Text(
-                order.createdAt != null ? formatDate(order.createdAt!) : 'N/A',
-                style: TextStyle(color: Colors.grey, fontSize: 13.sp),
-              ),
+
               SizedBox(height: 8.h),
               Text(
                 "Status: ${order.status ?? ""}",
@@ -66,7 +64,7 @@ class OrderDetailScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 8.h),
-              Text("Name: ${order.seller?.name ?? 'N/A'}"),
+              Text("Brand: ${order.seller?.name ?? 'N/A'}"),
               Text("Email: ${order.seller?.email ?? 'N/A'}"),
               Text("Phone: ${order.seller?.phone ?? 'N/A'}"),
               Text("Address: ${order.seller?.address ?? 'N/A'}"),
@@ -84,7 +82,13 @@ class OrderDetailScreen extends StatelessWidget {
               Text("Phone: ${order.buyerDetails?.phone ?? 'N/A'}"),
               Text("Address: ${order.buyerDetails?.address ?? 'N/A'}"),
               Text("Note: ${order.buyerDetails?.additionalNote ?? 'N/A'}"),
-
+              Text(
+                "Date & Time:                 ${order.createdAt != null ? formatDate(order.createdAt!) : 'N/A'}",
+                style: TextStyle(
+                  color: Colors.black.withOpacity(0.7),
+                  fontSize: 13.sp,
+                ),
+              ),
               Divider(height: 30.h),
 
               /// PRODUCT DETAILS
@@ -168,6 +172,29 @@ class OrderDetailScreen extends StatelessWidget {
                             Text("Qty: ${p.quantity ?? 0}"),
                             Text("Price: Rs ${p.price ?? 0}"),
                             Text("Total: Rs ${p.totalPrice ?? 0}"),
+                            
+
+if (eligible) ...[
+  SizedBox(height: 10.h),
+  ElevatedButton(
+    onPressed: () async {
+      // Open dialog form
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => ExchangeRequestSheet(order: order, products: products),
+      );
+    },
+    child: const Text("Request Exchange"),
+  ),
+] else ...[
+  SizedBox(height: 10.h),
+  Text(
+    "Exchange option is available within 10 days after delivery.",
+    style: TextStyle(fontSize: 12.sp, color: Colors.black54),
+  )
+]
+
                           ],
                         ),
                       ),
@@ -190,4 +217,17 @@ class OrderDetailScreen extends StatelessWidget {
       ),
     );
   }
+  bool canExchange(String? status, String? deliveredAtOrUpdatedAt) {
+  if (status != "Delivered") return false;
+  if (deliveredAtOrUpdatedAt == null) return false;
+
+  try {
+    final delivered = DateTime.parse(deliveredAtOrUpdatedAt);
+    final expiry = delivered.add(const Duration(days: 10));
+    return DateTime.now().isBefore(expiry);
+  } catch (_) {
+    return false;
+  }
+}
+
 }

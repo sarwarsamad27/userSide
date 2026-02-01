@@ -1,21 +1,30 @@
 import 'dart:async';
 
 import 'package:app_links/app_links.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:user_side/models/notification_services/notification_services.dart';
+
 import 'package:user_side/resources/appTheme.dart';
 import 'package:user_side/view/auth/splashView.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/notificationScreen/notification_route.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/viewModel/provider/multiProvider/multiProvider.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main()async{
+import 'firebase_options.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-   await Firebase.initializeApp(
+
+  await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+   await NotificationService.init();
+
+  // ✅ Push tap -> NotificationScreen
+  await NotificationRouter.init();
+
   runApp(const AppWrapper());
 }
 
@@ -48,13 +57,13 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _initDeepLinks() async {
-    // Cold start
+    // Cold start deep link
     final Uri? initialUri = await _appLinks.getInitialLink();
     if (initialUri != null) {
       _handleDeepLink(initialUri);
     }
 
-    // Foreground/background
+    // Foreground/background deep link
     _sub = _appLinks.uriLinkStream.listen((Uri uri) {
       _handleDeepLink(uri);
     }, onError: (_) {});
@@ -70,7 +79,8 @@ class _MyAppState extends State<MyApp> {
 
     if (productId == null || categoryId == null || profileId == null) return;
 
-    navigatorKey.currentState?.push(
+    // ✅ Use the SAME navigatorKey as push routing
+    NotificationRouter.navigatorKey.currentState?.push(
       MaterialPageRoute(
         builder: (_) => ProductDetailScreen(
           profileId: profileId,
@@ -93,7 +103,7 @@ class _MyAppState extends State<MyApp> {
       designSize: const Size(390, 844),
       builder: (context, child) {
         return MaterialApp(
-          navigatorKey: navigatorKey,
+          navigatorKey: NotificationRouter.navigatorKey, // ✅ single key
           debugShowCheckedModeBanner: false,
           title: 'SHOOKOO',
           theme: AppTheme.lightTheme,

@@ -23,7 +23,7 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -63,7 +63,7 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
                 final columnCount = (items.length / 2).ceil();
 
                 return SizedBox(
-                  height: 270.h,
+                  height: 280.h,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: columnCount,

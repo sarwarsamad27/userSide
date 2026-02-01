@@ -44,18 +44,6 @@ class ProductCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(18.r),
           border: Border.all(color: Colors.black.withOpacity(0.06), width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 14,
-              offset: const Offset(0, 8),
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -69,7 +57,7 @@ class ProductCard extends StatelessWidget {
                     topRight: Radius.circular(18.r),
                   ),
                   child: AspectRatio(
-                    aspectRatio: 1.12,
+                    aspectRatio: 1.2,
                     child: Image.network(
                       Global.imageUrl + imageUrl,
                       fit: BoxFit.cover,
@@ -138,14 +126,15 @@ class ProductCard extends StatelessWidget {
             ),
 
             Padding(
-              padding: EdgeInsets.fromLTRB(10.w, 10.h, 10.w, 10.h),
+              padding: EdgeInsets.fromLTRB(10.w, 1.h, 10.w, 10.h),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  SizedBox(height: 8.h),
                   Text(
                     name,
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 13.sp,
@@ -158,7 +147,7 @@ class ProductCard extends StatelessWidget {
                   SizedBox(height: 6.h),
                   Text(
                     description,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 11.sp,
@@ -166,6 +155,7 @@ class ProductCard extends StatelessWidget {
                       height: 1.25,
                     ),
                   ),
+                  SizedBox(height: 6.h),
                   if (averageRating != null) ...[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,

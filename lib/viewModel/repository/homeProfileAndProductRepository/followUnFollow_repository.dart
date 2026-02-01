@@ -7,41 +7,30 @@ class FollowRepository {
   final NetworkApiServices apiServices = NetworkApiServices();
 
   Future<FollowResponseModel> toggleFollow(String profileId) async {
-    try {
-      final deviceId = await LocalStorage.getOrCreateDeviceId();
-      final body = {
-        "profileId": profileId,
-        "deviceId": deviceId,
-      };
+    final userId = await LocalStorage.getUserId();
 
-      print("📤 TOGGLE FOLLOW API: ${Global.ToggleFollow}");
-      print("📦 REQUEST BODY: $body");
-
-      final response = await apiServices.postApi(Global.ToggleFollow, body);
-      print("✅ TOGGLE API RESPONSE: $response");
-
-      return FollowResponseModel.fromJson(response);
-    } catch (e) {
-      print("❌ TOGGLE API ERROR: $e");
-      print("❌ ERROR TYPE: ${e.runtimeType}");
-      rethrow;
+    if (userId == null || userId.isEmpty) {
+      return FollowResponseModel(message: "You are not login");
     }
+
+    final body = {
+      "profileId": profileId,
+      "userId": userId,
+    };
+
+    final response = await apiServices.postApi(Global.ToggleFollow, body);
+    return FollowResponseModel.fromJson(response);
   }
 
   Future<FollowResponseModel> getFollowStatus(String profileId) async {
-    try {
-      final deviceId = await LocalStorage.getOrCreateDeviceId();
-      final url = '${Global.GetFollowStatus}?profileId=$profileId&deviceId=$deviceId';
+    final userId = await LocalStorage.getUserId();
 
-      print("📤 GET STATUS API: $url");
+    // ✅ userId optional now
+    final url = (userId == null || userId.isEmpty)
+        ? '${Global.GetFollowStatus}?profileId=$profileId'
+        : '${Global.GetFollowStatus}?profileId=$profileId&userId=$userId';
 
-      final response = await apiServices.getApi(url);
-      print("✅ STATUS API RESPONSE: $response");
-
-      return FollowResponseModel.fromJson(response);
-    } catch (e) {
-      print("❌ STATUS API ERROR: $e");
-      rethrow;
-    }
+    final response = await apiServices.getApi(url);
+    return FollowResponseModel.fromJson(response);
   }
 }

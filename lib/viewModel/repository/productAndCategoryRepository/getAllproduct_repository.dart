@@ -6,9 +6,13 @@ class GetAllProductRepository {
   final NetworkApiServices apiServices = NetworkApiServices();
   final String apiUrl = Global.GetAllProduct;
 
-  Future<GetAllProductModel> getAllProduct({int page = 1}) async {
+  /// page + limit both supported
+  Future<GetAllProductModel> getAllProduct({
+    int page = 1,
+    int limit = 20, // ✅ default limit
+  }) async {
     try {
-      final response = await apiServices.getApi("$apiUrl?page=$page");
+      final response = await apiServices.getApi("$apiUrl?page=$page&limit=$limit");
       return GetAllProductModel.fromJson(response);
     } catch (e) {
       return GetAllProductModel(success: false, data: null);

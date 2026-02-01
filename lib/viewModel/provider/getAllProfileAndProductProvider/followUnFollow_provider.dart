@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:user_side/viewModel/repository/homeProfileAndProductRepository/followUnFollow_repository.dart';
+import 'package:user_side/resources/local_storage.dart';
 
 class FollowProvider with ChangeNotifier {
   final FollowRepository _repository = FollowRepository();
@@ -16,92 +17,77 @@ class FollowProvider with ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  // ✅ GET FOLLOW STATUS
+  Future<bool> _isLoggedIn() async {
+    final userId = await LocalStorage.getUserId();
+    return userId != null && userId.isNotEmpty;
+  }
+
+  /// ✅ Public: Guest can also see followersCount
   Future<void> getFollowStatus(String profileId) async {
-    print("🔍 GET STATUS CALLED for profileId: $profileId");
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       final response = await _repository.getFollowStatus(profileId);
-      print("📥 GET STATUS RESPONSE: ${response.toJson()}");
 
+      // ✅ Always update followersCount if provided
+      if (response.followersCount != null) {
+        _followersCount = response.followersCount!.clamp(0, 999999999);
+      }
+
+      // ✅ isFollowing will be false for guest (backend does that)
       if (response.isFollowing != null) {
         _isFollowing = response.isFollowing!;
-        _followersCount = response.followersCount ?? 0;
-        _errorMessage = null;
-        print("✅ STATUS UPDATED: Following=$_isFollowing, Count=$_followersCount");
-      } else {
-        _errorMessage = response.message ?? "Failed to fetch follow status";
-        print("❌ STATUS ERROR: $_errorMessage");
       }
+
+      _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
-      print("❌ getFollowStatus EXCEPTION: $e");
+      debugPrint("❌ getFollowStatus error: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // ✅ TOGGLE FOLLOW/UNFOLLOW
+  /// ✅ Toggle follow/unfollow (login required)
   Future<void> toggleFollow(String profileId) async {
-    print("🔄 TOGGLE FOLLOW CALLED for profileId: $profileId");
-    print("🔒 Current isLoading: $_isLoading");
-    
-    if (_isLoading) {
-      print("⚠️ BLOCKED: Already processing");
+    if (_isLoading) return;
+
+    final loggedIn = await _isLoggedIn();
+    if (!loggedIn) {
+      _errorMessage = "You are not login";
+      notifyListeners();
       return;
     }
 
-    // ✅ Optimistic UI Update
-    final prevFollow = _isFollowing;
-    final prevCount = _followersCount;
-
-    _isFollowing = !_isFollowing;
-    _followersCount = (_followersCount + (_isFollowing ? 1 : -1)).clamp(0, 999999999);
-    _errorMessage = null;
     _isLoading = true;
-
-    print("🎯 OPTIMISTIC UPDATE: Following=$_isFollowing, Count=$_followersCount");
-    notifyListeners(); // ✅ Instant UI update
+    _errorMessage = null;
+    notifyListeners();
 
     try {
-      print("📤 CALLING REPOSITORY toggleFollow...");
       final response = await _repository.toggleFollow(profileId);
-      print("📥 TOGGLE RESPONSE: ${response.toJson()}");
 
-      if (response.isFollowing != null && response.followersCount != null) {
-        // ✅ Update with actual server data
+      if (response.message == "You are not login") {
+        _errorMessage = "You are not login";
+      } else if (response.isFollowing != null && response.followersCount != null) {
         _isFollowing = response.isFollowing!;
         _followersCount = response.followersCount!.clamp(0, 999999999);
         _errorMessage = null;
-
-        print("✅ TOGGLE SUCCESS: Following=$_isFollowing, Count=$_followersCount");
       } else {
-        // ❌ Rollback on error
-        _isFollowing = prevFollow;
-        _followersCount = prevCount;
         _errorMessage = response.message ?? "Failed to toggle follow";
-        print("❌ TOGGLE FAILED: ${response.message}");
       }
     } catch (e) {
-      // ❌ Rollback on exception
-      _isFollowing = prevFollow;
-      _followersCount = prevCount;
       _errorMessage = e.toString();
-      print("❌ TOGGLE EXCEPTION: $e");
+      debugPrint("❌ toggleFollow error: $e");
     } finally {
       _isLoading = false;
-      print("🔓 isLoading set to false");
       notifyListeners();
     }
   }
 
-  // ✅ RESET STATE
   void reset() {
-    print("🔄 PROVIDER RESET CALLED");
     _isLoading = false;
     _isFollowing = false;
     _followersCount = 0;

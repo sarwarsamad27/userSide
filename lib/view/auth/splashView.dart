@@ -5,7 +5,7 @@ import 'package:user_side/models/notification_services/notification_services.dar
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/view/auth/loginView.dart';
-import 'package:user_side/view/dashboard/homeScreen.dart';
+import 'package:user_side/view/dashboard/DashboardScreen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -21,8 +21,9 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    NotificationService.initAndRegisterToken();
-    // 🔄 Rotation controller (1 rotation every 3 seconds)
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await NotificationService.registerTokenIfLoggedIn();
+    });
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
