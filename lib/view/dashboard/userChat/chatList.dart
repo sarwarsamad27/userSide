@@ -6,10 +6,9 @@ import 'package:user_side/view/dashboard/userChat/exchangeRequestCard.dart';
 import 'package:user_side/view/dashboard/userChat/messageBubble.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/userChat_provider.dart';
 
-
 class ChatList extends StatelessWidget {
   final ScrollController _scrollController = ScrollController();
-
+  
   ChatList({super.key});
 
   @override

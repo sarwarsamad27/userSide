@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
@@ -11,7 +13,6 @@ import 'package:user_side/models/chatModel/chatModel.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/resources/socketServices.dart';
-
 
 class UserChatProvider extends ChangeNotifier {
   // ===== Inputs =====
@@ -25,8 +26,8 @@ class UserChatProvider extends ChangeNotifier {
     required this.toId,
   });
 
-  // ===== Controllers =====
-  final ScrollController = null; // UI file me pass karenge (optional)
+  // ===== Optional UI scroll controller (agar chaho to pass kar do) =====
+  ScrollController? scrollController;
 
   // ===== State =====
   final List<ChatMessage> messages = [];
@@ -45,9 +46,24 @@ class UserChatProvider extends ChangeNotifier {
   bool _listenersBound = false;
 
   bool _disposed = false;
+
+  /// ✅ IMPORTANT FIX:
+  /// build chal raha ho to notifyListeners() ko next frame me push kar do
   void _safeNotify() {
     if (_disposed) return;
-    notifyListeners();
+
+    final phase = WidgetsBinding.instance.schedulerPhase;
+    final isBuilding = phase == SchedulerPhase.persistentCallbacks ||
+        phase == SchedulerPhase.midFrameMicrotasks;
+
+    if (isBuilding) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_disposed) return;
+        notifyListeners();
+      });
+    } else {
+      notifyListeners();
+    }
   }
 
   Future<void> init() async {
@@ -128,7 +144,6 @@ class UserChatProvider extends ChangeNotifier {
     return "${fromType ?? ""}|$t|$ts";
   }
 
-  // EXTRA: for sender duplicates when server ts differs
   String _buildLooseKey({required String? fromType, required String? text}) {
     final t = (text ?? "").trim();
     return "${fromType ?? ""}|$t";
@@ -136,7 +151,9 @@ class UserChatProvider extends ChangeNotifier {
 
   bool _isRecentDuplicate(String key, {int seconds = 6}) {
     final now = DateTime.now();
-    _recentMsgKeys.removeWhere((_, time) => now.difference(time).inSeconds > seconds);
+    _recentMsgKeys.removeWhere(
+      (_, time) => now.difference(time).inSeconds > seconds,
+    );
 
     final last = _recentMsgKeys[key];
     if (last != null && now.difference(last).inSeconds <= seconds) return true;
@@ -146,10 +163,13 @@ class UserChatProvider extends ChangeNotifier {
   }
 
   void _registerFingerprint(ChatMessage m) {
-    final key = _buildMsgKey(fromType: m.fromType, text: m.text, timestamp: m.timestamp);
+    final key = _buildMsgKey(
+      fromType: m.fromType,
+      text: m.text,
+      timestamp: m.timestamp,
+    );
     _recentMsgKeys[key] = DateTime.now();
 
-    // also loose for buyer to stop duplicates if server timestamp differs
     if (m.fromType == "buyer") {
       final loose = _buildLooseKey(fromType: m.fromType, text: m.text);
       _recentMsgKeys[loose] = DateTime.now();
@@ -183,20 +203,25 @@ class UserChatProvider extends ChangeNotifier {
       final clientId = data["clientId"]?.toString();
       final fromType = data["fromType"]?.toString();
 
-      final incomingTs = (data["timestamp"] ?? data["createdAt"])?.toString();
+      final incomingTs =
+          (data["timestamp"] ?? data["createdAt"])?.toString();
       final incomingText = data["text"]?.toString();
 
-      // strict fp
-      final fpKey = _buildMsgKey(fromType: fromType, text: incomingText, timestamp: incomingTs);
+      final fpKey = _buildMsgKey(
+        fromType: fromType,
+        text: incomingText,
+        timestamp: incomingTs,
+      );
       if (_isRecentDuplicate(fpKey)) return;
 
-      // loose buyer fp
       if (fromType == "buyer") {
         final loose = _buildLooseKey(fromType: fromType, text: incomingText);
         if (_isRecentDuplicate(loose)) return;
       }
 
-      if (fromType == "buyer" && clientId != null && _processedClientIds.contains(clientId)) {
+      if (fromType == "buyer" &&
+          clientId != null &&
+          _processedClientIds.contains(clientId)) {
         return;
       }
 
@@ -204,19 +229,25 @@ class UserChatProvider extends ChangeNotifier {
         return;
       }
 
-      // if echoed own message: replace temp
-      if (fromType == "buyer" && clientId != null && _pendingClientMap.containsKey(clientId)) {
+      // echoed own message: replace temp
+      if (fromType == "buyer" &&
+          clientId != null &&
+          _pendingClientMap.containsKey(clientId)) {
         final tempId = _pendingClientMap.remove(clientId);
-        final newMessage = ChatMessage.fromJson(Map<String, dynamic>.from(data));
+        final newMessage = ChatMessage.fromJson(
+          Map<String, dynamic>.from(data),
+        );
 
-        final idx = tempId == null ? -1 : messages.indexWhere((m) => m.id == tempId);
+        final idx =
+            tempId == null ? -1 : messages.indexWhere((m) => m.id == tempId);
+
         if (idx != -1) {
           messages[idx] = newMessage;
           if (tempId != null) _processedMessageIds.remove(tempId);
           if (newMessage.id != null) _processedMessageIds.add(newMessage.id!);
         } else {
-          // rare: temp missing -> just ensure we don't duplicate
-          if (newMessage.id != null && !_processedMessageIds.contains(newMessage.id!)) {
+          if (newMessage.id != null &&
+              !_processedMessageIds.contains(newMessage.id!)) {
             messages.insert(0, newMessage);
             _processedMessageIds.add(newMessage.id!);
           }
@@ -229,13 +260,16 @@ class UserChatProvider extends ChangeNotifier {
       }
 
       // normal insert
-      final newMessage = ChatMessage.fromJson(Map<String, dynamic>.from(data));
+      final newMessage = ChatMessage.fromJson(
+        Map<String, dynamic>.from(data),
+      );
       messages.insert(0, newMessage);
       if (newMessage.id != null) _processedMessageIds.add(newMessage.id!);
-      if (fromType == "buyer" && clientId != null) _processedClientIds.add(clientId);
+      if (fromType == "buyer" && clientId != null) {
+        _processedClientIds.add(clientId);
+      }
       _registerFingerprint(newMessage);
 
-      // statuses
       if (newMessage.fromType != "buyer" && newMessage.id != null) {
         markSingleMessageDelivered(newMessage.id!);
         markSingleMessageRead(newMessage.id!);
@@ -304,12 +338,10 @@ class UserChatProvider extends ChangeNotifier {
       }
       _safeNotify();
     });
-
-    // exchange:new + exchange:status same style (aapka existing code yahin shift kar dein)
   }
 
   // ==============================
-  // Send Message (FIXED)
+  // Send Message
   // ==============================
   void sendMessage(String text) {
     final msg = text.trim();
@@ -338,7 +370,7 @@ class UserChatProvider extends ChangeNotifier {
     messages.insert(0, tempMsg);
     _safeNotify();
 
-    onTyping(""); // stop typing
+    onTyping("");
 
     socket.emitWithAck(
       "chat:send",
@@ -350,7 +382,6 @@ class UserChatProvider extends ChangeNotifier {
         "clientId": clientId,
       },
       ack: (resp) {
-        // ✅ IMPORTANT: ACK will only REPLACE temp, never insert new
         if (resp is! Map || resp["ok"] != true || resp["data"] == null) return;
 
         final serverMessage = ChatMessage.fromJson(
@@ -361,7 +392,6 @@ class UserChatProvider extends ChangeNotifier {
 
         final tId = _pendingClientMap.remove(clientId);
         if (tId == null) {
-          // temp already replaced via socket echo - do nothing
           if (serverMessage.id != null) _processedMessageIds.add(serverMessage.id!);
           _registerFingerprint(serverMessage);
           return;
@@ -377,7 +407,6 @@ class UserChatProvider extends ChangeNotifier {
           _registerFingerprint(serverMessage);
           _safeNotify();
         } else {
-          // temp missing -> do nothing (avoid duplicate)
           if (serverMessage.id != null) _processedMessageIds.add(serverMessage.id!);
           _registerFingerprint(serverMessage);
         }
@@ -482,7 +511,10 @@ class UserChatProvider extends ChangeNotifier {
     if (buyerId == null || buyerId.isEmpty) return;
 
     final url = "${Global.getExchangePdf}/$exchangeId/pdf?buyerId=$buyerId";
-    final resp = await http.get(Uri.parse(url), headers: {"Accept": "application/pdf"});
+    final resp = await http.get(
+      Uri.parse(url),
+      headers: {"Accept": "application/pdf"},
+    );
 
     if (resp.statusCode != 200) return;
 

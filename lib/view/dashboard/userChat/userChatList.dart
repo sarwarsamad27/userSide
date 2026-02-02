@@ -5,9 +5,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/resources/socketServices.dart';
+import 'package:user_side/view/auth/AuthLoginGate.dart';
 import 'package:user_side/view/dashboard/userChat/userChatScreen.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/chatThread_provider.dart';
 
@@ -28,9 +30,10 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
   }
 
   Future<void> _loadData() async {
-    buyerId = await LocalStorage.getUserId();
+    // ✅ USERID based (AuthSession already init in main)
+    buyerId = AuthSession.instance.userId ?? await LocalStorage.getUserId();
 
-    if (buyerId != null) {
+    if (buyerId != null && buyerId!.trim().isNotEmpty) {
       print("📩 Loading chat threads for buyer: $buyerId");
       await context.read<ChatThreadProvider>().fetchThreads(buyerId!);
 
@@ -94,6 +97,13 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Guard this whole screen (UserId based)
+    return AuthGate(
+      child: _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     final provider = context.watch<ChatThreadProvider>();
     final threads = provider.threadListModel?.threads ?? [];
 

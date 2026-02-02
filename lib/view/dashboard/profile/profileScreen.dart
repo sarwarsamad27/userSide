@@ -5,7 +5,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/local_storage.dart';
+import 'package:user_side/view/auth/loginView.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/view/dashboard/profile/helpCenter.dart';
 import 'package:user_side/view/dashboard/profile/offer.dart';
@@ -119,6 +121,7 @@ class _ProfilescreenState extends State<Profilescreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoggedIn = context.watch<AuthSession>().isLoggedIn;
     return Scaffold(
       backgroundColor: AppColor.appimagecolor,
       appBar: AppBar(
@@ -332,16 +335,29 @@ class _ProfilescreenState extends State<Profilescreen> {
                     ],
                   ),
                   SizedBox(height: 10.h),
-                  CustomButton(
-                    text: "Log Out",
-                    onTap: () async {
-                      final provider = Provider.of<GoogleLoginProvider>(
-                        context,
-                        listen: false,
-                      );
-                      await provider.confirmLogout(context);
-                    },
-                  ),
+                  if (isLoggedIn)
+                    CustomButton(
+                      text: "Log Out",
+                      onTap: () async {
+                        final provider = Provider.of<GoogleLoginProvider>(
+                          context,
+                          listen: false,
+                        );
+                        await provider.confirmLogout(context);
+                      },
+                    )
+                  else
+                    CustomButton(
+                      text: "Login your account",
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LoginScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   SizedBox(height: 70.h),
                 ],
               ),

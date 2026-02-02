@@ -38,6 +38,9 @@ class _HomeNavBarScreenState extends State<HomeNavBarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatThreadProvider>().fetchThreadsFromStorage();
+    });
     return ChangeNotifierProvider(
       create: (_) => ChatThreadProvider()..fetchThreadsFromStorage(),
       child: ScreenUtilInit(

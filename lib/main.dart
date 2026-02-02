@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/models/notification_services/notification_services.dart';
 
 import 'package:user_side/resources/appTheme.dart';
+import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/view/auth/splashView.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/notificationScreen/notification_route.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
@@ -24,7 +25,7 @@ void main() async {
 
   // ✅ Push tap -> NotificationScreen
   await NotificationRouter.init();
-
+await AuthSession.instance.init();
   runApp(const AppWrapper());
 }
 

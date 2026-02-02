@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/resources/toast.dart';
+import 'package:user_side/view/auth/AuthLoginGate.dart';
 import 'package:user_side/viewModel/provider/favouriteProvider/getFavourite_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/createOrder_provider.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
@@ -100,6 +101,11 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ USERID login guard (same pattern)
+    return AuthGate(child: _buildScaffold(context));
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     final isFromFavourite =
         widget.favouriteItems != null && widget.favouriteItems!.isNotEmpty;
 

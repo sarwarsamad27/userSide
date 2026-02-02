@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/viewModel/provider/authProvider/forgotPassword_provider.dart';
 import 'package:user_side/viewModel/provider/authProvider/login_provider.dart';
 import 'package:user_side/viewModel/provider/authProvider/signInWithGoogle_provider.dart';
@@ -66,14 +67,17 @@ class AppMultiProvider extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RecommendationProvider()),
         ChangeNotifierProvider(create: (_) => GoogleLoginProvider()),
         ChangeNotifierProvider(create: (_) => ReviewFormProvider()),
-        ChangeNotifierProvider(create: (_) => ReviewProvider()..loadReviewedProducts()),
-     
-     ChangeNotifierProvider(create: (_) => ProductShareProvider()), 
-     ChangeNotifierProvider(create: (_) => FollowProvider()), 
-     ChangeNotifierProvider(create: (_) => NotificationProvider()), 
-     ChangeNotifierProvider(create: (_) => ExchangeProvider()), 
-     ChangeNotifierProvider(create: (_) => ChatThreadProvider()), 
-     ],
+        ChangeNotifierProvider(
+          create: (_) => ReviewProvider()..loadReviewedProducts(),
+        ),
+
+        ChangeNotifierProvider(create: (_) => ProductShareProvider()),
+        ChangeNotifierProvider(create: (_) => FollowProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ExchangeProvider()),
+        ChangeNotifierProvider(create: (_) => ChatThreadProvider()),
+        ChangeNotifierProvider<AuthSession>.value(value: AuthSession.instance),
+      ],
       child: child,
     );
   }

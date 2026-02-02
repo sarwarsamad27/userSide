@@ -46,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen>
       // ❌ User not logged in → go to Login
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(builder: (_) => const HomeNavBarScreen()),
       );
     }
   }

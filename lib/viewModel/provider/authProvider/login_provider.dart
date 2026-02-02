@@ -5,6 +5,9 @@ import 'package:user_side/models/notification_services/notification_services.dar
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/viewModel/repository/authRepository/login_repository.dart';
 
+// ✅ CHANGE: AuthSession import added
+import 'package:user_side/resources/authSession.dart';
+
 class LoginProvider with ChangeNotifier {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -43,6 +46,9 @@ class LoginProvider with ChangeNotifier {
         // ✅ 1) Save first
         await LocalStorage.saveToken(token);
         await LocalStorage.saveUserId(userId);
+
+        // ✅ CHANGE: Update AuthSession in-memory (AuthGate instantly rebuild)
+        await AuthSession.instance.setUser(userId);
 
         // ✅ 2) Then register FCM token (now userId exists)
         await NotificationService.registerTokenIfLoggedIn();

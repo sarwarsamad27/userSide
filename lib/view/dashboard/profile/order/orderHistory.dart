@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
+import 'package:user_side/view/auth/AuthLoginGate.dart';
 import 'package:user_side/view/dashboard/profile/order/orderHistoryDetail.dart';
 import 'package:user_side/view/dashboard/profile/order/reviewScreen.dart';
 import 'package:user_side/viewModel/provider/orderProvider/getMyOrder_provider.dart';
@@ -55,6 +56,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ USERID login guard (same pattern)
+    return AuthGate(child: _buildScaffold(context));
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColor.appimagecolor,
@@ -92,7 +98,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               child: ListView.separated(
                 controller: _scrollController,
                 itemCount:
-                    provider.orderList.length + (provider.isMoreLoading ? 1 : 0),
+                    provider.orderList.length +
+                    (provider.isMoreLoading ? 1 : 0),
                 separatorBuilder: (_, __) => SizedBox(height: 12.h),
                 itemBuilder: (context, index) {
                   /// PAGINATION LOADER
@@ -115,7 +122,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
                   /// ✅ SHOW ONLY IF: Delivered AND review is null
                   final bool canShowAddReview =
-                      isDelivered && productId != null && product?.review == null;
+                      isDelivered &&
+                      productId != null &&
+                      product?.review == null;
 
                   return Container(
                     padding: EdgeInsets.all(12.w),
@@ -224,18 +233,19 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                     onTap: () async {
                                       final submitted =
                                           await Navigator.push<bool>(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => ReviewScreen(
-                                            productId: productId!,
-                                          ),
-                                        ),
-                                      );
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => ReviewScreen(
+                                                productId: productId!,
+                                              ),
+                                            ),
+                                          );
 
                                       /// ✅ After submit, refresh orders so review comes in model
                                       if (submitted == true) {
                                         await provider.fetchMyOrders(
-                                            isRefresh: true);
+                                          isRefresh: true,
+                                        );
                                       }
                                     },
                                     child: Text(

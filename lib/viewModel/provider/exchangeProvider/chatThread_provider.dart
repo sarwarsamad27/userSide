@@ -9,8 +9,8 @@ class ChatThreadProvider extends ChangeNotifier {
   ChatThreadListModel? threadListModel;
 
   Future<void> fetchThreads(String buyerId) async {
-    loading = true;
-    notifyListeners();
+    // loading = true;
+    // notifyListeners();
 
     try {
       threadListModel = await repository.getChatThreads(buyerId);
@@ -48,8 +48,9 @@ class ChatThreadProvider extends ChangeNotifier {
   void addOrUpdateThread(ChatThreadModel thread) {
     if (threadListModel == null) return;
 
-    final existingIndex =
-        threadListModel!.threads.indexWhere((t) => t.threadId == thread.threadId);
+    final existingIndex = threadListModel!.threads.indexWhere(
+      (t) => t.threadId == thread.threadId,
+    );
 
     if (existingIndex != -1) {
       threadListModel!.threads[existingIndex] = thread;

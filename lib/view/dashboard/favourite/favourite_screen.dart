@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/resources/toast.dart';
+import 'package:user_side/view/auth/AuthLoginGate.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productBuyForm.dart';
 import 'package:user_side/viewModel/provider/favouriteProvider/getFavourite_provider.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
@@ -69,6 +70,11 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ USERID login guard (same pattern)
+    return AuthGate(child: _buildScaffold(context));
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(

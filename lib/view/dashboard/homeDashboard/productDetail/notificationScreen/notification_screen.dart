@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
+import 'package:user_side/view/auth/AuthLoginGate.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/viewModel/provider/notificationProvider/notification_provider.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
@@ -75,6 +76,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ USERID login guard (same pattern)
+    return AuthGate(child: _buildScaffold(context));
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     final provider = Provider.of<NotificationProvider>(context);
 
     // ✅ Use deduped list for UI
