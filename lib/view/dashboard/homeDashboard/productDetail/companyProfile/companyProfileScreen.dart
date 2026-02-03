@@ -4,12 +4,16 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/resources/authSession.dart';
+import 'package:user_side/resources/global.dart';
+import 'package:user_side/resources/toast.dart';
 import 'package:user_side/view/dashboard/homeDashboard/categoryAndProduct/productBelowCategory.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfile/widget/ContactAction.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfile/widget/PillInfo.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfile/widget/actionTile.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfile/widget/premiumCard.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/widgets/premiumSurface.dart';
+import 'package:user_side/view/dashboard/userChat/userChatScreen.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/followUnFollow_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getAllCategoryProfileWise_provider.dart';
 import 'package:user_side/widgets/customButton.dart';
@@ -183,17 +187,10 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     );
   }
 
-  void launchEmail(String email) async {
-    final uri = Uri(scheme: 'mailto', path: email);
-    try {
-      if (await canLaunchUrl(uri)) await launchUrl(uri);
-    } catch (e) {
-      debugPrint("Error launching email: $e");
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final isLoggedIn = context.watch<AuthSession>().isLoggedIn;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7F9),
       body: SingleChildScrollView(
@@ -267,7 +264,9 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                             child: CircleAvatar(
                               radius: 42.r,
                               backgroundColor: const Color(0xFFF3F4F6),
-                              backgroundImage: NetworkImage(widget.logoUrl),
+                              backgroundImage: NetworkImage(
+                                Global.imageUrl + widget.logoUrl,
+                              ),
                             ),
                           ),
                         ),
@@ -327,15 +326,8 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                                         if (followProvider.errorMessage ==
                                             "You are not login") {
                                           if (!mounted) return;
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                "Please login to follow",
-                                              ),
-                                              duration: Duration(seconds: 2),
-                                            ),
+                                          AppToast.show(
+                                            "Please login to follow",
                                           );
                                         }
                                       },
@@ -443,12 +435,28 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                             SizedBox(width: 12.w),
                             Expanded(
                               child: ContactAction(
-                                icon: Icons.email_outlined,
-                                title: "Email",
-                                subtitle: widget.email,
-                                iconBg: const Color(0xFFFFF1F2),
-                                iconColor: const Color(0xFFE11D48),
-                                onTap: () => launchEmail(widget.email),
+                                icon: Icons.chat_bubble_outline,
+                                title: "Chat",
+                                subtitle: "Chat with brand",
+                                iconBg: const Color(0xFFECFDF5),
+                                iconColor: const Color(0xFF16A34A),
+                                onTap: () {
+                                  if (!isLoggedIn) {
+                                    AppToast.show("Login your account to chat");
+                                  } else
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => UserChatScreen(
+                                          threadId: "",
+                                          toType: "profile",
+                                          toId: widget.profileId,
+                                          title: widget.companyName,
+                                          sellerImage: widget.logoUrl,
+                                        ),
+                                      ),
+                                    );
+                                },
                               ),
                             ),
                           ],

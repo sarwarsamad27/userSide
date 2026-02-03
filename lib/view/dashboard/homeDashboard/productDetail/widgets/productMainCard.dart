@@ -66,7 +66,7 @@ class ProductMainCard extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (_) => CompanyProfileScreen(
                           companyName: data.profileName ?? "",
-                          logoUrl: Global.imageUrl + (data.profileImage ?? ""),
+                          logoUrl: (data.profileImage ?? ""),
                           profileId: data.product!.profileId ?? "",
                           categoryId: data.product!.categoryId ?? "",
                           description: data.profileDescription ?? "",

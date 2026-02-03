@@ -27,92 +27,59 @@ class CustomSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22.r),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.white, Colors.white.withOpacity(0.92)],
+    // Facebook-style: soft grey pill, subtle border, minimal shadow, left search icon
+    return Row(
+      children: [
+        Expanded(
+          child: TextFormField(
+            controller: controller,
+            readOnly: readOnly,
+            onTap: onTap,
+            autofocus: autofocus,
+            onChanged: onChanged,
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: AppColor.textPrimaryColor,
+              height: 3.2,
+            ),
+            decoration: InputDecoration(
+              
+              hintText: hintText,
+              hintStyle: TextStyle(
+                color: const Color(0xFF65676B),
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+              ),
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.only(bottom: 1.h),
+            ),
+            textInputAction: TextInputAction.search,
+          ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 22,
-            offset: const Offset(0, 12),
-          ),
-        ],
-        border: Border.all(color: Colors.black.withOpacity(0.06)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: TextField(
-                controller: controller,
-                readOnly: readOnly,
-                onTap: onTap,
-                autofocus: autofocus,
-                onChanged: onChanged,
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w600,
-                  color: AppColor.textPrimaryColor,
-                  height: 1.2,
-                ),
-                decoration: InputDecoration(
-                  hintText: hintText,
-                  hintStyle: TextStyle(
-                    color: Colors.grey[500],
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(vertical: 10.h),
-                ),
-                textInputAction: TextInputAction.search,
-              ),
-            ),
-          ),
 
-          if (onFilterTap != null) ...[
-            SizedBox(width: 10.w),
-            GestureDetector(
-              onTap: onFilterTap,
-              child: Container(
-                height: 40.h,
-                width: 44.w,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14.r),
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColor.primaryColor.withOpacity(0.95),
-                      AppColor.primaryColor.withOpacity(0.70),
-                    ],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColor.primaryColor.withOpacity(0.25),
-                      blurRadius: 16,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  LucideIcons.slidersHorizontal,
-                  color: Colors.white,
-                  size: 20.sp,
-                ),
+        if (onFilterTap != null) ...[
+          SizedBox(width: 8.w),
+          GestureDetector(
+            onTap: onFilterTap,
+            child: Container(
+              height: 34.h,
+              width: 34.h,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+              ),
+              child: Icon(
+                LucideIcons.slidersHorizontal,
+                color: const Color(0xFF65676B),
+                size: 18.sp,
               ),
             ),
-          ],
+          ),
         ],
-      ),
+      ],
     );
   }
 }

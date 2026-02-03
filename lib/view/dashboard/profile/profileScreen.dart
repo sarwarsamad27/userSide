@@ -161,7 +161,6 @@ class _ProfilescreenState extends State<Profilescreen> {
       ),
       body: CustomBgContainer(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -223,143 +222,164 @@ class _ProfilescreenState extends State<Profilescreen> {
 
               SizedBox(height: 15.h),
 
-              Text(
-                "Recommended For You",
-                style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.bold),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.w),
+                child: Text(
+                  "Recommended For You",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 17.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               SizedBox(height: 12.h),
 
-              Consumer<RecommendationProvider>(
-                builder: (context, provider, _) {
-                  if (provider.loading) {
-                    return Center(
-                      child: SpinKitThreeBounce(
-                        color: AppColor.primaryColor,
-                        size: 30.0,
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.w),
+                child: Consumer<RecommendationProvider>(
+                  builder: (context, provider, _) {
+                    if (provider.loading) {
+                      return Center(
+                        child: SpinKitThreeBounce(
+                          color: AppColor.primaryColor,
+                          size: 30.0,
+                        ),
+                      );
+                    }
+
+                    if (provider.products.isEmpty) {
+                      return const Text(
+                        "No recommendations yet",
+                        style: TextStyle(color: Colors.black),
+                      );
+                    }
+
+                    return SizedBox(
+                      height: 260.h,
+                      child: ListView.separated(
+                        padding: EdgeInsets.zero,
+                        scrollDirection: Axis.horizontal,
+                        itemCount: provider.products.length,
+                        separatorBuilder: (_, __) => SizedBox(width: 8.w),
+                        itemBuilder: (context, index) {
+                          final product = provider.products[index];
+
+                          return SizedBox(
+                            width: 180.w,
+                            child: ProductCard(
+                              name: product.name,
+                              price: product.afterDiscountPrice.toString(),
+                              imageUrl: product.images.isNotEmpty
+                                  ? product.images.first
+                                  : "",
+                              averageRating: product.averageRating, // ✅
+                              description: product.description,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ProductDetailScreen(
+                                      productId: product.id,
+                                      categoryId: product.category.id,
+                                      profileId: product.profile.id,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
                       ),
                     );
-                  }
-
-                  if (provider.products.isEmpty) {
-                    return const Text(
-                      "No recommendations yet",
-                      style: TextStyle(color: Colors.black),
-                    );
-                  }
-
-                  return SizedBox(
-                    height: 260.h,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: provider.products.length,
-                      separatorBuilder: (_, __) => SizedBox(width: 8.w),
-                      itemBuilder: (context, index) {
-                        final product = provider.products[index];
-
-                        return SizedBox(
-                          width: 180.w,
-                          child: ProductCard(
-                            name: product.name,
-                            price: product.afterDiscountPrice.toString(),
-                            imageUrl: product.images.isNotEmpty
-                                ? product.images.first
-                                : "",
-                            averageRating: product.averageRating, // ✅
-                            description: product.description,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ProductDetailScreen(
-                                    productId: product.id,
-                                    categoryId: product.category.id,
-                                    profileId: product.profile.id,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
+                  },
+                ),
               ),
 
               /// 🔹 Quick Options
-              Text(
-                "Explore More",
-                style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.bold),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.w),
+                child: Text(
+                  "Explore More",
+                  style: TextStyle(
+                    fontSize: 17.sp,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               SizedBox(height: 12.h),
 
-              Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      optionTile(
-                        context,
-                        Icons.history,
-                        "Order History",
-                        Colors.pinkAccent,
-                        OrderHistoryScreen(),
-                      ),
-                      optionTile(
-                        context,
-                        Icons.local_offer,
-                        "Offers",
-                        Colors.orangeAccent,
-                        OffersScreen(),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      optionTile(
-                        context,
-                        Icons.card_giftcard,
-                        "Term & Condition",
-                        Colors.teal,
-                        TermsConditionScreen(),
-                      ),
-                      optionTile(
-                        context,
-                        Icons.support_agent,
-                        "Help Center",
-                        Colors.blue,
-                        HelpCenterScreen(),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10.h),
-                  if (isLoggedIn)
-                    CustomButton(
-                      text: "Log Out",
-                      onTap: () async {
-                        final provider = Provider.of<GoogleLoginProvider>(
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        optionTile(
                           context,
-                          listen: false,
-                        );
-                        await provider.confirmLogout(context);
-                      },
-                    )
-                  else
-                    CustomButton(
-                      text: "Login your account",
-                      onTap: () {
-                        Navigator.push(
+                          Icons.history,
+                          "Order History",
+                          Colors.pinkAccent,
+                          OrderHistoryScreen(),
+                        ),
+                        optionTile(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => const LoginScreen(),
-                          ),
-                        );
-                      },
+                          Icons.local_offer,
+                          "Offers",
+                          Colors.orangeAccent,
+                          OffersScreen(),
+                        ),
+                      ],
                     ),
-                  SizedBox(height: 70.h),
-                ],
+                    SizedBox(height: 10.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        optionTile(
+                          context,
+                          Icons.card_giftcard,
+                          "Term & Condition",
+                          Colors.teal,
+                          TermsConditionScreen(),
+                        ),
+                        optionTile(
+                          context,
+                          Icons.support_agent,
+                          "Help Center",
+                          Colors.blue,
+                          HelpCenterScreen(),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10.h),
+                    if (isLoggedIn)
+                      CustomButton(
+                        text: "Log Out",
+                        onTap: () async {
+                          final provider = Provider.of<GoogleLoginProvider>(
+                            context,
+                            listen: false,
+                          );
+                          await provider.confirmLogout(context);
+                        },
+                      )
+                    else
+                      CustomButton(
+                        text: "Login your account",
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const LoginScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    SizedBox(height: 70.h),
+                  ],
+                ),
               ),
             ],
           ),
