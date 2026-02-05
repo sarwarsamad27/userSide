@@ -4,7 +4,8 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
-import 'package:user_side/resources/toast.dart';
+
+import 'package:user_side/resources/premium_toast.dart';
 import 'package:user_side/view/auth/AuthLoginGate.dart';
 import 'package:user_side/viewModel/provider/favouriteProvider/getFavourite_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/createOrder_provider.dart';
@@ -44,12 +45,23 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _additionalNoteController =
       TextEditingController();
-  bool isLoading = false;
+  final ValueNotifier<bool> _loadingNotifier = ValueNotifier(false);
+  final ValueNotifier<int> _quantityNotifier = ValueNotifier(1);
 
-  int quantity = 1;
+  @override
+  void dispose() {
+    _loadingNotifier.dispose();
+    _quantityNotifier.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _additionalNoteController.dispose();
+    super.dispose();
+  }
 
   Future<void> _placeOrder() async {
-    setState(() => isLoading = true);
+    _loadingNotifier.value = true;
 
     final provider = Provider.of<CreateOrderProvider>(context, listen: false);
 
@@ -67,7 +79,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
     } else {
       productList.add({
         "productId": widget.productId,
-        "quantity": quantity,
+        "quantity": _quantityNotifier.value,
         "selectedColor": widget.colors ?? [],
         "selectedSize": widget.sizes ?? [],
       });
@@ -83,7 +95,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
       shipmentCharges: 200,
     );
 
-    setState(() => isLoading = false);
+    _loadingNotifier.value = false;
 
     if (provider.orderData != null && provider.orderData!.order != null) {
       Provider.of<FavouriteProvider>(
@@ -91,11 +103,15 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
         listen: false,
       ).deleteAllFavourites();
 
-      AppToast.success("Order placed successfully");
+      if (mounted) PremiumToast.success(context, "Order placed successfully");
 
       Navigator.pop(context);
     } else {
-      AppToast.error(provider.errorMessage ?? "Failed to place order");
+      if (mounted)
+        PremiumToast.error(
+          context,
+          provider.errorMessage ?? "Failed to place order",
+        );
     }
   }
 
@@ -108,27 +124,24 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
   Widget _buildScaffold(BuildContext context) {
     final isFromFavourite =
         widget.favouriteItems != null && widget.favouriteItems!.isNotEmpty;
-
     double singlePrice = double.tryParse(widget.price ?? "0") ?? 0;
-    double productTotal = isFromFavourite
-        ? _calculateFavouriteTotal()
-        : (singlePrice * quantity);
-    double shipment = 200;
-    double grandTotal = productTotal + shipment;
+
+    // We can't calculate grandTotal as a simple variable anymore because quantity changes.
+    // We will calculate it inside the builder.
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: AppColor.appimagecolor,
-        bottomNavigationBar: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
-            child: CustomButton(text: "Place Order", onTap: _placeOrder),
-          ),
-        ),
-        body: Stack(
-          children: [
-            CustomBgContainer(
+      child: Stack(
+        children: [
+          Scaffold(
+            backgroundColor: AppColor.appimagecolor,
+            bottomNavigationBar: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                child: CustomButton(text: "Place Order", onTap: _placeOrder),
+              ),
+            ),
+            body: CustomBgContainer(
               child: SafeArea(
                 child: Padding(
                   padding: EdgeInsets.symmetric(
@@ -138,6 +151,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // ... (unchanged favorite items logic)
                       if (isFromFavourite)
                         SizedBox(
                           height: 110.h,
@@ -283,54 +297,55 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                       SizedBox(height: 16.h),
 
                       if (!isFromFavourite)
-                        Row(
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                if (quantity > 1) {
-                                  setState(() => quantity--);
-                                }
-                              },
-                              child: Container(
-                                height: 35.h,
-                                width: 35.w,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8.r),
-                                  border: Border.all(
-                                    color: AppColor.primaryColor,
+                        ValueListenableBuilder<int>(
+                          valueListenable: _quantityNotifier,
+                          builder: (context, quantity, _) {
+                            return Row(
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    if (quantity > 1) _quantityNotifier.value--;
+                                  },
+                                  child: Container(
+                                    height: 35.h,
+                                    width: 35.w,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8.r),
+                                      border: Border.all(
+                                        color: AppColor.primaryColor,
+                                      ),
+                                    ),
+                                    child: const Icon(Icons.remove, size: 20),
                                   ),
                                 ),
-                                child: const Icon(Icons.remove, size: 20),
-                              ),
-                            ),
-                            SizedBox(width: 20.w),
-                            Text(
-                              "$quantity",
-                              style: TextStyle(
-                                fontSize: 18.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(width: 20.w),
-                            InkWell(
-                              onTap: () {
-                                setState(() => quantity++);
-                              },
-                              child: Container(
-                                height: 35.h,
-                                width: 35.w,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8.r),
-                                  border: Border.all(
-                                    color: AppColor.primaryColor,
+                                SizedBox(width: 20.w),
+                                Text(
+                                  "$quantity",
+                                  style: TextStyle(
+                                    fontSize: 18.sp,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                child: const Icon(Icons.add, size: 20),
-                              ),
-                            ),
-                          ],
+                                SizedBox(width: 20.w),
+                                InkWell(
+                                  onTap: () => _quantityNotifier.value++,
+                                  child: Container(
+                                    height: 35.h,
+                                    width: 35.w,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8.r),
+                                      border: Border.all(
+                                        color: AppColor.primaryColor,
+                                      ),
+                                    ),
+                                    child: const Icon(Icons.add, size: 20),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         ),
 
                       SizedBox(height: 20.h),
@@ -376,34 +391,46 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
 
                                   SizedBox(height: 20.h),
 
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Total Price: Rs ${productTotal.toStringAsFixed(0)}",
-                                        style: TextStyle(
-                                          fontSize: 15.sp,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      SizedBox(height: 8.h),
-                                      Text(
-                                        "Shipment Charges: Rs ${shipment.toStringAsFixed(0)}",
-                                        style: TextStyle(
-                                          fontSize: 14.sp,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      SizedBox(height: 8.h),
-                                      Text(
-                                        "Grand Total: Rs ${grandTotal.toStringAsFixed(0)}",
-                                        style: TextStyle(
-                                          fontSize: 16.sp,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
+                                  ValueListenableBuilder<int>(
+                                    valueListenable: _quantityNotifier,
+                                    builder: (context, quantity, _) {
+                                      double productTotal = isFromFavourite
+                                          ? _calculateFavouriteTotal()
+                                          : (singlePrice * quantity);
+                                      double shipment = 200;
+                                      double grandTotal =
+                                          productTotal + shipment;
+
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Total Price: Rs ${productTotal.toStringAsFixed(0)}",
+                                            style: TextStyle(
+                                              fontSize: 15.sp,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          SizedBox(height: 8.h),
+                                          Text(
+                                            "Shipment Charges: Rs ${shipment.toStringAsFixed(0)}",
+                                            style: TextStyle(
+                                              fontSize: 14.sp,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                          SizedBox(height: 8.h),
+                                          Text(
+                                            "Grand Total: Rs ${grandTotal.toStringAsFixed(0)}",
+                                            style: TextStyle(
+                                              fontSize: 16.sp,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
@@ -416,10 +443,13 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                 ),
               ),
             ),
+          ),
 
-            /// FULL SCREEN LOADER
-            if (isLoading)
-              Container(
+          ValueListenableBuilder<bool>(
+            valueListenable: _loadingNotifier,
+            builder: (context, loading, _) {
+              if (!loading) return const SizedBox.shrink();
+              return Container(
                 color: Colors.black.withOpacity(0.4),
                 child: Center(
                   child: SpinKitThreeBounce(
@@ -427,9 +457,10 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                     size: 40.0,
                   ),
                 ),
-              ),
-          ],
-        ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

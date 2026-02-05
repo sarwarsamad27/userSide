@@ -20,10 +20,20 @@ class UserChatProvider extends ChangeNotifier {
   final String toType;
   final String toId;
 
+  // 🔥 Optional Product Context
+  final String? initialProductImage;
+  final String? initialProductName;
+  final String? initialProductPrice;
+  final String? initialProductDescription;
+
   UserChatProvider({
     required this.threadId,
     required this.toType,
     required this.toId,
+    this.initialProductImage,
+    this.initialProductName,
+    this.initialProductPrice,
+    this.initialProductDescription,
   });
 
   // ===== Optional UI scroll controller (agar chaho to pass kar do) =====
@@ -94,6 +104,26 @@ class UserChatProvider extends ChangeNotifier {
 
     markMessagesAsDelivered();
     markMessagesAsRead();
+
+    // 🔥 Auto-send Product Context if available
+    if (initialProductName != null && initialProductName!.isNotEmpty) {
+      // Check if this specific product context was already sent recently to avoid spam (simple check: is the very last message about this product?)
+      // For now, simpler: Just send it. The user wants "product gone in chat".
+      // We can format it nicely.
+      final String productInfo = 
+          "Inquiry about Product:\n"
+          "Name: $initialProductName\n"
+          "Price: $initialProductPrice\n"
+          "Description: $initialProductDescription";
+      
+      // Only send if the LAST message is NOT this exact same text (prevent duplicate on re-open)
+      if (messages.isEmpty || messages.first.text != productInfo) {
+          // We can't really 'force' a send without user action usually, but request implies "product gone in chat". 
+          // Better UX: Pre-fill or Send immediately? 
+          // Let's Send immediately as a "System" or "User" message to start context.
+          sendMessage(productInfo);
+      }
+    }
 
     isLoadingHistory = false;
     _safeNotify();

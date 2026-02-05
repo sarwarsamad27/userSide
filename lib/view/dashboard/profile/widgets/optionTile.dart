@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/widgets/customContainer.dart';
 
 Widget optionTile(
@@ -17,8 +18,9 @@ Widget optionTile(
       padding: EdgeInsets.symmetric(horizontal: 8.w),
       width: 170.w,
       height: 60.h,
-      color: Colors.white,
+      color: AppColor.appimagecolor,
       borderRadius: BorderRadius.circular(16.r),
+      borderColor: AppColor.appbackgroundcolor,
       child: Row(
         children: [
           Icon(icon, color: color),
@@ -28,7 +30,11 @@ Widget optionTile(
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
             ),
           ),
         ],

@@ -14,6 +14,14 @@ class ForgotProvider with ChangeNotifier {
   ForgotPasswordModel? _forgotData;
   ForgotPasswordModel? get forgotData => _forgotData;
 
+  bool _submitted = false;
+  bool get submitted => _submitted;
+
+  void setSubmitted(bool value) {
+    _submitted = value;
+    notifyListeners();
+  }
+
   Future<void> forgotPassword({required String email}) async {
     _loading = true;
     _errorMessage = null;
@@ -41,6 +49,7 @@ class ForgotProvider with ChangeNotifier {
 
   void clearError() {
     _errorMessage = null;
+    _submitted = false;
     notifyListeners();
   }
 }

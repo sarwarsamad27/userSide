@@ -4,14 +4,14 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/connectivity_plus.dart';
-import 'package:user_side/resources/toast.dart';
+import 'package:user_side/resources/premium_toast.dart';
 import 'package:user_side/view/auth/loginView.dart';
 import 'package:user_side/viewModel/provider/authProvider/signUp_provider.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 import 'package:user_side/widgets/customButton.dart';
 import 'package:user_side/widgets/customContainer.dart';
 import 'package:user_side/widgets/customTextFeld.dart';
-import 'package:user_side/widgets/customValidation.dart'; // Validators
+import 'package:user_side/widgets/customValidation.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -22,7 +22,6 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
-  bool _submitted = false;
 
   late final TextEditingController emailController;
   late final TextEditingController passwordController;
@@ -46,36 +45,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<SignUpProvider>(context, listen: false);
-
-    return ScreenUtilInit(
-      designSize: const Size(390, 844),
-      builder: (context, child) {
-        return GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Scaffold(
-            resizeToAvoidBottomInset: true,
-            body: Stack(
-              children: [
-                CustomBgContainer(
-                  child: SafeArea(
-                    child: Center(
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        padding: EdgeInsets.symmetric(horizontal: 24.w),
-                        child: CustomAppContainer(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        body: Stack(
+          children: [
+            CustomBgContainer(
+              child: SafeArea(
+                child: Center(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.symmetric(horizontal: 24.w),
+                    child: Consumer<SignUpProvider>(
+                      builder: (context, provider, child) {
+                        return CustomAppContainer(
                           padding: EdgeInsets.symmetric(
                             horizontal: 20.w,
                             vertical: 30.h,
                           ),
                           child: Form(
                             key: _formKey,
-
-                            /// ✅ validation only after submit
-                            autovalidateMode: _submitted
+                            autovalidateMode: provider.submitted
                                 ? AutovalidateMode.onUserInteraction
                                 : AutovalidateMode.disabled,
-
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -99,12 +92,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   "Join us and start your journey today!",
                                   style: TextStyle(
                                     fontSize: 14.sp,
-                                    color: AppColor.textSecondaryColor.withOpacity(0.8),
+                                    color: AppColor.textSecondaryColor
+                                        .withOpacity(0.8),
                                   ),
                                 ),
                                 SizedBox(height: 30.h),
 
-                                /// ✅ Email
+                                // Email
                                 CustomTextField(
                                   headerText: "Email Address",
                                   hintText: "Enter your email",
@@ -115,18 +109,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 ),
                                 SizedBox(height: 18.h),
 
-                                /// ✅ Password
+                                // Password
                                 CustomTextField(
                                   headerText: "Password",
                                   hintText: "Enter your password",
                                   controller: passwordController,
                                   isPassword: true,
                                   prefixIcon: Icons.lock_outline,
-                                  validator: (v) => Validators.minLen(v, 6, label: "Password"),
+                                  validator: (v) => Validators.minLen(
+                                    v,
+                                    6,
+                                    label: "Password",
+                                  ),
                                 ),
                                 SizedBox(height: 18.h),
 
-                                /// ✅ Confirm Password (match)
+                                // Confirm Password
                                 CustomTextField(
                                   headerText: "Confirm Password",
                                   hintText: "Re-enter your password",
@@ -135,7 +133,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   prefixIcon: Icons.lock_reset_outlined,
                                   validator: (v) {
                                     final val = (v ?? "").trim();
-                                    if (val.isEmpty) return "Confirm Password is required";
+                                    if (val.isEmpty)
+                                      return "Confirm Password is required";
                                     if (val != passwordController.text.trim()) {
                                       return "Passwords do not match";
                                     }
@@ -146,50 +145,71 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 SizedBox(height: 25.h),
 
                                 CustomButton(
-                                  text: "Create Account",
-                                  onTap: () async {
-                                    provider.clearError();
+                                  text: provider.loading
+                                      ? "Please Wait..."
+                                      : "Create Account",
+                                  onTap: provider.loading
+                                      ? null
+                                      : () async {
+                                          provider.clearError();
 
-                                    /// ✅ enable validation after first submit
-                                    if (!_submitted) {
-                                      setState(() => _submitted = true);
-                                    }
+                                          if (!provider.submitted) {
+                                            provider.setSubmitted(true);
+                                          }
 
-                                    if (!(_formKey.currentState?.validate() ?? false)) {
-                                      return;
-                                    }
+                                          if (!(_formKey.currentState
+                                                  ?.validate() ??
+                                              false)) {
+                                            return;
+                                          }
 
-                                    if (!await isConnected()) {
-                                      AppToast.error("No internet connection");
-                                      return;
-                                    }
+                                          if (!await isConnected()) {
+                                            if (mounted)
+                                              PremiumToast.error(
+                                                context,
+                                                "No internet connection",
+                                              );
+                                            return;
+                                          }
 
-                                    await provider.signUpProvider(
-                                      email: emailController.text.trim(),
-                                      password: passwordController.text.trim(),
-                                    );
+                                          await provider.signUpProvider(
+                                            email: emailController.text.trim(),
+                                            password: passwordController.text
+                                                .trim(),
+                                          );
 
-                                    if (provider.signUpData?.message ==
-                                        "User registered successfully") {
-                                      emailController.clear();
-                                      passwordController.clear();
-                                      confirmPasswordController.clear();
+                                          if (provider.signUpData?.message ==
+                                              "User registered successfully") {
+                                            // Check if success field varies
+                                            // Ideally check code_status or similar
+                                            emailController.clear();
+                                            passwordController.clear();
+                                            confirmPasswordController.clear();
+                                            provider.setSubmitted(false);
 
-                                      AppToast.success("User registered Successful");
+                                            if (!mounted) return;
+                                            PremiumToast.success(
+                                              context,
+                                              "Registration Successful",
+                                            );
 
-                                      if (!mounted) return;
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => const LoginScreen(),
-                                        ),
-                                      );
-                                    } else {
-                                      AppToast.error(
-                                        provider.errorMessage ?? "Signup Failed",
-                                      );
-                                    }
-                                  },
+                                            Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const LoginScreen(),
+                                              ),
+                                            );
+                                          } else {
+                                            if (mounted) {
+                                              PremiumToast.error(
+                                                context,
+                                                provider.errorMessage ??
+                                                    "Signup Failed",
+                                              );
+                                            }
+                                          }
+                                        },
                                 ),
 
                                 SizedBox(height: 25.h),
@@ -203,7 +223,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       ),
                                     ),
                                     Padding(
-                                      padding: EdgeInsets.symmetric(horizontal: 10.w),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 10.w,
+                                      ),
                                       child: Text(
                                         "Or continue with",
                                         style: TextStyle(
@@ -238,7 +260,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         Navigator.pushReplacement(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => const LoginScreen(),
+                                            builder: (context) =>
+                                                const LoginScreen(),
                                           ),
                                         );
                                       },
@@ -257,35 +280,36 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ],
                             ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
                   ),
                 ),
-
-                /// Loader overlay (same as your code)
-                Consumer<SignUpProvider>(
-                  builder: (context, value, child) {
-                    return value.loading
-                        ? Container(
-                            height: double.infinity,
-                            width: double.infinity,
-                            color: Colors.black.withOpacity(0.3),
-                            child: const Center(
-                              child: SpinKitThreeBounce(
-                                color: AppColor.primaryColor,
-                                size: 30.0,
-                              ),
-                            ),
-                          )
-                        : const SizedBox();
-                  },
-                ),
-              ],
+              ),
             ),
-          ),
-        );
-      },
+
+            // Loader
+            Consumer<SignUpProvider>(
+              builder: (context, value, child) {
+                if (value.loading) {
+                  return Container(
+                    height: double.infinity,
+                    width: double.infinity,
+                    color: Colors.black.withOpacity(0.3),
+                    child: const Center(
+                      child: SpinKitThreeBounce(
+                        color: AppColor.primaryColor,
+                        size: 30.0,
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

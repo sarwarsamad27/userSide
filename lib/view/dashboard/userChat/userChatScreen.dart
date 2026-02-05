@@ -12,6 +12,11 @@ class UserChatScreen extends StatelessWidget {
   final String toId;
   final String title;
   final String? sellerImage;
+  // 🔥 Product Context
+  final String? productImage;
+  final String? productName;
+  final String? productPrice;
+  final String? productDescription;
 
   const UserChatScreen({
     super.key,
@@ -20,14 +25,25 @@ class UserChatScreen extends StatelessWidget {
     required this.toId,
     required this.title,
     this.sellerImage,
+    this.productImage,
+    this.productName,
+    this.productPrice,
+    this.productDescription,
   });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) =>
-          UserChatProvider(threadId: threadId, toType: toType, toId: toId)
-            ..init(),
+      create: (_) => UserChatProvider(
+        threadId: threadId,
+        toType: toType,
+        toId: toId,
+        // Pass product context to provider
+        initialProductImage: productImage,
+        initialProductName: productName,
+        initialProductPrice: productPrice,
+        initialProductDescription: productDescription,
+      )..init(),
       child: Scaffold(
         backgroundColor: const Color(0xFFECE5DD),
         appBar: ChatAppBar(title: title, sellerImage: sellerImage),

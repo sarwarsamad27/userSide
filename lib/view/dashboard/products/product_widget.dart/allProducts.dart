@@ -75,7 +75,7 @@ class AllProducts extends StatelessWidget {
               crossAxisCount: 2,
               mainAxisSpacing: 12.h,
               crossAxisSpacing: 4.w,
-              mainAxisExtent: 260.h,
+              mainAxisExtent: 265.h,
             ),
           );
         },

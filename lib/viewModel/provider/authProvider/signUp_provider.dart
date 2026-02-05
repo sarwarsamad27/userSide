@@ -12,6 +12,14 @@ class SignUpProvider with ChangeNotifier {
   SignUpModel? _signUpData;
   SignUpModel? get signUpData => _signUpData;
 
+  bool _submitted = false;
+  bool get submitted => _submitted;
+
+  void setSubmitted(bool value) {
+    _submitted = value;
+    notifyListeners();
+  }
+
   final SignUpRepository repository = SignUpRepository();
 
   Future<void> signUpProvider({
@@ -38,6 +46,7 @@ class SignUpProvider with ChangeNotifier {
 
   void clearError() {
     _errorMessage = null;
+    _submitted = false;
     notifyListeners();
   }
 }

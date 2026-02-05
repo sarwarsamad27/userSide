@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
-import 'package:user_side/resources/toast.dart';
+import 'package:user_side/resources/premium_toast.dart';
 import 'package:user_side/view/auth/forgotScreen.dart';
 import 'package:user_side/view/auth/signUpScreen.dart';
 import 'package:user_side/view/dashboard/DashboardScreen.dart';
@@ -26,36 +26,29 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  bool _submitted = false; // ✅ add this
-
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<LoginProvider>(context);
-
-    return ScreenUtilInit(
-      designSize: const Size(390, 844),
-      builder: (context, child) {
-        return GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Scaffold(
-            backgroundColor: AppColor.appimagecolor,
-            resizeToAvoidBottomInset: true,
-            body: CustomBgContainer(
-              child: SafeArea(
-                child: Center(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: EdgeInsets.symmetric(horizontal: 24.w),
-                    child: CustomAppContainer(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColor.appimagecolor,
+        resizeToAvoidBottomInset: true,
+        body: CustomBgContainer(
+          child: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.symmetric(horizontal: 24.w),
+                child: Consumer<LoginProvider>(
+                  builder: (context, provider, child) {
+                    return CustomAppContainer(
                       padding: EdgeInsets.symmetric(
                         horizontal: 20.w,
                         vertical: 30.h,
                       ),
-
-                      /// ✅ Form autovalidate only after submit
                       child: Form(
                         key: _formKey,
-                        autovalidateMode: _submitted
+                        autovalidateMode: provider.submitted
                             ? AutovalidateMode.onUserInteraction
                             : AutovalidateMode.disabled,
                         child: Column(
@@ -67,7 +60,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: AppColor.primaryColor,
                             ),
                             SizedBox(height: 18.h),
-
                             Text(
                               "Welcome Back 👋",
                               style: TextStyle(
@@ -77,7 +69,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             SizedBox(height: 6.h),
-
                             Text(
                               "Login to continue your journey",
                               style: TextStyle(
@@ -88,32 +79,27 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             SizedBox(height: 30.h),
-
-                            /// ✅ Email
+                            // Email
                             CustomTextField(
                               headerText: "Email Address",
                               hintText: "Enter your email",
                               controller: provider.emailController,
                               prefixIcon: Icons.email_outlined,
                               keyboardType: TextInputType.emailAddress,
-                              // ❌ REMOVE autovalidateMode here
                               validator: Validators.email,
                             ),
                             SizedBox(height: 18.h),
-
-                            /// ✅ Password
+                            // Password
                             CustomTextField(
                               headerText: "Password",
                               hintText: "Enter your password",
                               controller: provider.passwordController,
                               isPassword: true,
                               prefixIcon: Icons.lock_outline,
-                              // ❌ REMOVE autovalidateMode here
                               validator: (v) =>
                                   Validators.minLen(v, 6, label: "Password"),
                             ),
                             SizedBox(height: 12.h),
-
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
@@ -136,8 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             SizedBox(height: 10.h),
-
-                            /// ✅ Login Button
+                            // Login Button
                             CustomButton(
                               text: provider.loading
                                   ? "Please wait..."
@@ -147,9 +132,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   : () async {
                                       provider.clearError();
 
-                                      // ✅ enable validation only after first submit
-                                      if (!_submitted) {
-                                        setState(() => _submitted = true);
+                                      if (!provider.submitted) {
+                                        provider.setSubmitted(true);
                                       }
 
                                       final ok =
@@ -166,8 +150,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                               .isNotEmpty) {
                                         provider.emailController.clear();
                                         provider.passwordController.clear();
+                                        provider.setSubmitted(
+                                          false,
+                                        ); // Reset state
 
                                         if (!mounted) return;
+                                        PremiumToast.success(
+                                          context,
+                                          "Login Successful!",
+                                        );
+
                                         Navigator.pushReplacement(
                                           context,
                                           MaterialPageRoute(
@@ -175,16 +167,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                         );
                                       } else {
-                                        AppToast.error(
-                                          provider.errorMessage ??
-                                              "Invalid email or password",
-                                        );
+                                        if (mounted) {
+                                          PremiumToast.error(
+                                            context,
+                                            provider.errorMessage ??
+                                                "Invalid email or password",
+                                          );
+                                        }
                                       }
                                     },
                             ),
-
                             SizedBox(height: 20.h),
-
                             Row(
                               children: [
                                 Expanded(
@@ -213,55 +206,63 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ],
                             ),
-
                             SizedBox(height: 20.h),
+                            Consumer<GoogleLoginProvider>(
+                              builder: (context, googleProvider, _) {
+                                return Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    socialButton(
+                                      icon: FontAwesomeIcons.google,
+                                      color: Colors.redAccent,
+                                      onTap: () async {
+                                        await googleProvider.loginWithGoogle();
 
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                socialButton(
-                                  icon: FontAwesomeIcons.google,
-                                  color: Colors.redAccent,
-                                  onTap: () async {
-                                    final googleProvider =
-                                        Provider.of<GoogleLoginProvider>(
+                                        if (googleProvider.loginData?.token !=
+                                                null &&
+                                            googleProvider
+                                                .loginData!
+                                                .token!
+                                                .isNotEmpty) {
+                                          if (!mounted) return;
+                                          PremiumToast.success(
+                                            context,
+                                            "Logged in with Google!",
+                                          );
+                                          Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  HomeNavBarScreen(),
+                                            ),
+                                          );
+                                        } else {
+                                          if (mounted) {
+                                            PremiumToast.error(
+                                              context,
+                                              googleProvider.errorMessage ??
+                                                  "Google login failed",
+                                            );
+                                          }
+                                        }
+                                      },
+                                    ),
+                                    SizedBox(width: 25.w),
+                                    socialButton(
+                                      icon: Icons.apple,
+                                      color: Colors.black,
+                                      onTap: () {
+                                        PremiumToast.info(
                                           context,
-                                          listen: false,
+                                          "Apple Login coming soon",
                                         );
-                                    await googleProvider.loginWithGoogle();
-
-                                    if (googleProvider.loginData?.token !=
-                                            null &&
-                                        googleProvider
-                                            .loginData!
-                                            .token!
-                                            .isNotEmpty) {
-                                      if (!mounted) return;
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => HomeNavBarScreen(),
-                                        ),
-                                      );
-                                    } else {
-                                      AppToast.error(
-                                        googleProvider.errorMessage ??
-                                            "Google login failed",
-                                      );
-                                    }
-                                  },
-                                ),
-                                SizedBox(width: 25.w),
-                                socialButton(
-                                  icon: Icons.apple,
-                                  color: Colors.black,
-                                  onTap: () => debugPrint("Apple login"),
-                                ),
-                              ],
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
-
                             SizedBox(height: 25.h),
-
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -295,14 +296,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

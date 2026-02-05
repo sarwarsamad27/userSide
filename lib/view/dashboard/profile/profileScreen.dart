@@ -36,7 +36,7 @@ class _ProfilescreenState extends State<Profilescreen> {
 
   static const int _kLoopBase = 1000; // start in middle for "infinite"
   int _pageIndex = _kLoopBase;
-  int _activeIndex = 0;
+  final ValueNotifier<int> _activeIndexNotifier = ValueNotifier(0);
 
   // Auto-slide config (increased)
   final Duration _autoSlideDuration = const Duration(seconds: 4);
@@ -75,6 +75,9 @@ class _ProfilescreenState extends State<Profilescreen> {
       initialPage: _pageIndex,
     );
 
+    // Update notifier slightly to init
+    _activeIndexNotifier.value = _mapToOfferIndex(_pageIndex);
+
     _loadRecommendations();
     _startAutoOffers();
   }
@@ -83,6 +86,7 @@ class _ProfilescreenState extends State<Profilescreen> {
   void dispose() {
     _offerTimer?.cancel();
     _offerPageController.dispose();
+    _activeIndexNotifier.dispose();
     super.dispose();
   }
 
@@ -99,7 +103,7 @@ class _ProfilescreenState extends State<Profilescreen> {
       if (!_offerPageController.hasClients) return;
       if (_offers.isEmpty) return;
 
-      _pageIndex = _pageIndex + 1;
+      _pageIndex++; // Local var, doesn't need setState if controller animates
 
       _offerPageController.animateToPage(
         _pageIndex,
@@ -169,30 +173,37 @@ class _ProfilescreenState extends State<Profilescreen> {
               // ✅ Premium Offer Cards (Circular + Auto change)
               SizedBox(
                 height: 160.h,
-                child: PageView.builder(
-                  controller: _offerPageController,
-                  itemCount: 1000000, // large for infinite illusion
-                  onPageChanged: (page) {
-                    _pageIndex = page;
-                    _activeIndex = _mapToOfferIndex(page);
-                    setState(() {});
-                  },
-                  itemBuilder: (context, page) {
-                    final offerIndex = _mapToOfferIndex(page);
-                    final data = _offers[offerIndex];
+                child: ValueListenableBuilder<int>(
+                  valueListenable: _activeIndexNotifier,
+                  builder: (context, activeIndex, _) {
+                    return PageView.builder(
+                      controller: _offerPageController,
+                      itemCount: 1000000, // large for infinite illusion
+                      onPageChanged: (page) {
+                        _pageIndex = page;
+                        _activeIndexNotifier.value = _mapToOfferIndex(page);
+                      },
+                      itemBuilder: (context, page) {
+                        final offerIndex = _mapToOfferIndex(page);
+                        final data = _offers[offerIndex];
 
-                    final bool isActive = offerIndex == _activeIndex;
+                        final bool isActive = offerIndex == activeIndex;
 
-                    return AnimatedScale(
-                      duration: const Duration(milliseconds: 300),
-                      scale: isActive ? 1.0 : 0.94,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 6.w,
-                          vertical: 6.h,
-                        ),
-                        child: PremiumOfferCard(data: data, isActive: isActive),
-                      ),
+                        return AnimatedScale(
+                          duration: const Duration(milliseconds: 300),
+                          scale: isActive ? 1.0 : 0.94,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.w,
+                              vertical: 6.h,
+                            ),
+                            child: PremiumOfferCard(
+                              data: data,
+                              isActive: isActive,
+                            ),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
@@ -201,23 +212,28 @@ class _ProfilescreenState extends State<Profilescreen> {
               SizedBox(height: 10.h),
 
               // Dots Indicator (premium)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(_offers.length, (i) {
-                  final bool active = i == _activeIndex;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    margin: EdgeInsets.symmetric(horizontal: 4.w),
-                    height: 7.h,
-                    width: active ? 22.w : 7.w,
-                    decoration: BoxDecoration(
-                      color: active
-                          ? AppColor.primaryColor
-                          : Colors.black.withOpacity(0.18),
-                      borderRadius: BorderRadius.circular(20.r),
-                    ),
+              ValueListenableBuilder<int>(
+                valueListenable: _activeIndexNotifier,
+                builder: (context, activeIndex, _) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(_offers.length, (i) {
+                      final bool active = i == activeIndex;
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        margin: EdgeInsets.symmetric(horizontal: 4.w),
+                        height: 7.h,
+                        width: active ? 22.w : 7.w,
+                        decoration: BoxDecoration(
+                          color: active
+                              ? AppColor.primaryColor
+                              : Colors.black.withOpacity(0.18),
+                          borderRadius: BorderRadius.circular(20.r),
+                        ),
+                      );
+                    }),
                   );
-                }),
+                },
               ),
 
               SizedBox(height: 15.h),
@@ -314,6 +330,30 @@ class _ProfilescreenState extends State<Profilescreen> {
                 padding: EdgeInsets.symmetric(horizontal: 20.w),
                 child: Column(
                   children: [
+                    if (isLoggedIn)
+                      CustomButton(
+                        text: "Log Out",
+                        onTap: () async {
+                          final provider = Provider.of<GoogleLoginProvider>(
+                            context,
+                            listen: false,
+                          );
+                          await provider.confirmLogout(context);
+                        },
+                      )
+                    else
+                      CustomButton(
+                        text: "Login your account",
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const LoginScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    SizedBox(height: 20.h),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -321,6 +361,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                           context,
                           Icons.history,
                           "Order History",
+
                           Colors.pinkAccent,
                           OrderHistoryScreen(),
                         ),
@@ -354,29 +395,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                       ],
                     ),
                     SizedBox(height: 10.h),
-                    if (isLoggedIn)
-                      CustomButton(
-                        text: "Log Out",
-                        onTap: () async {
-                          final provider = Provider.of<GoogleLoginProvider>(
-                            context,
-                            listen: false,
-                          );
-                          await provider.confirmLogout(context);
-                        },
-                      )
-                    else
-                      CustomButton(
-                        text: "Login your account",
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                          );
-                        },
-                      ),
+
                     SizedBox(height: 70.h),
                   ],
                 ),

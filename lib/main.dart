@@ -18,14 +18,12 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-   await NotificationService.init();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await NotificationService.init();
 
   // ✅ Push tap -> NotificationScreen
   await NotificationRouter.init();
-await AuthSession.instance.init();
+  await AuthSession.instance.init();
   runApp(const AppWrapper());
 }
 
@@ -34,9 +32,7 @@ class AppWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppMultiProvider(
-      child: const MyApp(),
-    );
+    return AppMultiProvider(child: const MyApp());
   }
 }
 
@@ -102,6 +98,8 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return ScreenUtilInit(
       designSize: const Size(390, 844),
+      minTextAdapt: true,
+      splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp(
           navigatorKey: NotificationRouter.navigatorKey, // ✅ single key

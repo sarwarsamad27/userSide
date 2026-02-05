@@ -18,6 +18,12 @@ class _ProductImageState extends State<ProductImage> {
   final PageController _pageController = PageController();
   int currentIndex = 0;
 
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   String getValidImageUrl(String url) {
     if (url.startsWith('http')) return url;
     if (!url.startsWith('/')) url = '/$url';
@@ -66,7 +72,8 @@ class _ProductImageState extends State<ProductImage> {
               controller: _pageController,
               itemCount: imageCount,
               onPageChanged: (index) {
-                setState(() => currentIndex = index);
+                currentIndex =
+                    index; // ✅ No setState needed as we only read it on Tap
                 if (widget.onImageChange != null) widget.onImageChange!(index);
               },
               itemBuilder: (context, index) {
@@ -88,13 +95,11 @@ class _ProductImageState extends State<ProductImage> {
                 bottom: 16.h,
                 child: SmoothPageIndicator(
                   controller: _pageController,
-                  count: widget.imageUrls.isNotEmpty
-                      ? widget.imageUrls.length
-                      : 1,
+                  count: processedUrls.length,
                   effect: ExpandingDotsEffect(
                     activeDotColor: Colors.black,
                     dotColor: Colors.grey[400]!,
-                    dotHeight: 8.h,   
+                    dotHeight: 8.h,
                     dotWidth: 8.w,
                     spacing: 6.w,
                   ),

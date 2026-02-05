@@ -11,8 +11,15 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool isDarkMode = false;
-  bool notifications = true;
+  final ValueNotifier<bool> _isDarkModeNotifier = ValueNotifier(false);
+  final ValueNotifier<bool> _notificationsNotifier = ValueNotifier(true);
+
+  @override
+  void dispose() {
+    _isDarkModeNotifier.dispose();
+    _notificationsNotifier.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,26 +45,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               /// 🌓 Dark Mode Toggle
-              SwitchListTile(
-                title: const Text("Dark Mode"),
-                subtitle: const Text("Enable dark theme"),
-                value: isDarkMode,
-                onChanged: (v) {
-                  setState(() => isDarkMode = v);
+              ValueListenableBuilder<bool>(
+                valueListenable: _isDarkModeNotifier,
+                builder: (context, isDarkMode, _) {
+                  return SwitchListTile(
+                    title: const Text("Dark Mode"),
+                    subtitle: const Text("Enable dark theme"),
+                    value: isDarkMode,
+                    onChanged: (v) => _isDarkModeNotifier.value = v,
+                    activeColor: AppColor.primaryColor,
+                  );
                 },
-                activeColor: AppColor.primaryColor,
               ),
               const Divider(),
 
               /// 🔔 Notifications
-              SwitchListTile(
-                title: const Text("Notifications"),
-                subtitle: const Text("Receive app notifications"),
-                value: notifications,
-                onChanged: (v) {
-                  setState(() => notifications = v);
+              ValueListenableBuilder<bool>(
+                valueListenable: _notificationsNotifier,
+                builder: (context, notifications, _) {
+                  return SwitchListTile(
+                    title: const Text("Notifications"),
+                    subtitle: const Text("Receive app notifications"),
+                    value: notifications,
+                    onChanged: (v) => _notificationsNotifier.value = v,
+                    activeColor: AppColor.primaryColor,
+                  );
                 },
-                activeColor: AppColor.primaryColor,
               ),
               const Divider(),
 

@@ -15,6 +15,14 @@ class UpdatePasswordProvider with ChangeNotifier {
   UpdatePasswordModel? _updateData;
   UpdatePasswordModel? get updateData => _updateData;
 
+  bool _submitted = false;
+  bool get submitted => _submitted;
+
+  void setSubmitted(bool value) {
+    _submitted = value;
+    notifyListeners();
+  }
+
   void _setLoading(bool v) {
     _loading = v;
     notifyListeners();
@@ -22,6 +30,7 @@ class UpdatePasswordProvider with ChangeNotifier {
 
   void clearError() {
     _errorMessage = null;
+    _submitted = false;
     notifyListeners();
   }
 

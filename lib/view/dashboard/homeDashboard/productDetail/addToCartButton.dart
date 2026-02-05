@@ -32,64 +32,62 @@ class AddToCart extends StatelessWidget {
     final bool isOutOfStock =
         stockStatus.trim().toLowerCase() == "out of stock";
 
-    return Expanded(
-      child: Consumer<AddToFavouriteProvider>(
-        builder: (context, provider, _) {
-          if (!isLoggedIn) {
-            return CustomButton(
-              second: true,
-              text: "Login Required",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                );
-              },
-            );
-          }
-
+    return Consumer<AddToFavouriteProvider>(
+      builder: (context, provider, _) {
+        if (!isLoggedIn) {
           return CustomButton(
             second: true,
-            text: isOutOfStock
-                ? "Out of Stock"
-                : (provider.loading ? "Adding..." : "Add to Favourite"),
-
-            // ✅ disable when out of stock OR when loading
-            onTap: (isOutOfStock || provider.loading)
-                ? null
-                : () async {
-                    // 🔥 VALIDATION ONLY IF OPTION EXISTS
-                    if ((productHasColors && selectedColors.isEmpty) ||
-                        (productHasSizes && selectedSizes.isEmpty)) {
-                      AppToast.warning("Please select required options");
-                      return;
-                    }
-
-                    await provider.addToFavourite(
-                      productId: productId,
-                      selectedSizes: selectedSizes,
-                      selectedColors: selectedColors,
-                    );
-
-                    final response = provider.favouriteResponse;
-                    if (response == null) {
-                      AppToast.error("Something went wrong");
-                      return;
-                    }
-
-                    if (response.success == true) {
-                      AppToast.success(
-                        response.message ?? "Added to favourite successfully",
-                      );
-                    } else {
-                      AppToast.error(
-                        response.message ?? "Failed to add to favourite",
-                      );
-                    }
-                  },
+            text: "Login Required",
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
+            },
           );
-        },
-      ),
+        }
+
+        return CustomButton(
+          second: true,
+          text: isOutOfStock
+              ? "Out of Stock"
+              : (provider.loading ? "Adding..." : "Add to Favourite"),
+
+          // ✅ disable when out of stock OR when loading
+          onTap: (isOutOfStock || provider.loading)
+              ? null
+              : () async {
+                  // 🔥 VALIDATION ONLY IF OPTION EXISTS
+                  if ((productHasColors && selectedColors.isEmpty) ||
+                      (productHasSizes && selectedSizes.isEmpty)) {
+                    AppToast.warning("Please select required options");
+                    return;
+                  }
+
+                  await provider.addToFavourite(
+                    productId: productId,
+                    selectedSizes: selectedSizes,
+                    selectedColors: selectedColors,
+                  );
+
+                  final response = provider.favouriteResponse;
+                  if (response == null) {
+                    AppToast.error("Something went wrong");
+                    return;
+                  }
+
+                  if (response.success == true) {
+                    AppToast.success(
+                      response.message ?? "Added to favourite successfully",
+                    );
+                  } else {
+                    AppToast.error(
+                      response.message ?? "Failed to add to favourite",
+                    );
+                  }
+                },
+        );
+      },
     );
   }
 }

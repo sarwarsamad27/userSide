@@ -37,12 +37,13 @@ class CustomTextField extends StatefulWidget {
 }
 
 class _CustomTextFieldState extends State<CustomTextField> {
-  bool obscure = true;
+  late final ValueNotifier<bool> _obscureNotifier;
   late FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
+    _obscureNotifier = ValueNotifier(true); // Default to obscured
     _focusNode = FocusNode();
     if (widget.readOnly == true) {
       _focusNode = AlwaysDisabledFocusNode();
@@ -51,6 +52,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   void dispose() {
+    _obscureNotifier.dispose();
     _focusNode.dispose();
     super.dispose();
   }
@@ -99,52 +101,61 @@ class _CustomTextFieldState extends State<CustomTextField> {
                   ),
                 ],
               ),
-              child: TextField(
-                focusNode: _focusNode,
-                readOnly: widget.readOnly ?? false,
-                controller: controller,
-                keyboardType: widget.keyboardType,
-                obscureText: widget.isPassword ? obscure : false,
-                expands: widget.height != null,
-                maxLines: widget.height != null ? null : 1,
-                minLines: widget.height != null ? null : 1,
-                style: TextStyle(
-                  color: AppColor.textPrimaryColor,
-                  fontSize: 15.sp,
-                ),
-                onChanged: (v) {
-                  state.didChange(v); // ✅ update form state
-                  widget.onChanged?.call(v);
+              child: ValueListenableBuilder<bool>(
+                valueListenable: _obscureNotifier,
+                builder: (context, obscure, _) {
+                  return TextField(
+                    focusNode: _focusNode,
+                    readOnly: widget.readOnly ?? false,
+                    controller: controller,
+                    keyboardType: widget.keyboardType,
+                    obscureText: widget.isPassword ? obscure : false,
+                    expands: widget.height != null,
+                    maxLines: widget.height != null ? null : 1,
+                    minLines: widget.height != null ? null : 1,
+                    style: TextStyle(
+                      color: AppColor.textPrimaryColor,
+                      fontSize: 15.sp,
+                    ),
+                    onChanged: (v) {
+                      state.didChange(v); // ✅ update form state
+                      widget.onChanged?.call(v);
+                    },
+                    decoration: InputDecoration(
+                      isCollapsed: true,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 14.w,
+                        vertical: 14.h,
+                      ),
+                      hintText: widget.hintText,
+                      hintStyle: TextStyle(
+                        color: AppColor.textSecondaryColor.withOpacity(0.7),
+                        fontSize: 14.sp,
+                      ),
+                      border: InputBorder.none,
+
+                      prefixIcon: widget.prefixIcon != null
+                          ? Icon(
+                              widget.prefixIcon,
+                              color: AppColor.primaryColor,
+                            )
+                          : null,
+
+                      suffixIcon: widget.isPassword
+                          ? IconButton(
+                              onPressed: () =>
+                                  _obscureNotifier.value = !obscure,
+                              icon: Icon(
+                                obscure
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: AppColor.primaryColor,
+                              ),
+                            )
+                          : null,
+                    ),
+                  );
                 },
-                decoration: InputDecoration(
-                  isCollapsed: true,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 14.w,
-                    vertical: 14.h,
-                  ),
-                  hintText: widget.hintText,
-                  hintStyle: TextStyle(
-                    color: AppColor.textSecondaryColor.withOpacity(0.7),
-                    fontSize: 14.sp,
-                  ),
-                  border: InputBorder.none,
-
-                  prefixIcon: widget.prefixIcon != null
-                      ? Icon(widget.prefixIcon, color: AppColor.primaryColor)
-                      : null,
-
-                  suffixIcon: widget.isPassword
-                      ? IconButton(
-                          onPressed: () => setState(() => obscure = !obscure),
-                          icon: Icon(
-                            obscure
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: AppColor.primaryColor,
-                          ),
-                        )
-                      : null,
-                ),
               ),
             ),
 

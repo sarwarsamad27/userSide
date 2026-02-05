@@ -25,7 +25,13 @@ class _SearchbarCategorylistState extends State<SearchbarCategorylist> {
     "Beauty",
   ];
 
-  int selectedCategoryIndex = 0; // ✅ Keep as state variable
+  final ValueNotifier<int> _selectedIndexNotifier = ValueNotifier(0);
+
+  @override
+  void dispose() {
+    _selectedIndexNotifier.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,41 +51,44 @@ class _SearchbarCategorylistState extends State<SearchbarCategorylist> {
         /// CATEGORY LIST
         SizedBox(
           height: 30.h,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: categories.length,
-            separatorBuilder: (_, __) => SizedBox(width: 8.w),
-            itemBuilder: (context, index) {
-              final isSelected = selectedCategoryIndex == index;
+          child: ValueListenableBuilder<int>(
+            valueListenable: _selectedIndexNotifier,
+            builder: (context, selectedIndex, _) {
+              return ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: categories.length,
+                separatorBuilder: (_, __) => SizedBox(width: 8.w),
+                itemBuilder: (context, index) {
+                  final isSelected = selectedIndex == index;
 
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    selectedCategoryIndex = index; // ✅ Update selected index
-                  });
+                  return GestureDetector(
+                    onTap: () {
+                      _selectedIndexNotifier.value = index;
 
-                  widget.onCategorySelected(categories[index]);
-                },
-                child: CustomAppContainer(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 5.h,
-                  ),
-                  color: isSelected
-                      ? AppColor.primaryColor
-                      : AppColor.primaryColor.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(20.r),
-                  child: Center(
-                    child: Text(
-                      categories[index],
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.w500,
-                        color: isSelected ? Colors.white : Colors.black,
+                      widget.onCategorySelected(categories[index]);
+                    },
+                    child: CustomAppContainer(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 5.h,
+                      ),
+                      color: isSelected
+                          ? AppColor.primaryColor
+                          : AppColor.primaryColor.withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(20.r),
+                      child: Center(
+                        child: Text(
+                          categories[index],
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w500,
+                            color: isSelected ? Colors.white : Colors.black,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                },
               );
             },
           ),

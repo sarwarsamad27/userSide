@@ -13,7 +13,7 @@ class CustomAppContainer extends StatelessWidget {
   final Color? shadow;
   final double? height;
   final double? width;
-
+  final Color? borderColor;
   final Border? border;
 
   const CustomAppContainer({
@@ -21,6 +21,7 @@ class CustomAppContainer extends StatelessWidget {
     this.child,
     this.padding,
     this.borderRadius,
+    this.borderColor,
     this.blurRadius,
     this.startColor,
     this.color,
@@ -42,7 +43,7 @@ class CustomAppContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: color ?? Colors.white.withOpacity(0.2),
         borderRadius: borderRadius ?? BorderRadius.circular(20.r),
-        border: Border.all(color: Colors.white),
+        border: Border.all(color: borderColor ?? Colors.white),
       ),
       child: child,
     );

@@ -33,35 +33,33 @@ class BuyNowButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final String s = stockStatus.trim().toLowerCase();
     final bool isOutOfStock = s == "out of stock";
-    return Expanded(
-      child: CustomButton(
-        text: "Buy Now",
-        onTap: () {
-          if (isOutOfStock) {
-            null;
-          } else {
-            if ((productHasColors && selectedColors.isEmpty) ||
-                (productHasSizes && selectedSizes.isEmpty)) {
-              AppToast.warning("Please select required options");
-              return;
-            }
-
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ProductBuyForm(
-                  imageUrl: Global.imageUrl + selectedImage,
-                  name: name,
-                  price: price,
-                  colors: selectedColors,
-                  sizes: selectedSizes,
-                  productId: [productId],
-                ),
-              ),
-            );
+    return CustomButton(
+      text: "Buy Now",
+      onTap: () {
+        if (isOutOfStock) {
+          null;
+        } else {
+          if ((productHasColors && selectedColors.isEmpty) ||
+              (productHasSizes && selectedSizes.isEmpty)) {
+            AppToast.warning("Please select required options");
+            return;
           }
-        },
-      ),
+    
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ProductBuyForm(
+                imageUrl: Global.imageUrl + selectedImage,
+                name: name,
+                price: price,
+                colors: selectedColors,
+                sizes: selectedSizes,
+                productId: [productId],
+              ),
+            ),
+          );
+        }
+      },
     );
   }
 }

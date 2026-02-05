@@ -25,7 +25,7 @@ class HomeNavBarScreen extends StatefulWidget {
 }
 
 class _HomeNavBarScreenState extends State<HomeNavBarScreen> {
-  int _currentIndex = 0;
+  final ValueNotifier<int> _currentIndexNotifier = ValueNotifier(0);
   DateTime? _lastBackPress;
 
   final screens = const [
@@ -35,6 +35,12 @@ class _HomeNavBarScreenState extends State<HomeNavBarScreen> {
     FavouriteScreen(), // 3
     Profilescreen(), // 4
   ];
+
+  @override
+  void dispose() {
+    _currentIndexNotifier.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,14 +89,19 @@ class _HomeNavBarScreenState extends State<HomeNavBarScreen> {
                 SystemNavigator.pop();
               }
             },
-            child: Scaffold(
-              extendBody: true,
-              backgroundColor: const Color(0xFFF9FAFB),
-              body: screens[_currentIndex],
-              bottomNavigationBar: _PremiumUserNavBar(
-                currentIndex: _currentIndex,
-                onTap: (i) => setState(() => _currentIndex = i),
-              ),
+            child: ValueListenableBuilder<int>(
+              valueListenable: _currentIndexNotifier,
+              builder: (context, currentIndex, child) {
+                return Scaffold(
+                  extendBody: true,
+                  backgroundColor: const Color(0xFFF9FAFB),
+                  body: screens[currentIndex],
+                  bottomNavigationBar: _PremiumUserNavBar(
+                    currentIndex: currentIndex,
+                    onTap: (i) => _currentIndexNotifier.value = i,
+                  ),
+                );
+              },
             ),
           );
         },

@@ -21,6 +21,14 @@ class LoginProvider with ChangeNotifier {
   LoginModel? _loginData;
   LoginModel? get loginData => _loginData;
 
+  bool _submitted = false;
+  bool get submitted => _submitted;
+
+  void setSubmitted(bool value) {
+    _submitted = value;
+    notifyListeners();
+  }
+
   final LoginRepository repository = LoginRepository();
 
   Future<void> loginProvider() async {
@@ -67,6 +75,7 @@ class LoginProvider with ChangeNotifier {
 
   void clearError() {
     _errorMessage = null;
+    _submitted = false;
     notifyListeners();
   }
 
