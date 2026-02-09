@@ -147,7 +147,7 @@ class ProductCard extends StatelessWidget {
                   SizedBox(height: 6.h),
                   Text(
                     description,
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 11.sp,

@@ -20,23 +20,19 @@ class UserChatProvider extends ChangeNotifier {
   final String toType;
   final String toId;
 
-  // 🔥 Optional Product Context
-  final String? initialProductImage;
-  final String? initialProductName;
-  final String? initialProductPrice;
-  final String? initialProductDescription;
+  // ✅ CHANGED: Accept structured Map instead of String
+  final Map<String, dynamic>? initialProductData;
+  final String? initialMessage;
 
   UserChatProvider({
     required this.threadId,
     required this.toType,
     required this.toId,
-    this.initialProductImage,
-    this.initialProductName,
-    this.initialProductPrice,
-    this.initialProductDescription,
+    this.initialProductData, // ✅ Changed type
+    this.initialMessage,
   });
 
-  // ===== Optional UI scroll controller (agar chaho to pass kar do) =====
+  // ===== Optional UI scroll controller =====
   ScrollController? scrollController;
 
   // ===== State =====
@@ -49,16 +45,16 @@ class UserChatProvider extends ChangeNotifier {
   String? _lastTypingValue;
 
   // ===== Dedupe / Pending =====
-  final Map<String, String> _pendingClientMap = {}; // clientId -> tempId
-  final Set<String> _processedMessageIds = {}; // server ids + temp ids
-  final Set<String> _processedClientIds = {}; // clientId dedupe
-  final Map<String, DateTime> _recentMsgKeys = {}; // fingerprint dedupe
+  final Map<String, String> _pendingClientMap = {};
+  final Set<String> _processedMessageIds = {};
+  final Set<String> _processedClientIds = {};
+  final Map<String, DateTime> _recentMsgKeys = {};
   bool _listenersBound = false;
 
   bool _disposed = false;
+  bool _productSent = false;
 
-  /// ✅ IMPORTANT FIX:
-  /// build chal raha ho to notifyListeners() ko next frame me push kar do
+  /// ✅ Safe notify
   void _safeNotify() {
     if (_disposed) return;
 
@@ -105,28 +101,129 @@ class UserChatProvider extends ChangeNotifier {
     markMessagesAsDelivered();
     markMessagesAsRead();
 
-    // 🔥 Auto-send Product Context if available
-    if (initialProductName != null && initialProductName!.isNotEmpty) {
-      // Check if this specific product context was already sent recently to avoid spam (simple check: is the very last message about this product?)
-      // For now, simpler: Just send it. The user wants "product gone in chat".
-      // We can format it nicely.
-      final String productInfo = 
-          "Inquiry about Product:\n"
-          "Name: $initialProductName\n"
-          "Price: $initialProductPrice\n"
-          "Description: $initialProductDescription";
-      
-      // Only send if the LAST message is NOT this exact same text (prevent duplicate on re-open)
-      if (messages.isEmpty || messages.first.text != productInfo) {
-          // We can't really 'force' a send without user action usually, but request implies "product gone in chat". 
-          // Better UX: Pre-fill or Send immediately? 
-          // Let's Send immediately as a "System" or "User" message to start context.
-          sendMessage(productInfo);
-      }
-    }
+    // ✅ Send product card + message if provided
+    _sendProductIfProvided();
 
     isLoadingHistory = false;
     _safeNotify();
+  }
+
+  /// ✅ FIXED: Direct access to structured data (NO PARSING)
+  void _sendProductIfProvided() {
+    if (_productSent) return;
+    
+    if (initialProductData == null || initialProductData!.isEmpty) return;
+
+    try {
+      // ✅ Direct access - NO text parsing needed
+      _sendProductCardMessage(
+        productName: initialProductData!['productName'] ?? 'Product',
+        brandName: initialProductData!['brandName'] ?? 'Brand',
+        price: initialProductData!['productPrice'] ?? '0',
+        description: initialProductData!['productDescription'],
+        productImage: initialProductData!['productImage'] ?? '',
+        additionalMessage: initialMessage,
+      );
+      
+      _productSent = true;
+    } catch (e) {
+      print('❌ Error sending product card: $e');
+    }
+  }
+
+  /// ✅ IMPROVED: Send complete product card with image
+  void _sendProductCardMessage({
+    required String productName,
+    required String brandName,
+    required String price,
+    String? description,
+    String? productImage,
+    String? additionalMessage,
+  }) {
+    final socket = SocketService().socket;
+    if (socket == null || !socket.connected) return;
+
+    final now = DateTime.now();
+    final tempId = "temp_${now.millisecondsSinceEpoch}";
+    final clientId = now.millisecondsSinceEpoch.toString();
+    final tempTs = now.toIso8601String();
+
+    _pendingClientMap[clientId] = tempId;
+    _processedMessageIds.add(tempId);
+
+    // ✅ Create display text
+    final displayText = "📦 $productName";
+
+    final tempMsg = ChatMessage(
+      id: tempId,
+      threadId: threadId,
+      fromType: "buyer",
+      text: displayText,
+      timestamp: tempTs,
+      productCard: ProductCard(
+        productName: productName,
+        brandName: brandName,
+        productPrice: price,
+        productDescription: description,
+        productImage: productImage, // ✅ Include image
+      ),
+    );
+
+    _registerFingerprint(tempMsg);
+    messages.insert(0, tempMsg);
+    _safeNotify();
+
+    // ✅ Send complete product data to socket
+    socket.emitWithAck(
+      "chat:send",
+      {
+        "threadId": threadId,
+        "toType": toType,
+        "toId": toId,
+        "text": displayText,
+        "clientId": clientId,
+        "productCard": {
+          "productName": productName,
+          "productPrice": price,
+          "productDescription": description ?? "",
+          "productImage": productImage ?? "",
+          "brandName": brandName,
+          "sellerId": toId,
+        },
+      },
+      ack: (resp) {
+        if (resp is! Map || resp["ok"] != true || resp["data"] == null) return;
+
+        final serverMessage = ChatMessage.fromJson(
+          Map<String, dynamic>.from(resp["data"]),
+        );
+
+        _processedClientIds.add(clientId);
+
+        final tId = _pendingClientMap.remove(clientId);
+        if (tId == null) {
+          if (serverMessage.id != null) _processedMessageIds.add(serverMessage.id!);
+          _registerFingerprint(serverMessage);
+          return;
+        }
+
+        final idx = messages.indexWhere((m) => m.id == tId);
+        if (idx != -1) {
+          messages[idx] = serverMessage;
+          _processedMessageIds.remove(tId);
+          if (serverMessage.id != null) _processedMessageIds.add(serverMessage.id!);
+          _registerFingerprint(serverMessage);
+          _safeNotify();
+        }
+      },
+    );
+
+    // ✅ Send additional message if provided
+    if (additionalMessage != null && additionalMessage.isNotEmpty) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        sendMessage(additionalMessage);
+      });
+    }
   }
 
   Future<void> _loadChatHistory(String userId, String baseUrl) async {
@@ -140,7 +237,6 @@ class UserChatProvider extends ChangeNotifier {
         final data = json.decode(response.body);
         final List<dynamic> messagesData = data['messages'] ?? [];
 
-        // reset caches
         messages.clear();
         _processedMessageIds.clear();
         _processedClientIds.clear();
@@ -233,8 +329,7 @@ class UserChatProvider extends ChangeNotifier {
       final clientId = data["clientId"]?.toString();
       final fromType = data["fromType"]?.toString();
 
-      final incomingTs =
-          (data["timestamp"] ?? data["createdAt"])?.toString();
+      final incomingTs = (data["timestamp"] ?? data["createdAt"])?.toString();
       final incomingText = data["text"]?.toString();
 
       final fpKey = _buildMsgKey(
@@ -268,8 +363,7 @@ class UserChatProvider extends ChangeNotifier {
           Map<String, dynamic>.from(data),
         );
 
-        final idx =
-            tempId == null ? -1 : messages.indexWhere((m) => m.id == tempId);
+        final idx = tempId == null ? -1 : messages.indexWhere((m) => m.id == tempId);
 
         if (idx != -1) {
           messages[idx] = newMessage;
@@ -336,6 +430,7 @@ class UserChatProvider extends ChangeNotifier {
             readAt: readAt,
             isExchangeRequest: messages[i].isExchangeRequest,
             exchangeData: messages[i].exchangeData,
+            productCard: messages[i].productCard,
           );
           break;
         }
@@ -363,6 +458,7 @@ class UserChatProvider extends ChangeNotifier {
             readAt: readAt,
             isExchangeRequest: messages[i].isExchangeRequest,
             exchangeData: messages[i].exchangeData,
+            productCard: messages[i].productCard,
           );
         }
       }
@@ -430,10 +526,8 @@ class UserChatProvider extends ChangeNotifier {
         final idx = messages.indexWhere((m) => m.id == tId);
         if (idx != -1) {
           messages[idx] = serverMessage;
-
           _processedMessageIds.remove(tId);
           if (serverMessage.id != null) _processedMessageIds.add(serverMessage.id!);
-
           _registerFingerprint(serverMessage);
           _safeNotify();
         } else {
@@ -513,7 +607,7 @@ class UserChatProvider extends ChangeNotifier {
   }
 
   // ==============================
-  // Helpers used by UI widgets
+  // Helpers
   // ==============================
   String formatTime(String? timestamp) {
     if (timestamp == null) return "";

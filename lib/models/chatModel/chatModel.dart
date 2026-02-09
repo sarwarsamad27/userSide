@@ -1,4 +1,4 @@
-// models/chatModel/chatModel.dart
+// models/chatThread/chatModel.dart (Company Side)
 
 class ChatMessage {
   final String? id;
@@ -11,6 +11,7 @@ class ChatMessage {
   final String? readAt;
   final bool isExchangeRequest;
   final ExchangeRequestData? exchangeData;
+  final ProductCard? productCard; // ✅ NEW
 
   ChatMessage({
     this.id,
@@ -23,6 +24,7 @@ class ChatMessage {
     this.readAt,
     this.isExchangeRequest = false,
     this.exchangeData,
+    this.productCard, // ✅ NEW
   });
 
   static String? _extractThreadId(Map<String, dynamic> json) {
@@ -42,7 +44,10 @@ class ChatMessage {
   }
 
   static String? _extractTimestamp(Map<String, dynamic> json) {
-    return (json["timestamp"] ?? json["createdAt"] ?? json["time"] ?? json["date"])
+    return (json["timestamp"] ??
+            json["createdAt"] ??
+            json["time"] ??
+            json["date"])
         ?.toString();
   }
 
@@ -50,26 +55,62 @@ class ChatMessage {
     return ChatMessage(
       id: (json["_id"] ?? json["id"] ?? json["messageId"])?.toString(),
       threadId: _extractThreadId(json),
-      fromType: (json["fromType"] ?? json["senderType"] ?? json["from"])?.toString(),
+      fromType: (json["fromType"] ?? json["senderType"] ?? json["from"])
+          ?.toString(),
       fromId: (json["fromId"] ?? json["senderId"])?.toString(),
       text: (json["text"] ?? json["message"])?.toString(),
       timestamp: _extractTimestamp(json),
       deliveredAt: json["deliveredAt"]?.toString(),
       readAt: json["readAt"]?.toString(),
-      isExchangeRequest: (json["isExchangeRequest"] ?? (json["type"] == "exchange")) == true,
+      isExchangeRequest:
+          (json["isExchangeRequest"] ?? json["type"] == "exchange") == true,
+      
+      // ✅ exchangeData
+      exchangeData: json["exchangeData"] != null && json["exchangeData"] is Map
+          ? ExchangeRequestData.fromJson(
+              (json["exchangeData"] as Map).cast<String, dynamic>(),
+            )
+          : null,
 
-      // ✅ exchangeData can come either in "exchangeData" or "exchangeRequest"
-      exchangeData: (() {
-        final ex = json["exchangeData"];
-        if (ex != null && ex is Map) {
-          return ExchangeRequestData.fromJson(ex.cast<String, dynamic>());
-        }
-        final req = json["exchangeRequest"];
-        if (req != null && req is Map) {
-          return ExchangeRequestData.fromJson(req.cast<String, dynamic>());
-        }
-        return null;
-      })(),
+      // ✅ productCard
+      productCard: json["productCard"] != null && json["productCard"] is Map
+          ? ProductCard.fromJson(
+              (json["productCard"] as Map).cast<String, dynamic>(),
+            )
+          : null,
+    );
+  }
+}
+
+// ✅ Product Card Model
+class ProductCard {
+  final String? productId;
+  final String? productName;
+  final String? productImage;
+  final String? productPrice;
+  final String? productDescription;
+  final String? brandName;
+  final String? sellerId;
+
+  ProductCard({
+    this.productId,
+    this.productName,
+    this.productImage,
+    this.productPrice,
+    this.productDescription,
+    this.brandName,
+    this.sellerId,
+  });
+
+  factory ProductCard.fromJson(Map<String, dynamic> json) {
+    return ProductCard(
+      productId: json["productId"]?.toString(),
+      productName: json["productName"]?.toString(),
+      productImage: json["productImage"]?.toString(),
+      productPrice: json["productPrice"]?.toString(),
+      productDescription: json["productDescription"]?.toString(),
+      brandName: json["brandName"]?.toString(),
+      sellerId: json["sellerId"]?.toString(),
     );
   }
 }
@@ -82,7 +123,6 @@ class ExchangeRequestData {
   final String? reason;
   final String? status;
   final String? createdAt;
-
   final List<String> images;
 
   ExchangeRequestData({
@@ -105,39 +145,18 @@ class ExchangeRequestData {
   }
 
   factory ExchangeRequestData.fromJson(Map<String, dynamic> json) {
-    List<String> _pickImages(dynamic value) {
-      if (value == null) return const [];
-      if (value is List) return value.map((e) => e.toString()).toList();
-      return const [];
-    }
-
-    // ✅ images can come in multiple keys depending on backend
-    // priority:
-    // 1) images
-    // 2) image
-    // 3) exchangeImages
-    // 4) exchangeRequest.images (nested)
-    final List<String> imgs =
-        _pickImages(json["images"]).isNotEmpty ? _pickImages(json["images"]) :
-        _pickImages(json["image"]).isNotEmpty ? _pickImages(json["image"]) :
-        _pickImages(json["exchangeImages"]).isNotEmpty ? _pickImages(json["exchangeImages"]) :
-        (json["exchangeRequest"] is Map)
-            ? _pickImages((json["exchangeRequest"] as Map)["images"])
-            : const [];
-
     return ExchangeRequestData(
-      exchangeId: (json["exchangeId"] ??
-              json["exchangeRequestId"] ??
-              json["_id"] ??
-              json["id"])
-          ?.toString(),
+      exchangeId:
+          (json["exchangeId"] ?? json["exchangeRequestId"] ?? json["_id"] ?? json["id"])
+              ?.toString(),
       orderId: (json["orderId"] ?? json["order_id"])?.toString(),
       productId: (json["productId"] ?? json["product_id"])?.toString(),
       productName: (json["productName"] ?? json["product_name"])?.toString(),
       reason: (json["reason"] ?? json["note"])?.toString(),
-      status: _normalizeStatus(json["status"]?.toString()),
+      status: _normalizeStatus((json["status"])?.toString()),
       createdAt: (json["createdAt"] ?? json["timestamp"])?.toString(),
-      images: imgs,
+      images: (json["images"] as List?)?.map((e) => e.toString()).toList() ??
+          const [],
     );
   }
 }

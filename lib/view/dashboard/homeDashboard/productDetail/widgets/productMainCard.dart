@@ -8,10 +8,13 @@ import 'package:share_plus/share_plus.dart';
 import 'package:user_side/models/GetProfileAndProductModel/getSingleProduct_model.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
+import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfile/companyProfileScreen.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productImage.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/review/review.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/widgets/premiumSurface.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/widgets/productShareSheet.dart';
+import 'package:user_side/view/dashboard/userChat/userChatScreen.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getSingleProduct_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/productDetailUI_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/productShare_provider.dart';
@@ -204,7 +207,7 @@ class ProductMainCard extends StatelessWidget {
 
                 SizedBox(height: 8.h),
 
-                // ───────── Name + Share + Stock ─────────
+                // ───────── Name + Chat + Share + Stock ─────────
                 Row(
                   children: [
                     Expanded(
@@ -219,8 +222,69 @@ class ProductMainCard extends StatelessWidget {
                       ),
                     ),
 
-                    // ✅ SHARE ICON
-                    IconButton(
+                    // 🔥 CHAT ICON - Open bottom sheet to share product
+                 // 🔥 CHAT ICON - FIXED
+// In ProductMainCard - Chat icon section
+
+IconButton(
+  icon: Icon(
+    Icons.chat_bubble_outline_rounded,
+    size: 22.sp,
+    color: const Color(0xFF111827),
+  ),
+  onPressed: () async {
+    final sellerId = product.profileId ?? '';
+    if (sellerId.isEmpty) return;
+
+    final buyerId = await LocalStorage.getUserId();
+    if (buyerId == null || buyerId.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please login first')),
+        );
+      }
+      return;
+    }
+
+    final threadId = 'buyer_${buyerId}_seller_$sellerId';
+
+    if (context.mounted) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => ProductShareSheet(
+          productImage: product.images?.isNotEmpty == true
+              ? product.images!.first
+              : '',
+          productName: product.name ?? '',
+          productPrice: '${product.afterDiscountPrice ?? 0}',
+          productDescription: product.description,
+          brandName: data.profileName ?? '',
+          sellerId: sellerId,
+          // ✅ UPDATED: Accept structured data
+          onSend: (sellerId, productData, message) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => UserChatScreen(
+                  threadId: threadId,
+                  toType: 'seller',
+                  toId: sellerId,
+                  title: data.profileName ?? 'Chat',
+                  sellerImage: data.profileImage,
+                  // ✅ Pass as Map instead of text
+                  initialProductData: productData,
+                  initialMessage: message,
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    }
+  },
+),   IconButton(
                       icon: Icon(
                         Icons.share_outlined,
                         size: 22.sp,

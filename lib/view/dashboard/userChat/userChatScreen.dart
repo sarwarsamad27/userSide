@@ -12,11 +12,10 @@ class UserChatScreen extends StatelessWidget {
   final String toId;
   final String title;
   final String? sellerImage;
-  // 🔥 Product Context
-  final String? productImage;
-  final String? productName;
-  final String? productPrice;
-  final String? productDescription;
+  
+  // ✅ CHANGED: Use Map instead of String
+  final Map<String, dynamic>? initialProductData;
+  final String? initialMessage;
 
   const UserChatScreen({
     super.key,
@@ -25,10 +24,8 @@ class UserChatScreen extends StatelessWidget {
     required this.toId,
     required this.title,
     this.sellerImage,
-    this.productImage,
-    this.productName,
-    this.productPrice,
-    this.productDescription,
+    this.initialProductData, // ✅ Changed type
+    this.initialMessage,
   });
 
   @override
@@ -38,11 +35,8 @@ class UserChatScreen extends StatelessWidget {
         threadId: threadId,
         toType: toType,
         toId: toId,
-        // Pass product context to provider
-        initialProductImage: productImage,
-        initialProductName: productName,
-        initialProductPrice: productPrice,
-        initialProductDescription: productDescription,
+        initialProductData: initialProductData, // ✅ Pass Map
+        initialMessage: initialMessage,
       )..init(),
       child: Scaffold(
         backgroundColor: const Color(0xFFECE5DD),

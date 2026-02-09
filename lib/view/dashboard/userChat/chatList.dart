@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/widgets/productShareSheet.dart';
 import 'package:user_side/view/dashboard/userChat/emptyState.dart';
 import 'package:user_side/view/dashboard/userChat/exchangeRequestCard.dart';
 import 'package:user_side/view/dashboard/userChat/messageBubble.dart';
@@ -30,9 +31,21 @@ class ChatList extends StatelessWidget {
           itemCount: p.messages.length,
           itemBuilder: (_, index) {
             final m = p.messages[index];
+            
+            // ✅ Exchange Request Card
             if (m.isExchangeRequest == true && m.exchangeData != null) {
               return ExchangeRequestCard(message: m);
             }
+            
+            // ✅ Product Card
+            if (m.productCard != null) {
+              return ProductCardWidget(
+                productCard: m.productCard!,
+                isMe: m.fromType == "buyer",
+              );
+            }
+            
+            // ✅ Regular Message
             return MessageBubble(message: m);
           },
         );
