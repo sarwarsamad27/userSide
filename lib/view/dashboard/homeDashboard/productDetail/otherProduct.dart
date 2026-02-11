@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:user_side/resources/utiles.dart';
 import 'package:provider/provider.dart';
-import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/widgets/premiumSurface.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/otherProduct_provider.dart';
@@ -25,12 +24,7 @@ class OtherProductsSection extends StatelessWidget {
             if (op.loading) {
               return Padding(
                 padding: EdgeInsets.symmetric(vertical: 10.h),
-                child: Center(
-                  child: SpinKitThreeBounce(
-                    color: AppColor.primaryColor,
-                    size: 30.0,
-                  ),
-                ),
+                child: Utils.shoppingLoadingLottie(size: 80),
               );
             }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/view/auth/loginView.dart';
+import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 
 // yahan apni login screen import karlo
@@ -18,7 +19,7 @@ class AuthGate extends StatelessWidget {
     final auth = context.watch<AuthSession>();
 
     if (!auth.initialized) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(body: Utils.loadingLottie());
     }
 
     if (!auth.isLoggedIn) {

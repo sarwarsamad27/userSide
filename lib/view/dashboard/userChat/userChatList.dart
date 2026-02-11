@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/global.dart';
+import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/resources/socketServices.dart';
 import 'package:user_side/view/auth/AuthLoginGate.dart';
@@ -98,9 +99,7 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
   @override
   Widget build(BuildContext context) {
     // ✅ Guard this whole screen (UserId based)
-    return AuthGate(
-      child: _buildScaffold(context),
-    );
+    return AuthGate(child: _buildScaffold(context));
   }
 
   Widget _buildScaffold(BuildContext context) {
@@ -117,44 +116,38 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {},
-          ),
-        ],
+        actions: [IconButton(icon: const Icon(Icons.search), onPressed: () {})],
       ),
       body: provider.loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Utils.loadingLottie()
           : threads.isEmpty
-              ? _buildEmptyState()
-              : RefreshIndicator(
-                  onRefresh: () async {
-                    if (buyerId != null) {
-                      await provider.fetchThreads(buyerId!);
-                    }
-                  },
-                  child: ListView.separated(
-                    padding: EdgeInsets.zero,
-                    itemCount: threads.length,
-                    separatorBuilder: (_, __) =>
-                        Divider(height: 1.h, indent: 80.w, color: Colors.black12),
-                    itemBuilder: (context, i) {
-                      final thread = threads[i];
-                      return _buildChatTile(thread);
-                    },
-                  ),
-                ),
+          ? _buildEmptyState()
+          : RefreshIndicator(
+              onRefresh: () async {
+                if (buyerId != null) {
+                  await provider.fetchThreads(buyerId!);
+                }
+              },
+              child: ListView.separated(
+                padding: EdgeInsets.zero,
+                itemCount: threads.length,
+                separatorBuilder: (_, __) =>
+                    Divider(height: 1.h, indent: 80.w, color: Colors.black12),
+                itemBuilder: (context, i) {
+                  final thread = threads[i];
+                  return _buildChatTile(thread);
+                },
+              ),
+            ),
     );
   }
 
   Widget _buildEmptyState() {
     return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Icon(Icons.chat_bubble_outline, size: 100.sp, color: Colors.black12),
-          SizedBox(height: 20.h),
+          Utils.messageEmpty(size: 400),
           Text(
             "No conversations yet",
             style: TextStyle(
@@ -162,11 +155,6 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
               fontWeight: FontWeight.w600,
               color: Colors.black87,
             ),
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            "Start chatting with sellers",
-            style: TextStyle(fontSize: 14.sp, color: Colors.black45),
           ),
         ],
       ),

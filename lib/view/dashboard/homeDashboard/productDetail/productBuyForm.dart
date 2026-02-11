@@ -4,6 +4,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
+import 'package:user_side/resources/utiles.dart';
 
 import 'package:user_side/resources/premium_toast.dart';
 import 'package:user_side/view/auth/AuthLoginGate.dart';
@@ -60,61 +61,61 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
     super.dispose();
   }
 
-  Future<void> _placeOrder() async {
-    _loadingNotifier.value = true;
-
-    final provider = Provider.of<CreateOrderProvider>(context, listen: false);
-
-    List<Map<String, dynamic>> productList = [];
-
-    if (widget.favouriteItems != null && widget.favouriteItems!.isNotEmpty) {
-      for (var item in widget.favouriteItems!) {
-        productList.add({
-          "productId": item["productId"] ?? "",
-          "quantity": item["quantity"] ?? 1,
-          "selectedColor": item["colors"] ?? [],
-          "selectedSize": item["sizes"] ?? [],
-        });
-      }
-    } else {
+ // _placeOrder() mein ye change karo
+Future<void> _placeOrder() async {
+  _loadingNotifier.value = true;
+  final provider = Provider.of<CreateOrderProvider>(context, listen: false);
+  
+  List<Map<String, dynamic>> productList = [];
+  
+  if (widget.favouriteItems != null && widget.favouriteItems!.isNotEmpty) {
+    for (var item in widget.favouriteItems!) {
       productList.add({
-        "productId": widget.productId,
-        "quantity": _quantityNotifier.value,
-        "selectedColor": widget.colors ?? [],
-        "selectedSize": widget.sizes ?? [],
+        "productId": item["productId"] ?? "",
+        "quantity": item["quantity"] ?? 1,
+        "selectedColor": item["colors"] ?? [],
+        "selectedSize": item["sizes"] ?? [],
       });
     }
-
-    await provider.placeOrder(
-      name: _nameController.text.trim(),
-      email: _emailController.text.trim(),
-      phone: _phoneController.text.trim(),
-      address: _addressController.text.trim(),
-      additionalNote: _additionalNoteController.text.trim(),
-      products: productList,
-      shipmentCharges: 200,
-    );
-
-    _loadingNotifier.value = false;
-
-    if (provider.orderData != null && provider.orderData!.order != null) {
-      Provider.of<FavouriteProvider>(
-        context,
-        listen: false,
-      ).deleteAllFavourites();
-
-      if (mounted) PremiumToast.success(context, "Order placed successfully");
-
-      Navigator.pop(context);
-    } else {
-      if (mounted)
-        PremiumToast.error(
-          context,
-          provider.errorMessage ?? "Failed to place order",
-        );
-    }
+  } else {
+    productList.add({
+      "productId": widget.productId,
+      "quantity": _quantityNotifier.value,
+      "selectedColor": widget.colors ?? [],
+      "selectedSize": widget.sizes ?? [],
+    });
   }
-
+  
+  await provider.placeOrder(
+    name: _nameController.text.trim(),
+    email: _emailController.text.trim(),
+    phone: _phoneController.text.trim(),
+    address: _addressController.text.trim(),
+    additionalNote: _additionalNoteController.text.trim(),
+    products: productList,
+    shipmentCharges: 200,
+  );
+  
+  _loadingNotifier.value = false;
+  
+  if (provider.orderData != null && provider.orderData!.order != null) {
+    Provider.of<FavouriteProvider>(
+      context,
+      listen: false,
+    ).deleteAllFavourites();
+    
+    if (mounted) {
+      Utils.showOrderSuccessLottie(context);
+      // Navigator.pop(context) ko hata do - ab Utils function mein handle hoga
+    }
+  } else {
+    if (mounted)
+      PremiumToast.error(
+        context,
+        provider.errorMessage ?? "Failed to place order",
+      );
+  }
+}
   @override
   Widget build(BuildContext context) {
     // ✅ USERID login guard (same pattern)

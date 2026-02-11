@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:user_side/resources/utiles.dart';
 import 'package:provider/provider.dart';
-import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/view/dashboard/homeDashboard/categoryAndProduct/productBelowCategory.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getAllCategoryProfileWise_provider.dart';
@@ -48,18 +47,22 @@ class _CategoryscreenState extends State<Categoryscreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<GetAllCategoryProfileWiseProvider>(context);
 
-    // 🚀 SAFE CHECK – Return early if loading or empty
     if (provider.isLoading) {
-      return  Scaffold(body: Center(child: SpinKitThreeBounce(
-                          color: AppColor.primaryColor, 
-                          size: 30.0,
-                        ),));
+      return Scaffold(body: Utils.shoppingLoadingLottie());
     }
 
     if (provider.data == null ||
         provider.data!.categories == null ||
         provider.data!.categories!.isEmpty) {
-      return const Scaffold(body: Center(child: Text("No Categories Found")));
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [Utils.notFound(size: 300), Text("No Categories Found")],
+          ),
+        ),
+      );
     }
 
     final categories = provider.data!.categories!;
@@ -94,7 +97,7 @@ class _CategoryscreenState extends State<Categoryscreen> {
                       child: const Icon(Icons.image_not_supported, size: 48),
                     ),
                   ),
-        
+
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -107,7 +110,7 @@ class _CategoryscreenState extends State<Categoryscreen> {
                       ),
                     ),
                   ),
-        
+
                   /// CATEGORY TABS
                   Positioned(
                     bottom: 10.h,
@@ -122,7 +125,7 @@ class _CategoryscreenState extends State<Categoryscreen> {
                         itemBuilder: (context, index) {
                           final item = categories[index];
                           final isSelected = selectedIndex == index;
-        
+
                           return GestureDetector(
                             onTap: () {
                               provider.selectCategory(index);
@@ -160,7 +163,7 @@ class _CategoryscreenState extends State<Categoryscreen> {
                 ],
               ),
             ),
-        
+
             /// PRODUCT GRID
             ProductBelowCategory(
               profileId: categories[selectedIndex].profileId ?? '',

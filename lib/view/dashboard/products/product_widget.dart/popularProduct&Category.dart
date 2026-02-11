@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:user_side/resources/utiles.dart';
 import 'package:provider/provider.dart';
-import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/view/dashboard/homeDashboard/categoryAndProduct/categoryScreen.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
@@ -38,25 +37,23 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
               builder: (context, provider, _) {
                 // Initial loader only
                 if (provider.loading && provider.allCategories.isEmpty) {
-                  return const Center(
-                    child: SpinKitThreeBounce(
-                      color: AppColor.primaryColor,
-                      size: 30.0,
-                    ),
-                  );
+                  return Utils.shoppingLoadingLottie(size: 80);
                 }
 
                 final items = provider.allCategories;
 
                 if (items.isEmpty) {
-                  return SizedBox(
-                    height: 120.h,
-                    child: Center(
-                      child: Text(
-                        "No categories found",
-                        style: TextStyle(fontSize: 13.sp),
+                  return Column(
+                    children: [
+                      Center(
+                        child: Column(
+                          children: [
+                            Utils.notFound(),
+                            Text("No Categories Found"),
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   );
                 }
 
@@ -120,25 +117,23 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
                 if (provider.loading &&
                     (provider.popularProducts?.products == null ||
                         provider.popularProducts!.products!.isEmpty)) {
-                  return const Center(
-                    child: SpinKitThreeBounce(
-                      color: AppColor.primaryColor,
-                      size: 30.0,
-                    ),
-                  );
+                  return Utils.shoppingLoadingLottie(size: 80);
                 }
 
                 final products = provider.popularProducts?.products ?? [];
 
                 if (products.isEmpty) {
-                  return SizedBox(
-                    height: 120.h,
-                    child: Center(
-                      child: Text(
-                        "No products found",
-                        style: TextStyle(fontSize: 13.sp),
+                  return Column(
+                    children: [
+                      Center(
+                        child: Column(
+                          children: [
+                            Utils.notFound(size: 200),
+                            Text("No products found"),
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   );
                 }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/widgets/productShareSheet.dart';
 import 'package:user_side/view/dashboard/userChat/emptyState.dart';
 import 'package:user_side/view/dashboard/userChat/exchangeRequestCard.dart';
@@ -9,7 +10,7 @@ import 'package:user_side/viewModel/provider/exchangeProvider/userChat_provider.
 
 class ChatList extends StatelessWidget {
   final ScrollController _scrollController = ScrollController();
-  
+
   ChatList({super.key});
 
   @override
@@ -17,7 +18,7 @@ class ChatList extends StatelessWidget {
     return Consumer<UserChatProvider>(
       builder: (_, p, __) {
         if (p.isLoadingHistory) {
-          return const Center(child: CircularProgressIndicator());
+          return Utils.loadingLottie(size: 80);
         }
 
         if (p.messages.isEmpty) {
@@ -31,12 +32,12 @@ class ChatList extends StatelessWidget {
           itemCount: p.messages.length,
           itemBuilder: (_, index) {
             final m = p.messages[index];
-            
+
             // ✅ Exchange Request Card
             if (m.isExchangeRequest == true && m.exchangeData != null) {
               return ExchangeRequestCard(message: m);
             }
-            
+
             // ✅ Product Card
             if (m.productCard != null) {
               return ProductCardWidget(
@@ -44,7 +45,7 @@ class ChatList extends StatelessWidget {
                 isMe: m.fromType == "buyer",
               );
             }
-            
+
             // ✅ Regular Message
             return MessageBubble(message: m);
           },

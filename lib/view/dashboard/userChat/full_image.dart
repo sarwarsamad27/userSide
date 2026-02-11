@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:user_side/resources/utiles.dart';
 
 class ImageViewerScreen extends StatefulWidget {
   final List<String> imageUrls;
@@ -35,10 +36,7 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: Text(
-          "Preview",
-          style: const TextStyle(color: Colors.white),
-        ),
+        title: Text("Preview", style: const TextStyle(color: Colors.white)),
       ),
       body: PageView.builder(
         controller: _controller,
@@ -54,11 +52,14 @@ class _ImageViewerScreenState extends State<ImageViewerScreen> {
                 url,
                 fit: BoxFit.contain,
                 loadingBuilder: (context, child, progress) {
-                  if (progress == null) return child;
-                  return const Center(child: CircularProgressIndicator());
+                  return Utils.loadingLottie(size: 60);
                 },
                 errorBuilder: (_, __, ___) => const Center(
-                  child: Icon(Icons.broken_image, color: Colors.white70, size: 42),
+                  child: Icon(
+                    Icons.broken_image,
+                    color: Colors.white70,
+                    size: 42,
+                  ),
                 ),
               ),
             ),

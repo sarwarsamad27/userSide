@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/toast.dart';
+import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/view/auth/loginView.dart';
 import 'package:user_side/viewModel/provider/favouriteProvider/addToFavourite_provider.dart';
 import 'package:user_side/widgets/customButton.dart';
@@ -77,9 +78,7 @@ class AddToCart extends StatelessWidget {
                   }
 
                   if (response.success == true) {
-                    AppToast.success(
-                      response.message ?? "Added to favourite successfully",
-                    );
+                    if (context.mounted) Utils.showAddToCartLottie(context);
                   } else {
                     AppToast.error(
                       response.message ?? "Failed to add to favourite",

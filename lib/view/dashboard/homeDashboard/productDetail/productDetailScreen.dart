@@ -7,6 +7,7 @@ import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/resources/local_storage.dart';
+import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/otherProduct.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/relatedPoduct.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/widgets/bottomActionBar.dart';
@@ -85,9 +86,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
           backgroundColor: const Color(0xFFF6F7F9),
-          body: Center(
-            child: SpinKitThreeBounce(color: AppColor.primaryColor, size: 30),
-          ),
+          body: Utils.shoppingLoadingLottie(size: 180),
         ),
       );
     }

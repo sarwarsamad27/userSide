@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
+import 'package:user_side/resources/utiles.dart';
 
 class ProductCard extends StatelessWidget {
   final String name;
@@ -63,12 +63,7 @@ class ProductCard extends StatelessWidget {
                       fit: BoxFit.cover,
                       loadingBuilder: (context, child, progress) {
                         if (progress == null) return child;
-                        return Center(
-                          child: SpinKitThreeBounce(
-                            color: AppColor.primaryColor,
-                            size: 22.0,
-                          ),
-                        );
+                        return Utils.loadingLottie(size: 40);
                       },
                       errorBuilder: (context, error, stackTrace) => Container(
                         color: Colors.grey[100],

@@ -5,6 +5,7 @@ import 'package:user_side/models/order/myOrderModel.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/view/dashboard/userChat/exchangeRequestSheet.dart';
+import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 
 class OrderDetailScreen extends StatelessWidget {
@@ -22,9 +23,9 @@ class OrderDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-final deliveredRef = order.createdAt;
-final eligible = canExchange(order.status, deliveredRef);  
-  final List<Product> products = [];
+    final deliveredRef = order.createdAt;
+    final eligible = canExchange(order.status, deliveredRef);
+    final List<Product> products = [];
     if (order.product != null) {
       products.add(order.product!);
     }
@@ -47,13 +48,29 @@ final eligible = canExchange(order.status, deliveredRef);
               ),
 
               SizedBox(height: 8.h),
-              Text(
-                "Status: ${order.status ?? ""}",
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: Colors.green,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Status: ${order.status ?? ""}",
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        "Estimated Delivery: 3-5 Days",
+                        style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                  Utils.deliveryManLottie(size: 80),
+                ],
               ),
 
               Divider(height: 30.h),
@@ -172,29 +189,33 @@ final eligible = canExchange(order.status, deliveredRef);
                             Text("Qty: ${p.quantity ?? 0}"),
                             Text("Price: Rs ${p.price ?? 0}"),
                             Text("Total: Rs ${p.totalPrice ?? 0}"),
-                            
 
-if (eligible) ...[
-  SizedBox(height: 10.h),
-  ElevatedButton(
-    onPressed: () async {
-      // Open dialog form
-      await showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (_) => ExchangeRequestSheet(order: order, products: products),
-      );
-    },
-    child: const Text("Request Exchange"),
-  ),
-] else ...[
-  SizedBox(height: 10.h),
-  Text(
-    "Exchange option is available within 10 days after delivery.",
-    style: TextStyle(fontSize: 12.sp, color: Colors.black54),
-  )
-]
-
+                            if (eligible) ...[
+                              SizedBox(height: 10.h),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  // Open dialog form
+                                  await showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (_) => ExchangeRequestSheet(
+                                      order: order,
+                                      products: products,
+                                    ),
+                                  );
+                                },
+                                child: const Text("Request Exchange"),
+                              ),
+                            ] else ...[
+                              SizedBox(height: 10.h),
+                              Text(
+                                "Exchange option is available within 10 days after delivery.",
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -217,17 +238,17 @@ if (eligible) ...[
       ),
     );
   }
+
   bool canExchange(String? status, String? deliveredAtOrUpdatedAt) {
-  if (status != "Delivered") return false;
-  if (deliveredAtOrUpdatedAt == null) return false;
+    if (status != "Delivered") return false;
+    if (deliveredAtOrUpdatedAt == null) return false;
 
-  try {
-    final delivered = DateTime.parse(deliveredAtOrUpdatedAt);
-    final expiry = delivered.add(const Duration(days: 10));
-    return DateTime.now().isBefore(expiry);
-  } catch (_) {
-    return false;
+    try {
+      final delivered = DateTime.parse(deliveredAtOrUpdatedAt);
+      final expiry = delivered.add(const Duration(days: 10));
+      return DateTime.now().isBefore(expiry);
+    } catch (_) {
+      return false;
+    }
   }
-}
-
 }

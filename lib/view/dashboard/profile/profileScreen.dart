@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:user_side/resources/utiles.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/authSession.dart';
@@ -256,18 +256,18 @@ class _ProfilescreenState extends State<Profilescreen> {
                 child: Consumer<RecommendationProvider>(
                   builder: (context, provider, _) {
                     if (provider.loading) {
-                      return Center(
-                        child: SpinKitThreeBounce(
-                          color: AppColor.primaryColor,
-                          size: 30.0,
-                        ),
-                      );
+                      return Utils.loadingLottie(size: 100);
                     }
 
                     if (provider.products.isEmpty) {
-                      return const Text(
-                        "No recommendations yet",
-                        style: TextStyle(color: Colors.black),
+                      return Column(
+                        children: [
+                          Utils.notFound(),
+                          const Text(
+                            "No recommendations yet",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ],
                       );
                     }
 

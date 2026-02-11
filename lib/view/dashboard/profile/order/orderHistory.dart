@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:user_side/resources/utiles.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:user_side/resources/appColor.dart';
@@ -80,12 +80,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           builder: (context, provider, child) {
             /// INITIAL LOADING
             if (provider.isLoading && provider.orderList.isEmpty) {
-              return const Center(
-                child: SpinKitThreeBounce(
-                  color: AppColor.whiteColor,
-                  size: 30.0,
-                ),
-              );
+              return Utils.shoppingLoadingLottie(size: 200);
             }
 
             /// NO DATA
@@ -104,12 +99,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 itemBuilder: (context, index) {
                   /// PAGINATION LOADER
                   if (index == provider.orderList.length) {
-                    return const Center(
-                      child: SpinKitThreeBounce(
-                        color: AppColor.whiteColor,
-                        size: 30.0,
-                      ),
-                    );
+                    return Utils.loadingLottie(size: 50);
                   }
 
                   final order = provider.orderList[index];

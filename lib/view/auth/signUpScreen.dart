@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:user_side/resources/utiles.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/connectivity_plus.dart';
@@ -296,12 +296,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     height: double.infinity,
                     width: double.infinity,
                     color: Colors.black.withOpacity(0.3),
-                    child: const Center(
-                      child: SpinKitThreeBounce(
-                        color: AppColor.primaryColor,
-                        size: 30.0,
-                      ),
-                    ),
+                    child: Utils.loadingLottie(size: 80),
                   );
                 }
                 return const SizedBox.shrink();

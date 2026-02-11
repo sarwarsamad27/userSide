@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:user_side/resources/utiles.dart';
 import 'package:provider/provider.dart';
-import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/viewModel/provider/productProvider/getAllProduct_provider.dart';
@@ -21,12 +20,7 @@ class AllProducts extends StatelessWidget {
 
           if (provider.loading && products.isEmpty) {
             return SliverToBoxAdapter(
-              child: Center(
-                child: SpinKitThreeBounce(
-                  color: AppColor.primaryColor,
-                  size: 30.0,
-                ),
-              ),
+              child: Utils.shoppingLoadingLottie(size: 80),
             );
           }
 

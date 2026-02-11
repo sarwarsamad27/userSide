@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lottie/lottie.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/toast.dart';
 import 'package:user_side/resources/local_storage.dart';
+import 'package:user_side/resources/utiles.dart';
 
 import 'package:user_side/view/dashboard/favourite/favourite_screen.dart';
 import 'package:user_side/view/dashboard/homeDashboard/homeScreen.dart';
@@ -94,7 +96,7 @@ class _HomeNavBarScreenState extends State<HomeNavBarScreen> {
               builder: (context, currentIndex, child) {
                 return Scaffold(
                   extendBody: true,
-                  backgroundColor: const Color(0xFFF9FAFB),
+                  backgroundColor: Colors.amber,
                   body: screens[currentIndex],
                   bottomNavigationBar: _PremiumUserNavBar(
                     currentIndex: currentIndex,
@@ -160,7 +162,7 @@ class _PremiumUserNavBar extends StatelessWidget {
               children: [
                 _slot(
                   child: _NavItem(
-                    icon: LucideIcons.home,
+                    lottiePath: "assets/gif/home.json",
                     label: "Home",
                     selected: currentIndex == 0,
                     onTap: () => onTap(0),
@@ -168,7 +170,7 @@ class _PremiumUserNavBar extends StatelessWidget {
                 ),
                 _slot(
                   child: _NavItem(
-                    icon: LucideIcons.package,
+                    lottiePath: "assets/gif/Product.json",
                     label: "Products",
                     selected: currentIndex == 1,
                     onTap: () => onTap(1),
@@ -180,7 +182,7 @@ class _PremiumUserNavBar extends StatelessWidget {
 
                 _slot(
                   child: _NavItem(
-                    icon: LucideIcons.shoppingCart,
+                    lottiePath: "assets/gif/favourite.json",
                     label: "Favourite",
                     selected: currentIndex == 3,
                     onTap: () => onTap(3),
@@ -188,7 +190,7 @@ class _PremiumUserNavBar extends StatelessWidget {
                 ),
                 _slot(
                   child: _NavItem(
-                    icon: LucideIcons.user,
+                    lottiePath: "assets/gif/profile.json",
                     label: "Profile",
                     selected: currentIndex == 4,
                     onTap: () => onTap(4),
@@ -197,6 +199,9 @@ class _PremiumUserNavBar extends StatelessWidget {
               ],
             ),
           ),
+
+          // ✅ Moving truck (behind message button layer)
+          const _MovingTruck(),
 
           // ✅ Floating messages button (with badge)
           Positioned(
@@ -216,13 +221,15 @@ class _PremiumUserNavBar extends StatelessWidget {
 }
 
 class _NavItem extends StatelessWidget {
-  final IconData icon;
+  final String? lottiePath; // Lottie JSON path
+  final IconData? icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
 
   const _NavItem({
-    required this.icon,
+    this.lottiePath,
+    this.icon,
     required this.label,
     required this.selected,
     required this.onTap,
@@ -233,35 +240,36 @@ class _NavItem extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(18.r),
-      child: Center(
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
-          decoration: BoxDecoration(
-            color: selected
-                ? AppColor.primaryColor.withOpacity(0.10)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(16.r),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        padding: EdgeInsets.symmetric(horizontal: 10.w),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColor.primaryColor.withOpacity(0.10)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Lottie ya Icon display
+            if (lottiePath != null)
+              Lottie.asset(lottiePath!, width: 80.sp, height: 60.sp)
+            else if (icon != null)
               Icon(
                 icon,
-                size: 22.sp, // ✅ fixed size (no jump)
+                size: 22.sp,
                 color: selected ? AppColor.primaryColor : Colors.grey,
               ),
-              SizedBox(height: 4.h),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11.sp, // ✅ fixed size (no jump)
-                  color: selected ? AppColor.primaryColor : Colors.grey,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11.sp,
+                color: selected ? AppColor.primaryColor : Colors.grey,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -288,14 +296,10 @@ class _CenterMessagesButton extends StatelessWidget {
         width: 66.w,
         height: 66.w,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: selected
-                ? [
-                    AppColor.primaryColor,
-                    AppColor.primaryColor.withOpacity(0.85),
-                  ]
-                : [Colors.white, Colors.white],
-          ),
+          color: selected
+              ? AppColor.primaryColor.withOpacity(0.80)
+              : Colors.white,
+
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
@@ -313,11 +317,7 @@ class _CenterMessagesButton extends StatelessWidget {
           clipBehavior: Clip.none,
           alignment: Alignment.center,
           children: [
-            Icon(
-              LucideIcons.messageCircle,
-              size: 26.sp,
-              color: selected ? Colors.white : AppColor.primaryColor,
-            ),
+            Utils.messageIcon(),
             if (unreadCount > 0)
               Positioned(
                 right: -2.w,
@@ -352,6 +352,53 @@ class _Badge extends StatelessWidget {
           fontSize: 10.sp,
           fontWeight: FontWeight.w800,
         ),
+      ),
+    );
+  }
+}
+
+class _MovingTruck extends StatefulWidget {
+  const _MovingTruck();
+
+  @override
+  State<_MovingTruck> createState() => _MovingTruckState();
+}
+
+class _MovingTruckState extends State<_MovingTruck>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 5),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        // Move from left (-100) to right (screenWidth + 150)
+        final leftOffset = -100.w + (screenWidth + 150.w) * _controller.value;
+
+        return Positioned(left: leftOffset, bottom: 40.h, child: child!);
+      },
+      child: Lottie.asset(
+        'assets/gif/TruckNavBar.json',
+        width: 150.w,
+        height: 100.h,
+        fit: BoxFit.contain,
       ),
     );
   }

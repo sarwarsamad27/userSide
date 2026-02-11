@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/resources/utiles.dart';
 
 class NotificationIconButton extends StatelessWidget {
   final int unreadCount;
@@ -33,13 +33,8 @@ class NotificationIconButton extends StatelessWidget {
           ],
         ),
         child: Stack(
-          alignment: Alignment.center,
           children: [
-            Icon(
-              Icons.notifications_none_rounded,
-              size: 26.sp,
-              color: AppColor.primaryColor,
-            ),
+            Utils.notificationIcons(size: 200),
 
             if (unreadCount > 0)
               Positioned(

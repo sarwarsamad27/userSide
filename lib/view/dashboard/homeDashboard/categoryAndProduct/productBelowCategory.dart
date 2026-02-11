@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getAllProductCategoryWise_provider.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/widgets/productCard.dart';
@@ -58,9 +59,7 @@ class _ProductBelowCategoryState extends State<ProductBelowCategory> {
     if (provider.isLoading) {
       return Padding(
         padding: const EdgeInsets.only(top: 140),
-        child: Center(
-          child: SpinKitThreeBounce(color: AppColor.primaryColor, size: 30.0),
-        ),
+        child: Utils.shoppingLoadingLottie(size: 150),
       );
     }
 

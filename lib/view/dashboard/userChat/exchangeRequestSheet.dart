@@ -11,6 +11,7 @@ import 'package:user_side/models/order/myOrderModel.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/resources/premium_toast.dart'; // ✅ Added import
+import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/exchange_provider.dart';
 
 class ExchangeRequestSheet extends StatefulWidget {
@@ -262,7 +263,6 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
               },
             ),
 
-            SizedBox(height: 12.h),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -271,11 +271,7 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
                 ),
                 onPressed: creating ? null : _submit,
                 child: creating
-                    ? SizedBox(
-                        height: 18.h,
-                        width: 18.h,
-                        child: const CircularProgressIndicator(strokeWidth: 2),
-                      )
+                    ? Utils.loadingLottie(size: 24)
                     : const Text("Send Request"),
               ),
             ),
