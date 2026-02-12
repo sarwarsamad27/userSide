@@ -133,7 +133,7 @@ class _PremiumUserNavBar extends StatelessWidget {
       (p) => p.unreadTotal,
     );
 
-    final barHeight = 76.h;
+    final barHeight = 86.h;
 
     return SizedBox(
       height: barHeight + 26.h,
@@ -392,7 +392,7 @@ class _MovingTruckState extends State<_MovingTruck>
         // Move from left (-100) to right (screenWidth + 150)
         final leftOffset = -100.w + (screenWidth + 150.w) * _controller.value;
 
-        return Positioned(left: leftOffset, bottom: 40.h, child: child!);
+        return Positioned(left: leftOffset, bottom: 50.h, child: child!);
       },
       child: Lottie.asset(
         'assets/gif/TruckNavBar.json',

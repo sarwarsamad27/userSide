@@ -5,12 +5,13 @@ class GetAllProfileModel {
   int? totalProfiles;
   List<Profiles>? profiles;
 
-  GetAllProfileModel(
-      {this.message,
-      this.page,
-      this.totalPages,
-      this.totalProfiles,
-      this.profiles});
+  GetAllProfileModel({
+    this.message,
+    this.page,
+    this.totalPages,
+    this.totalProfiles,
+    this.profiles,
+  });
 
   GetAllProfileModel.fromJson(Map<String, dynamic> json) {
     message = json['message'];
@@ -40,22 +41,38 @@ class GetAllProfileModel {
 
 class Profiles {
   String? sId;
-  String? name;
   String? image;
+  String? name;
+  bool? isFollowed;
+  double? averageDiscount; // ✅ Keep as double
 
-  Profiles({this.sId, this.name, this.image});
+  Profiles({
+    this.sId,
+    this.image,
+    this.name,
+    this.isFollowed,
+    this.averageDiscount,
+  });
 
   Profiles.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
-    name = json['name'];
     image = json['image'];
+    name = json['name'];
+    isFollowed = json['isFollowed'];
+
+    // ✅ FIX: Handle both int and double
+    averageDiscount = json['averageDiscount'] != null
+        ? (json['averageDiscount'] as num).toDouble()
+        : 0.0;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['name'] = this.name;
-    data['image'] = this.image;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['image'] = image;
+    data['name'] = name;
+    data['isFollowed'] = isFollowed;
+    data['averageDiscount'] = averageDiscount;
     return data;
   }
 }

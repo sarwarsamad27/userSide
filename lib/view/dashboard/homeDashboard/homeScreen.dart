@@ -114,6 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             return CategoryTile(
                                   name: item.name ?? "",
                                   image: item.image ?? "",
+                                  averageDiscount: item.averageDiscount,
                                   onTap: () {
                                     Navigator.push(
                                       context,

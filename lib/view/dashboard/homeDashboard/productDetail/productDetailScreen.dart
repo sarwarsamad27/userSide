@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/network/network_api_services.dart';
-import 'package:user_side/resources/appColor.dart';
-import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/resources/utiles.dart';
@@ -76,7 +73,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoggedIn = context.watch<AuthSession>().isLoggedIn;
     final provider = context.watch<GetSingleProductProvider>();
 
     /// ───────── Loading State ─────────
