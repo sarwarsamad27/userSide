@@ -74,68 +74,61 @@ class _ProductScreenState extends State<ProductScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        body: SafeArea(
-          child: RefreshIndicator(
-            onRefresh: _refreshAll,
-            child: ValueListenableBuilder<String>(
-              valueListenable: _selectedCategoryNotifier,
-              builder: (context, selectedCategory, _) {
-                return CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                    SliverPersistentHeader(
-                      pinned: true,
-                      delegate: StickyHeaderDelegate(
-                        minHeight: 130.h,
-                        maxHeight: 130.h,
-                        child: Container(
-                          color: Colors.white,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12.w,
-                            vertical: 5.h,
-                          ),
-                          child: SearchbarCategorylist(
-                            onCategorySelected: (category) {
-                              _selectedCategoryNotifier.value = category;
+        body: RefreshIndicator(
+          onRefresh: _refreshAll,
+          child: ValueListenableBuilder<String>(
+            valueListenable: _selectedCategoryNotifier,
+            builder: (context, selectedCategory, _) {
+              return CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: StickyHeaderDelegate(
+                      minHeight: 170.h,
+                      maxHeight: 170.h,
+                      child: SearchbarCategorylist(
+                        onCategorySelected: (category) {
+                          _selectedCategoryNotifier.value = category;
 
-                              final allProvider = context
-                                  .read<GetAllProductProvider>();
+                          final allProvider = context
+                              .read<GetAllProductProvider>();
 
-                              if (category == "All") {
-                                // ✅ only reset filter; DO NOT call fetch again
-                                allProvider.clearFilter();
-                                return;
-                              }
+                          if (category == "All") {
+                            // ✅ only reset filter; DO NOT call fetch again
+                            allProvider.clearFilter();
+                            return;
+                          }
 
-                              allProvider.filterByCategory(category);
+                          allProvider.filterByCategory(category);
 
-                              final catProvider = context
-                                  .read<GetCategoryWiseProductProvider>();
-                              catProvider.fetchCategoryProducts(
-                                category,
-                                refresh: true,
-                              );
-                            },
-                          ),
-                        ),
+                          final catProvider = context
+                              .read<GetCategoryWiseProductProvider>();
+                          catProvider.fetchCategoryProducts(
+                            category,
+                            refresh: true,
+                          );
+                        },
                       ),
                     ),
+                  ),
 
-                    if (selectedCategory == "All") ...[
-                      const PopularProductAndCategory(),
-                      const AllProducts(),
-                    ],
-
-                    if (selectedCategory != "All")
-                      SliverToBoxAdapter(
-                        child: CategoryWiseProductsWidget(
-                          category: selectedCategory,
-                        ),
-                      ),
+                  if (selectedCategory == "All") ...[
+                    const PopularProductAndCategory(),
+                    SliverPadding(
+                      padding: const EdgeInsets.only(bottom: 90),
+                      sliver: const AllProducts(),
+                    ),
                   ],
-                );
-              },
-            ),
+                  if (selectedCategory != "All")
+                    SliverToBoxAdapter(
+                      child: CategoryWiseProductsWidget(
+                        category: selectedCategory,
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
         ),
       ),

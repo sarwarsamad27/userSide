@@ -96,7 +96,7 @@ class _HomeNavBarScreenState extends State<HomeNavBarScreen> {
               builder: (context, currentIndex, child) {
                 return Scaffold(
                   extendBody: true,
-                  backgroundColor: Colors.amber,
+                  // backgroundColor: Colors.amber,
                   body: screens[currentIndex],
                   bottomNavigationBar: _PremiumUserNavBar(
                     currentIndex: currentIndex,
