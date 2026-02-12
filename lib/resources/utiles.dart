@@ -60,7 +60,7 @@ class Utils {
   );
   static Widget notFound({double? size}) => Center(
     child: Lottie.asset(
-      'assets/gif/not_found.json',
+      'assets/gif/no_data_found.json',
       height: size ?? 150,
       width: size ?? 150,
     ),

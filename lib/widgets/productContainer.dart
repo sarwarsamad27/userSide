@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:lottie/lottie.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
 
@@ -7,19 +8,20 @@ class CategoryTile extends StatelessWidget {
   final String name;
   final String image;
   final VoidCallback onTap;
+  final bool isPremium;
 
   const CategoryTile({
     required this.name,
     required this.image,
     required this.onTap,
+    this.isPremium = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    // ✔ Final Image URL Handle
     final String finalImageUrl = (image.isNotEmpty)
         ? "${Global.imageUrl}$image"
-        : ""; // means no image
+        : "";
 
     return GestureDetector(
       onTap: onTap,
@@ -43,6 +45,7 @@ class CategoryTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(18.r),
               child: Stack(
                 children: [
+                  // Main Image
                   Positioned.fill(
                     child: finalImageUrl.isEmpty
                         ? buildPlaceholder()
@@ -54,7 +57,7 @@ class CategoryTile extends StatelessWidget {
                           ),
                   ),
 
-                  // gradient overlay
+                  // Gradient overlay
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
@@ -69,6 +72,21 @@ class CategoryTile extends StatelessWidget {
                       ),
                     ),
                   ),
+
+                  if (isPremium)
+                    Positioned(
+                      top: -12.h,
+                      right: -12.w,
+                      child: Container(
+                        width: 70.w,
+                        height: 70.h,
+                        child: Lottie.asset(
+                          'assets/gif/Coupon.json',
+                          fit: BoxFit.contain,
+                          repeat: true,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -109,7 +127,6 @@ class CategoryTile extends StatelessWidget {
     );
   }
 
-  /// 🟦 PROFESSIONAL Placeholder Widget
   Widget buildPlaceholder() {
     return Container(
       color: Colors.grey.shade200,

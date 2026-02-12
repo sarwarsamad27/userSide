@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/view/dashboard/homeDashboard/categoryAndProduct/categoryScreen.dart';
@@ -50,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       onChanged: (value) {
                         provider.applySearch(value);
                       },
-                    ),
+                    ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.1),
                   ),
 
                   SizedBox(width: 12.w),
@@ -111,18 +112,22 @@ class _HomeScreenState extends State<HomeScreen> {
                             final item = provider.filteredProfiles[index];
 
                             return CategoryTile(
-                              name: item.name ?? "",
-                              image: item.image ?? "",
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        Categoryscreen(profileId: item.sId!),
-                                  ),
-                                );
-                              },
-                            );
+                                  name: item.name ?? "",
+                                  image: item.image ?? "",
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => Categoryscreen(
+                                          profileId: item.sId!,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                )
+                                .animate()
+                                .fadeIn(delay: (index * 50).ms)
+                                .scale(begin: const Offset(0.9, 0.9));
                           },
                         ),
                       ),

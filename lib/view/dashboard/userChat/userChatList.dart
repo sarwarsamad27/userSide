@@ -1,6 +1,7 @@
 // view/dashboard/userChat/userChatListScreen.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -135,7 +136,9 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
                     Divider(height: 1.h, indent: 80.w, color: Colors.black12),
                 itemBuilder: (context, i) {
                   final thread = threads[i];
-                  return _buildChatTile(thread);
+                  return _buildChatTile(
+                    thread,
+                  ).animate().fadeIn(delay: (i * 30).ms).slideX(begin: 0.1);
                 },
               ),
             ),

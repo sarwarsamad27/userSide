@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:provider/provider.dart';
@@ -39,31 +40,34 @@ class AllProducts extends StatelessWidget {
                   : ''; // empty instead of placeholder
 
               return ProductCard(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ProductDetailScreen(
-                        profileId: product.profileId ?? "",
-                        categoryId: product.categoryId ?? "",
-                        productId: product.productId ?? "",
-                      ),
-                    ),
-                  );
-                },
-                imageUrl: imageUrl.isNotEmpty
-                    ? (imageUrl.startsWith('http')
-                          ? Global.imageUrl + imageUrl
-                          : imageUrl)
-                    : '', // pass empty to show icon in ProductCard
-                price: "${product.afterDiscountPrice ?? 0}",
-                name: product.name ?? "",
-                description: product.description ?? "",
-                saveText: "${product.discountPercentage ?? 0}% OFF",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ProductDetailScreen(
+                            profileId: product.profileId ?? "",
+                            categoryId: product.categoryId ?? "",
+                            productId: product.productId ?? "",
+                          ),
+                        ),
+                      );
+                    },
+                    imageUrl: imageUrl.isNotEmpty
+                        ? (imageUrl.startsWith('http')
+                              ? Global.imageUrl + imageUrl
+                              : imageUrl)
+                        : '', // pass empty to show icon in ProductCard
+                    price: "${product.afterDiscountPrice ?? 0}",
+                    name: product.name ?? "",
+                    description: product.description ?? "",
+                    saveText: "${product.discountPercentage ?? 0}% OFF",
 
-                averageRating: product.averageRating ?? 0.0,
-                originalPrice: "${product.beforeDiscountPrice ?? 0}",
-              );
+                    averageRating: product.averageRating ?? 0.0,
+                    originalPrice: "${product.beforeDiscountPrice ?? 0}",
+                  )
+                  .animate()
+                  .fadeIn(delay: (index * 40).ms)
+                  .slideY(begin: 0.1, curve: Curves.easeOutQuad);
             }, childCount: products.length),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,

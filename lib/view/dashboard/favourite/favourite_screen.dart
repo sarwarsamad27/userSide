@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:provider/provider.dart';
@@ -288,7 +289,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
                             ),
                           ],
                         ),
-                      );
+                      ).animate().fadeIn(delay: (index * 40).ms).slideY(begin: 0.1);
                     },
                   ),
                 ),

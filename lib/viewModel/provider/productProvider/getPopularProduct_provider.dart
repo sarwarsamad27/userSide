@@ -52,6 +52,12 @@ class PopularProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 🔹 Refresh method for login refresh
+  Future<void> refresh() async {
+    isFetchedOnce = false;
+    await fetchPopularProducts();
+  }
+
   int get totalCount => popularProducts?.totalProducts ?? 0;
   int get fetchedCount => popularProducts?.products?.length ?? 0;
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:provider/provider.dart';
@@ -78,24 +79,27 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
                         child: Column(
                           children: columnItems.map((item) {
                             return CustomProductTile(
-                              imageUrl:
-                                  //  item.categoryImage != null
-                                  Global.imageUrl + item.categoryImage!,
-                              name: item.categoryName ?? "",
-                              saveText:
-                                  "Save upto: ${(item.averageDiscountPercentage ?? 0).toStringAsFixed(0)}%",
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => Categoryscreen(
-                                      profileId: item.profileId ?? '',
-                                      categoryId: item.categoryId ?? '',
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
+                                  imageUrl:
+                                      //  item.categoryImage != null
+                                      Global.imageUrl + item.categoryImage!,
+                                  name: item.categoryName ?? "",
+                                  saveText:
+                                      "Save upto: ${(item.averageDiscountPercentage ?? 0).toStringAsFixed(0)}%",
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => Categoryscreen(
+                                          profileId: item.profileId ?? '',
+                                          categoryId: item.categoryId ?? '',
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                )
+                                .animate()
+                                .fadeIn(delay: (index * 60).ms)
+                                .slideX(begin: 0.1);
                           }).toList(),
                         ),
                       );
@@ -159,27 +163,37 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
                           children: columnProducts.map((product) {
                             return Padding(
                               padding: EdgeInsets.only(bottom: 8.h),
-                              child: CustomProductTile(
-                                imageUrl: product.image != null
-                                    ? Global.imageUrl + product.image!
-                                    : "",
-                                name: product.name ?? '',
-                                price: "Rs ${product.afterDiscountPrice ?? 0}",
-                                discountText:
-                                    "Save Rs ${product.discountAmount ?? 0}",
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => ProductDetailScreen(
-                                        profileId: product.profileId ?? '',
-                                        categoryId: product.categoryId ?? '',
-                                        productId: product.productId ?? '',
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
+                              child:
+                                  CustomProductTile(
+                                        imageUrl: product.image != null
+                                            ? Global.imageUrl + product.image!
+                                            : "",
+                                        name: product.name ?? '',
+                                        price:
+                                            "Rs ${product.afterDiscountPrice ?? 0}",
+                                        discountText:
+                                            "Save Rs ${product.discountAmount ?? 0}",
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  ProductDetailScreen(
+                                                    profileId:
+                                                        product.profileId ?? '',
+                                                    categoryId:
+                                                        product.categoryId ??
+                                                        '',
+                                                    productId:
+                                                        product.productId ?? '',
+                                                  ),
+                                            ),
+                                          );
+                                        },
+                                      )
+                                      .animate()
+                                      .fadeIn(delay: (index * 70).ms)
+                                      .slideX(begin: 0.1),
                             );
                           }).toList(),
                         ),

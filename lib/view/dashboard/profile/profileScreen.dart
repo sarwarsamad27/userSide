@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:provider/provider.dart';
@@ -138,7 +139,7 @@ class _ProfilescreenState extends State<Profilescreen> {
               radius: 20.r,
               backgroundColor: AppColor.primaryColor.withOpacity(.3),
               child: const Text("😊", style: TextStyle(fontSize: 20)),
-            ),
+            ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
             SizedBox(width: 12.w),
             Text(
               "Hi, D!",
@@ -147,7 +148,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
-            ),
+            ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.2),
           ],
         ),
         actions: [
@@ -282,29 +283,32 @@ class _ProfilescreenState extends State<Profilescreen> {
                           final product = provider.products[index];
 
                           return SizedBox(
-                            width: 180.w,
-                            child: ProductCard(
-                              name: product.name,
-                              price: product.afterDiscountPrice.toString(),
-                              imageUrl: product.images.isNotEmpty
-                                  ? product.images.first
-                                  : "",
-                              averageRating: product.averageRating, // ✅
-                              description: product.description,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => ProductDetailScreen(
-                                      productId: product.id,
-                                      categoryId: product.category.id,
-                                      profileId: product.profile.id,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          );
+                                width: 180.w,
+                                child: ProductCard(
+                                  name: product.name,
+                                  price: product.afterDiscountPrice.toString(),
+                                  imageUrl: product.images.isNotEmpty
+                                      ? product.images.first
+                                      : "",
+                                  averageRating: product.averageRating, // ✅
+                                  description: product.description,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => ProductDetailScreen(
+                                          productId: product.id,
+                                          categoryId: product.category.id,
+                                          profileId: product.profile.id,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              )
+                              .animate()
+                              .fadeIn(delay: (index * 50).ms)
+                              .slideX(begin: 0.1);
                         },
                       ),
                     );
