@@ -2,13 +2,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/notificationScreen/notification_route.dart';
 
 class PremiumToast {
   static OverlayEntry? _overlayEntry;
   static Timer? _timer;
 
   static void show(
-    BuildContext context,
+    BuildContext? context,
     String message, {
     Color? backgroundColor,
     IconData? icon,
@@ -19,7 +20,17 @@ class PremiumToast {
   }) {
     _removeToast();
 
-    final overlay = Overlay.of(context);
+    // ✅ NEW: Try to get context from global navigator if not provided
+    final actualContext =
+        context ?? NotificationRouter.navigatorKey.currentContext;
+
+    if (actualContext == null) {
+      debugPrint("PremiumToast: No context available to show toast.");
+      return;
+    }
+
+    final overlay = Overlay.maybeOf(actualContext);
+    if (overlay == null) return;
 
     // Determine style based on type
     Color bgColor = backgroundColor ?? Colors.grey.shade900;
@@ -56,23 +67,25 @@ class PremiumToast {
 
   static void _removeToast() {
     _timer?.cancel();
-    _overlayEntry?.remove();
+    if (_overlayEntry != null && _overlayEntry!.mounted) {
+      _overlayEntry?.remove();
+    }
     _overlayEntry = null;
   }
 
-  static void success(BuildContext context, String message) {
+  static void success(BuildContext? context, String message) {
     show(context, message, isSuccess: true);
   }
 
-  static void error(BuildContext context, String message) {
+  static void error(BuildContext? context, String message) {
     show(context, message, isError: true);
   }
 
-  static void warning(BuildContext context, String message) {
+  static void warning(BuildContext? context, String message) {
     show(context, message, isWarning: true);
   }
 
-  static void info(BuildContext context, String message) {
+  static void info(BuildContext? context, String message) {
     show(context, message);
   }
 }

@@ -6,6 +6,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:user_side/exception/exceptions.dart';
 import 'package:user_side/network/base_api_services.dart';
 import 'package:user_side/resources/local_storage.dart';
+import 'package:user_side/resources/premium_toast.dart';
 
 class NetworkApiServices extends BaseApiServices {
   // ✅ Existing headers (WITH token if available) - unchanged
@@ -21,7 +22,9 @@ class NetworkApiServices extends BaseApiServices {
   }
 
   // ✅ NEW: Headers WITHOUT token (No Authorization)
-  Future<Map<String, String>> getHeadersNoAuth({bool isMultipart = false}) async {
+  Future<Map<String, String>> getHeadersNoAuth({
+    bool isMultipart = false,
+  }) async {
     return {
       "Accept": "application/json",
       if (!isMultipart) "Content-Type": "application/json",
@@ -234,7 +237,10 @@ class NetworkApiServices extends BaseApiServices {
 
       // Add Image Properly
       if (image != null) {
-        final mimeType = image.path.split(".").last.toLowerCase(); // jpg/png/jpeg
+        final mimeType = image.path
+            .split(".")
+            .last
+            .toLowerCase(); // jpg/png/jpeg
 
         request.files.add(
           await http.MultipartFile.fromPath(
@@ -351,17 +357,28 @@ class NetworkApiServices extends BaseApiServices {
         return {'code_status': true, 'message': response.body};
       }
     } else {
-      return {
-        'code_status': false,
-        'message': 'Server Error: ${response.body}',
-      };
+      String errorMsg = 'Server Error: ${response.body}';
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded.containsKey('message')) {
+          errorMsg = decoded['message'];
+        }
+      } catch (_) {}
+
+      PremiumToast.error(null, errorMsg);
+      return {'code_status': false, 'message': errorMsg};
     }
   }
 
   Map<String, dynamic> _handleError(e) {
+    String message = 'Exception: $e';
     if (e is InternetException) {
-      return {'code_status': false, 'message': 'No Internet Connection'};
+      message = 'No Internet Connection';
+    } else if (e is SocketException) {
+      message = 'Network error: Please check your connection';
     }
-    return {'code_status': false, 'message': 'Exception: $e'};
+
+    PremiumToast.error(null, message);
+    return {'code_status': false, 'message': message};
   }
 }

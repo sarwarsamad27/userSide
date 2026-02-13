@@ -79,7 +79,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "My Favourites ❤️",
+          "My Favourites ",
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -95,7 +95,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
             final favs = provider.favouriteList?.favourites ?? [];
 
             if (favs.isEmpty) {
-              return Utils.emptyFavouriteLottie(size: 300);
+              return Utils.noDataFound(size: 500);
             }
 
             return Column(

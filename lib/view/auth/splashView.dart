@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/models/notification_services/notification_services.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/local_storage.dart';
-import 'package:user_side/view/auth/loginView.dart';
 import 'package:user_side/view/dashboard/DashboardScreen.dart';
 
 class SplashScreen extends StatefulWidget {

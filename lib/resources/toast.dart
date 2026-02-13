@@ -1,65 +1,28 @@
-import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/resources/premium_toast.dart';
 
 class AppToast {
   // 🔵 General Toast
   static void show(String message) {
-    Fluttertoast.showToast(
-      msg: message,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: Colors.black87,
-      textColor: Colors.white,
-      fontSize: 16.0,
-    );
+    PremiumToast.info(null, message);
   }
 
   // 🟢 Success Toast
   static void success(String message) {
-    Fluttertoast.showToast(
-      msg: message,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.TOP,
-      backgroundColor: AppColor.primaryColor,
-      textColor: Colors.white,
-      fontSize: 16.0,
-    );
+    PremiumToast.success(null, message);
   }
 
   // 🔴 Error Toast
   static void error(String message) {
-    Fluttertoast.showToast(
-      msg: message,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.TOP,
-      backgroundColor: AppColor.errorColor,
-      textColor: Colors.white,
-      fontSize: 16.0,
-    );
+    PremiumToast.error(null, message);
   }
 
   // 🟡 Warning Toast
   static void warning(String message) {
-    Fluttertoast.showToast(
-      msg: message,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: Colors.yellow,
-      textColor: Colors.white,
-      fontSize: 16.0,
-    );
+    PremiumToast.warning(null, message);
   }
 
   // 🔵 Info Toast
   static void info(String message) {
-    Fluttertoast.showToast(
-      msg: message,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: Colors.blue,
-      textColor: Colors.white,
-      fontSize: 16.0,
-    );
+    PremiumToast.info(null, message);
   }
 }

@@ -10,6 +10,7 @@ import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/resources/toast.dart';
+import 'package:user_side/view/auth/AuthLoginGate.dart';
 import 'package:user_side/view/dashboard/homeDashboard/categoryAndProduct/productBelowCategory.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfile/widget/ContactAction.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/companyProfile/widget/PillInfo.dart';
@@ -192,82 +193,85 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   Widget build(BuildContext context) {
     final isLoggedIn = context.watch<AuthSession>().isLoggedIn;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF6F7F9),
-      body: CustomScrollView(
-        physics: const ClampingScrollPhysics(),
-        slivers: [
-          SliverAppBar(
-            automaticallyImplyLeading: false,
-            pinned: true,
-            floating: false,
-            snap: false,
-            expandedHeight: 210.h,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            flexibleSpace: Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage("assets/images/shookoo_image.png"),
-                  fit: BoxFit.cover,
+    return AuthGate(
+      alwaysShowChild: true,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF6F7F9),
+        body: CustomScrollView(
+          physics: const ClampingScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              automaticallyImplyLeading: false,
+              pinned: true,
+              floating: false,
+              snap: false,
+              expandedHeight: 210.h,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage("assets/images/shookoo_image.png"),
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.10),
-                      Colors.black.withOpacity(0.25),
-                    ],
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.10),
+                        Colors.black.withOpacity(0.25),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            // ✅ Premium half-in half-out avatar
-            bottom: PreferredSize(
-              preferredSize: Size.fromHeight(50.h),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                child: Align(
-                  alignment: Alignment.bottomLeft,
-                  child: Transform.translate(
-                    offset: Offset(0, 46.h), // ✅ half bahar
-                    child: Container(
-                      padding: EdgeInsets.all(3.w),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x22000000),
-                            blurRadius: 18,
-                            offset: Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: GestureDetector(
-                        onTap: () {
-                          print("👆icon BUTTON TAPPED");
-                        },
-                        child: Container(
-                          padding: EdgeInsets.all(2.w),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColor.primaryColor.withOpacity(0.95),
-                                AppColor.primaryColor.withOpacity(0.35),
-                              ],
+              // ✅ Premium half-in half-out avatar
+              bottom: PreferredSize(
+                preferredSize: Size.fromHeight(50.h),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Transform.translate(
+                      offset: Offset(0, 46.h), // ✅ half bahar
+                      child: Container(
+                        padding: EdgeInsets.all(3.w),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x22000000),
+                              blurRadius: 18,
+                              offset: Offset(0, 10),
                             ),
-                          ),
-                          child: CircleAvatar(
-                            radius: 42.r,
-                            backgroundColor: const Color(0xFFF3F4F6),
-                            backgroundImage: NetworkImage(
-                              Global.imageUrl + widget.logoUrl,
+                          ],
+                        ),
+                        child: GestureDetector(
+                          onTap: () {
+                            print("👆icon BUTTON TAPPED");
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(2.w),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColor.primaryColor.withOpacity(0.95),
+                                  AppColor.primaryColor.withOpacity(0.35),
+                                ],
+                              ),
+                            ),
+                            child: CircleAvatar(
+                              radius: 42.r,
+                              backgroundColor: const Color(0xFFF3F4F6),
+                              backgroundImage: NetworkImage(
+                                Global.imageUrl + widget.logoUrl,
+                              ),
                             ),
                           ),
                         ),
@@ -277,322 +281,327 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                 ),
               ),
             ),
-          ),
 
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ✅ extra space because avatar bahar nikla hua hai
-                SizedBox(height: 54.h),
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ✅ extra space because avatar bahar nikla hua hai
+                  SizedBox(height: 54.h),
 
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: Consumer<FollowProvider>(
-                    builder: (context, followProvider, child) {
-                      return PremiumCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    widget.companyName,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 20.sp,
-                                      fontWeight: FontWeight.w900,
-                                      height: 1.15,
-                                      color: const Color(0xFF111827),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: Consumer<FollowProvider>(
+                      builder: (context, followProvider, child) {
+                        return PremiumCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      widget.companyName,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 20.sp,
+                                        fontWeight: FontWeight.w900,
+                                        height: 1.15,
+                                        color: const Color(0xFF111827),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                SizedBox(width: 12.w),
-                                Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(8.r),
-                                    onTap: followProvider.isLoading
-                                        ? null
-                                        : () async {
-                                            await followProvider.toggleFollow(
-                                              widget.profileId,
-                                            );
-
-                                            if (followProvider.errorMessage ==
-                                                "You are not login") {
-                                              if (!mounted) return;
-                                              AppToast.show(
-                                                "Please login to follow",
+                                  SizedBox(width: 12.w),
+                                  Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                      onTap: followProvider.isLoading
+                                          ? null
+                                          : () async {
+                                              await followProvider.toggleFollow(
+                                                widget.profileId,
                                               );
-                                            }
-                                          },
-                                    child: Ink(
-                                      height: 42.h,
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 20.w,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: followProvider.isLoading
-                                            ? AppColor.appimagecolor
-                                            : (followProvider.isFollowing
-                                                  ? Colors.white
-                                                  : AppColor.primaryColor),
-                                        borderRadius: BorderRadius.circular(
-                                          8.r,
+
+                                              if (followProvider.errorMessage ==
+                                                  "You are not login") {
+                                                if (!mounted) return;
+                                                AppToast.show(
+                                                  "Please login to follow",
+                                                );
+                                              }
+                                            },
+                                      child: Ink(
+                                        height: 42.h,
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 20.w,
                                         ),
-                                        border: Border.all(
-                                          color: followProvider.isFollowing
-                                              ? AppColor.primaryColor
-                                              : Colors.transparent,
-                                        ),
-                                      ),
-                                      child: Center(
-                                        child: followProvider.isLoading
-                                            ? SizedBox(
-                                                height: 20.h,
-                                                width: 20.h,
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  valueColor:
-                                                      AlwaysStoppedAnimation<
-                                                        Color
-                                                      >(
-                                                        followProvider
-                                                                .isFollowing
-                                                            ? AppColor
-                                                                  .primaryColor
-                                                            : Colors.white,
-                                                      ),
-                                                ),
-                                              )
-                                            : Text(
-                                                followProvider.isFollowing
-                                                    ? "Following"
-                                                    : "Follow",
-                                                style: TextStyle(
-                                                  color:
-                                                      followProvider.isFollowing
-                                                      ? AppColor.primaryColor
-                                                      : Colors.white,
-                                                  fontSize: 14.sp,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 6.h),
-
-                            Row(
-                              children: [
-                                PillInfo(
-                                  icon: Icons.people_alt_outlined,
-                                  text: followProvider.followersCount >= 1000
-                                      ? "${(followProvider.followersCount / 1000).toStringAsFixed(1)}k Followers"
-                                      : "${followProvider.followersCount} Followers",
-                                ),
-                                SizedBox(width: 10.w),
-                                PillInfo(
-                                  icon: Icons.verified_outlined,
-                                  text: "Company",
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 14.h),
-
-                            Text(
-                              widget.description,
-                              style: TextStyle(
-                                fontSize: 13.5.sp,
-                                color: const Color(0xFF4B5563),
-                                height: 1.55,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-
-                            SizedBox(height: 14.h),
-                            const DividerLine(),
-                            SizedBox(height: 14.h),
-
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: ContactAction(
-                                    icon: Icons.phone,
-                                    title: "Contact",
-                                    subtitle: "Call / WhatsApp",
-                                    iconBg: const Color(0xFFEFF6FF),
-                                    iconColor: const Color(0xFF2563EB),
-                                    onTap: () => showCallOptions(
-                                      context,
-                                      widget.phoneNumber,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 12.w),
-                                Expanded(
-                                  child: ContactAction(
-                                    icon: Icons.chat_bubble_outline,
-                                    title: "Chat",
-                                    subtitle: "Chat with brand",
-                                    iconBg: const Color(0xFFECFDF5),
-                                    iconColor: const Color(0xFF16A34A),
-                                    onTap: () async {
-                                      if (!isLoggedIn) {
-                                        AppToast.show(
-                                          "Login your account to chat",
-                                        );
-                                      } else {
-                                        final userId =
-                                            await LocalStorage.getUserId();
-
-                                        final threadId =
-                                            'buyer_${userId}_seller_${widget.profileId}';
-
-                                        log(threadId);
-                                        log(widget.profileId);
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => UserChatScreen(
-                                              threadId: threadId,
-                                              toType: "profile",
-                                              toId: widget.profileId,
-                                              title: widget.companyName,
-                                              sellerImage: widget.logoUrl,
-                                            ),
+                                        decoration: BoxDecoration(
+                                          color: followProvider.isLoading
+                                              ? AppColor.appimagecolor
+                                              : (followProvider.isFollowing
+                                                    ? Colors.white
+                                                    : AppColor.primaryColor),
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
                                           ),
-                                        );
-                                      }
-                                    },
+                                          border: Border.all(
+                                            color: followProvider.isFollowing
+                                                ? AppColor.primaryColor
+                                                : Colors.transparent,
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: followProvider.isLoading
+                                              ? SizedBox(
+                                                  height: 20.h,
+                                                  width: 20.h,
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<
+                                                          Color
+                                                        >(
+                                                          followProvider
+                                                                  .isFollowing
+                                                              ? AppColor
+                                                                    .primaryColor
+                                                              : Colors.white,
+                                                        ),
+                                                  ),
+                                                )
+                                              : Text(
+                                                  followProvider.isFollowing
+                                                      ? "Following"
+                                                      : "Follow",
+                                                  style: TextStyle(
+                                                    color:
+                                                        followProvider
+                                                            .isFollowing
+                                                        ? AppColor.primaryColor
+                                                        : Colors.white,
+                                                    fontSize: 14.sp,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
+                                ],
+                              ),
+                              SizedBox(height: 6.h),
+
+                              Row(
+                                children: [
+                                  PillInfo(
+                                    icon: Icons.people_alt_outlined,
+                                    text: followProvider.followersCount >= 1000
+                                        ? "${(followProvider.followersCount / 1000).toStringAsFixed(1)}k Followers"
+                                        : "${followProvider.followersCount} Followers",
+                                  ),
+                                  SizedBox(width: 10.w),
+                                  PillInfo(
+                                    icon: Icons.verified_outlined,
+                                    text: "Company",
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 14.h),
+
+                              Text(
+                                widget.description,
+                                style: TextStyle(
+                                  fontSize: 13.5.sp,
+                                  color: const Color(0xFF4B5563),
+                                  height: 1.55,
+                                  fontWeight: FontWeight.w500,
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                              ),
 
-                SizedBox(height: 18.h),
+                              SizedBox(height: 14.h),
+                              const DividerLine(),
+                              SizedBox(height: 14.h),
 
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: SectionHeader(title: "Categories"),
-                ),
-                SizedBox(height: 10.h),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ContactAction(
+                                      icon: Icons.phone,
+                                      title: "Contact",
+                                      subtitle: "Call / WhatsApp",
+                                      iconBg: const Color(0xFFEFF6FF),
+                                      iconColor: const Color(0xFF2563EB),
+                                      onTap: () => showCallOptions(
+                                        context,
+                                        widget.phoneNumber,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 12.w),
+                                  Expanded(
+                                    child: ContactAction(
+                                      icon: Icons.chat_bubble_outline,
+                                      title: "Chat",
+                                      subtitle: "Chat with brand",
+                                      iconBg: const Color(0xFFECFDF5),
+                                      iconColor: const Color(0xFF16A34A),
+                                      onTap: () async {
+                                        if (!isLoggedIn) {
+                                          AppToast.show(
+                                            "Login your account to chat",
+                                          );
+                                        } else {
+                                          final userId =
+                                              await LocalStorage.getUserId();
 
-                SizedBox(
-                  height: 35.h,
-                  child: Consumer<GetAllCategoryProfileWiseProvider>(
-                    builder: (context, provider, child) {
-                      if (provider.isLoading) {
-                        return const Center(
-                          child: SpinKitThreeBounce(
-                            color: AppColor.primaryColor,
-                            size: 30.0,
+                                          final threadId =
+                                              'buyer_${userId}_seller_${widget.profileId}';
+
+                                          log(threadId);
+                                          log(widget.profileId);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => UserChatScreen(
+                                                threadId: threadId,
+                                                toType: "profile",
+                                                toId: widget.profileId,
+                                                title: widget.companyName,
+                                                sellerImage: widget.logoUrl,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         );
-                      }
-                      if (provider.data == null ||
-                          provider.data!.categories!.isEmpty) {
-                        return const Center(child: Text("No Categories Found"));
-                      }
+                      },
+                    ),
+                  ),
 
-                      final categoriesData = provider.data!.categories!;
-                      return ListView.separated(
-                        physics: const ClampingScrollPhysics(),
-                        padding: EdgeInsets.symmetric(horizontal: 16.w),
-                        scrollDirection: Axis.horizontal,
-                        itemCount: categoriesData.length,
-                        separatorBuilder: (_, __) => SizedBox(width: 10.w),
-                        itemBuilder: (_, index) {
-                          final isSelected = provider.selectedIndex == index;
-                          final categoryName = categoriesData[index].name ?? "";
+                  SizedBox(height: 18.h),
 
-                          return InkWell(
-                            onTap: () {
-                              provider.selectCategory(index);
-                            },
-                            borderRadius: BorderRadius.circular(999),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 160),
-                              padding: EdgeInsets.symmetric(horizontal: 16.w),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppColor.primaryColor
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: SectionHeader(title: "Categories"),
+                  ),
+                  SizedBox(height: 10.h),
+
+                  SizedBox(
+                    height: 35.h,
+                    child: Consumer<GetAllCategoryProfileWiseProvider>(
+                      builder: (context, provider, child) {
+                        if (provider.isLoading) {
+                          return const Center(
+                            child: SpinKitThreeBounce(
+                              color: AppColor.primaryColor,
+                              size: 30.0,
+                            ),
+                          );
+                        }
+                        if (provider.data == null ||
+                            provider.data!.categories!.isEmpty) {
+                          return const Center(
+                            child: Text("No Categories Found"),
+                          );
+                        }
+
+                        final categoriesData = provider.data!.categories!;
+                        return ListView.separated(
+                          physics: const ClampingScrollPhysics(),
+                          padding: EdgeInsets.symmetric(horizontal: 16.w),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: categoriesData.length,
+                          separatorBuilder: (_, __) => SizedBox(width: 10.w),
+                          itemBuilder: (_, index) {
+                            final isSelected = provider.selectedIndex == index;
+                            final categoryName =
+                                categoriesData[index].name ?? "";
+
+                            return InkWell(
+                              onTap: () {
+                                provider.selectCategory(index);
+                              },
+                              borderRadius: BorderRadius.circular(999),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 160),
+                                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                                decoration: BoxDecoration(
                                   color: isSelected
                                       ? AppColor.primaryColor
-                                      : const Color(0xFFE5E7EB),
-                                ),
-                                boxShadow: isSelected
-                                    ? const [
-                                        BoxShadow(
-                                          color: Color(0x1A000000),
-                                          blurRadius: 14,
-                                          offset: Offset(0, 8),
-                                        ),
-                                      ]
-                                    : const [],
-                              ),
-                              child: Center(
-                                child: Text(
-                                  categoryName,
-                                  style: TextStyle(
-                                    fontSize: 13.5.sp,
-                                    fontWeight: FontWeight.w800,
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
                                     color: isSelected
-                                        ? Colors.white
-                                        : const Color(0xFF111827),
+                                        ? AppColor.primaryColor
+                                        : const Color(0xFFE5E7EB),
+                                  ),
+                                  boxShadow: isSelected
+                                      ? const [
+                                          BoxShadow(
+                                            color: Color(0x1A000000),
+                                            blurRadius: 14,
+                                            offset: Offset(0, 8),
+                                          ),
+                                        ]
+                                      : const [],
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    categoryName,
+                                    style: TextStyle(
+                                      fontSize: 13.5.sp,
+                                      fontWeight: FontWeight.w800,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : const Color(0xFF111827),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+
+                  SizedBox(height: 16.h),
+
+                  Consumer<GetAllCategoryProfileWiseProvider>(
+                    builder: (context, provider, child) {
+                      if (provider.data == null ||
+                          provider.data!.categories!.isEmpty) {
+                        return const Center(child: Text("No Products Found"));
+                      }
+                      final categoryId =
+                          provider
+                              .data!
+                              .categories![provider.selectedIndex]
+                              .sId ??
+                          '';
+                      return ProductBelowCategory(
+                        profileId: widget.profileId,
+                        categoryId: categoryId,
                       );
                     },
                   ),
-                ),
 
-                SizedBox(height: 16.h),
-
-                Consumer<GetAllCategoryProfileWiseProvider>(
-                  builder: (context, provider, child) {
-                    if (provider.data == null ||
-                        provider.data!.categories!.isEmpty) {
-                      return const Center(child: Text("No Products Found"));
-                    }
-                    final categoryId =
-                        provider
-                            .data!
-                            .categories![provider.selectedIndex]
-                            .sId ??
-                        '';
-                    return ProductBelowCategory(
-                      profileId: widget.profileId,
-                      categoryId: categoryId,
-                    );
-                  },
-                ),
-
-                SizedBox(height: 16.h),
-              ],
+                  SizedBox(height: 16.h),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

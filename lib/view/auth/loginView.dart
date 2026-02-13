@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/premium_toast.dart';
 import 'package:user_side/view/auth/forgotScreen.dart';
 import 'package:user_side/view/auth/signUpScreen.dart';
@@ -154,6 +155,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                           false,
                                         ); // Reset state
 
+                                        // ✅ Global API Refresh
+                                        AuthSession.refreshAppData(context);
+
                                         if (!mounted) return;
                                         PremiumToast.success(
                                           context,
@@ -229,6 +233,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                             context,
                                             "Logged in with Google!",
                                           );
+                                          // ✅ Global API Refresh
+                                          AuthSession.refreshAppData(context);
+
                                           Navigator.pushReplacement(
                                             context,
                                             MaterialPageRoute(

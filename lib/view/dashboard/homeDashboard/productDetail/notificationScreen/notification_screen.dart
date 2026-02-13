@@ -7,6 +7,7 @@ import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/view/auth/AuthLoginGate.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
+import 'package:user_side/view/dashboard/userChat/userChatScreen.dart';
 import 'package:user_side/viewModel/provider/notificationProvider/notification_provider.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 
@@ -186,6 +187,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           }
                         }
 
+                        // 🔹 Handle NEW_PRODUCT type
                         if (type == "NEW_PRODUCT") {
                           final profileId = (dataMap["profileId"] ?? "")
                               .toString();
@@ -212,6 +214,81 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               const SnackBar(
                                 content: Text(
                                   "Product detail info missing in notification.",
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                        // 🔹 Handle EXCHANGE_STATUS type (navigate to chat)
+                        else if (type == "EXCHANGE_STATUS") {
+                          final threadId = (dataMap["threadId"] ?? "")
+                              .toString();
+                          final sellerProfileId =
+                              (dataMap["sellerProfileId"] ?? "").toString();
+
+                          if (threadId.isNotEmpty &&
+                              sellerProfileId.isNotEmpty) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => UserChatScreen(
+                                  threadId: threadId,
+                                  toType: "seller",
+                                  toId: sellerProfileId,
+                                  title: "Exchange Chat",
+                                ),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "Chat info missing in notification.",
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                        // 🔹 Handle generic chat navigation (if threadId exists)
+                        else if (dataMap.containsKey("threadId")) {
+                          final threadId = (dataMap["threadId"] ?? "")
+                              .toString();
+                          final toType = (dataMap["toType"] ?? "seller")
+                              .toString();
+                          final toId = (dataMap["toId"] ?? "").toString();
+                          final title = (n.title ?? "Chat").toString();
+
+                          if (threadId.isNotEmpty && toId.isNotEmpty) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => UserChatScreen(
+                                  threadId: threadId,
+                                  toType: toType,
+                                  toId: toId,
+                                  title: title,
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                         else if (dataMap.containsKey("threadId")) {
+                          final threadId = (dataMap["threadId"] ?? "")
+                              .toString();
+                          final toType = (dataMap["toType"] ?? "seller")
+                              .toString();
+                          final toId = (dataMap["toId"] ?? "").toString();
+                          final title = (n.title ?? "Chat").toString();
+
+                          if (threadId.isNotEmpty && toId.isNotEmpty) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => UserChatScreen(
+                                  threadId: threadId,
+                                  toType: toType,
+                                  toId: toId,
+                                  title: title,
                                 ),
                               ),
                             );
@@ -291,8 +368,7 @@ class _NotifTile extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(14.r),
-
-                child: (absoluteImage != null && absoluteImage.isNotEmpty)
+                child: (absoluteImage.isNotEmpty)
                     ? Image.network(
                         absoluteImage,
                         fit: BoxFit.cover,
@@ -424,7 +500,7 @@ class _EmptyNotif extends StatelessWidget {
             ),
             SizedBox(height: 6.h),
             Text(
-              "When something happens, you’ll see it here.",
+              "When something happens, you'll see it here.",
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12.sp,

@@ -23,14 +23,17 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 4.h),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             //------------------ POPULAR CATEGORY -------------------//
-            Text(
-              "Popular Category",
-              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+            Padding(
+              padding: EdgeInsets.only(left: 10.w),
+              child: Text(
+                "Popular Category",
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+              ),
             ),
             SizedBox(height: 10.h),
 
@@ -109,9 +112,12 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
               },
             ),
 
-            Text(
-              "Popular Products",
-              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+            Padding(
+              padding: EdgeInsets.only(left: 10.w),
+              child: Text(
+                "Popular Products",
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+              ),
             ),
             SizedBox(height: 10.h),
 
@@ -131,7 +137,7 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
                     children: [
                       Center(
                         child: Column(
-                          children: [
+                          children: [   
                             Utils.notFound(size: 200),
                             Text("No products found"),
                           ],
@@ -162,7 +168,7 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
                         child: Column(
                           children: columnProducts.map((product) {
                             return Padding(
-                              padding: EdgeInsets.only(bottom: 8.h),
+                              padding: EdgeInsets.only(bottom: 4.h),
                               child:
                                   CustomProductTile(
                                         imageUrl: product.image != null
@@ -171,6 +177,7 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
                                         name: product.name ?? '',
                                         price:
                                             "Rs ${product.afterDiscountPrice ?? 0}",
+
                                         discountText:
                                             "Save Rs ${product.discountAmount ?? 0}",
                                         onTap: () {

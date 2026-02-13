@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:user_side/resources/local_storage.dart';
+import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/view/auth/loginView.dart';
 
 import '../../../models/auth/googleLogin_model.dart';
@@ -61,6 +62,9 @@ class GoogleLoginProvider with ChangeNotifier {
           _loginData!.user!.id != null) {
         await LocalStorage.saveToken(_loginData!.token!);
         await LocalStorage.saveUserId(_loginData!.user!.id!);
+        await AuthSession.instance.setUser(
+          _loginData!.user!.id!,
+        ); // ✅ Update global session
       } else {
         _errorMessage = _loginData?.message ?? "Login failed";
         notifyListeners();

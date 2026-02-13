@@ -12,6 +12,7 @@ import 'package:user_side/view/auth/splashView.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/notificationScreen/notification_route.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/viewModel/provider/multiProvider/multiProvider.dart';
+import 'package:user_side/resources/connectivity_plus.dart';
 
 import 'firebase_options.dart';
 
@@ -24,6 +25,7 @@ void main() async {
   // ✅ Push tap -> NotificationScreen
   await NotificationRouter.init();
   await AuthSession.instance.init();
+  ConnectivityService.instance.init(); // ✅ Monitor internet globally
   runApp(const AppWrapper());
 }
 

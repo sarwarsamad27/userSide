@@ -11,12 +11,21 @@ import 'package:user_side/viewModel/provider/notificationProvider/notification_p
 import 'package:user_side/viewModel/provider/favouriteProvider/getFavourite_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/getPopularProduct_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/getMyOrder_provider.dart';
+import 'package:user_side/viewModel/provider/productProvider/getPopularCategory_provider.dart';
+import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/recommendedProduct_provider.dart';
+import 'package:user_side/viewModel/provider/exchangeProvider/chatThread_provider.dart';
 
 class AuthGate extends StatefulWidget {
   final Widget child;
   final Widget? fallback;
+  final bool alwaysShowChild; // ✅ New: if true, shows child even if guest
 
-  const AuthGate({super.key, required this.child, this.fallback});
+  const AuthGate({
+    super.key,
+    required this.child,
+    this.fallback,
+    this.alwaysShowChild = false,
+  });
 
   @override
   State<AuthGate> createState() => _AuthGateState();
@@ -32,16 +41,7 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   void _triggerRefresh(BuildContext context) {
-    debugPrint("AuthGate: User logged in, refreshing all APIs...");
-
-    // Refresh all relevant providers
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<GetAllProfileProvider>().refreshProfiles();
-      context.read<NotificationProvider>().fetch();
-      context.read<FavouriteProvider>().getFavourites();
-      context.read<PopularProductProvider>().refresh();
-      context.read<GetMyOrderProvider>().fetchMyOrders(isRefresh: true);
-    });
+    AuthSession.refreshAppData(context);
   }
 
   @override
@@ -58,32 +58,32 @@ class _AuthGateState extends State<AuthGate> {
       return Scaffold(body: Utils.loadingLottie());
     }
 
-    if (!auth.isLoggedIn) {
-      return widget.fallback ??
-          Scaffold(
-            body: CustomBgContainer(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text("Login required"),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => LoginScreen()),
-                        );
-                      },
-                      child: const Text("Go to Login"),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
+    if (auth.isLoggedIn || widget.alwaysShowChild) {
+      return widget.child;
     }
 
-    return widget.child;
+    return widget.fallback ??
+        Scaffold(
+          body: CustomBgContainer(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text("Login required"),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => LoginScreen()),
+                      );
+                    },
+                    child: const Text("Go to Login"),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
   }
 }
