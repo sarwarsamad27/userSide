@@ -4,12 +4,6 @@ import 'package:user_side/models/chatModel/chatModel.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
 
-/// Bottom sheet for sharing product in chat (Daraz-style)
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:user_side/resources/appColor.dart';
-import 'package:user_side/resources/global.dart';
-
 /// Bottom sheet for sharing product in chat
 class ProductShareSheet extends StatefulWidget {
   final String productImage;
@@ -18,13 +12,14 @@ class ProductShareSheet extends StatefulWidget {
   final String? productDescription;
   final String brandName;
   final String sellerId;
-  
+
   // ✅ NEW: Structured product data callback
   final Function(
     String sellerId,
     Map<String, dynamic> productData, // ✅ Changed to Map
     String? message,
-  ) onSend;
+  )
+  onSend;
 
   const ProductShareSheet({
     super.key,
@@ -65,7 +60,7 @@ class _ProductShareSheetState extends State<ProductShareSheet> {
 
     // ✅ Close sheet FIRST
     Navigator.pop(context);
-    
+
     // ✅ Then call callback with structured data
     widget.onSend(
       widget.sellerId,
@@ -128,10 +123,7 @@ class _ProductShareSheetState extends State<ProductShareSheet> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(
-                  color: const Color(0xFFE5E7EB),
-                  width: 1.5,
-                ),
+                border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.04),
@@ -227,9 +219,7 @@ class _ProductShareSheetState extends State<ProductShareSheet> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFF3F4F6),
                       borderRadius: BorderRadius.circular(24.r),
-                      border: Border.all(
-                        color: const Color(0xFFE5E7EB),
-                      ),
+                      border: Border.all(color: const Color(0xFFE5E7EB)),
                     ),
                     child: TextField(
                       controller: _messageController,
@@ -291,22 +281,26 @@ class _ProductShareSheetState extends State<ProductShareSheet> {
   }
 }
 
-
-
 class ProductCardWidget extends StatelessWidget {
   final ProductCard productCard;
   final bool isMe;
-  
+
   const ProductCardWidget({
     super.key,
     required this.productCard,
     required this.isMe,
   });
 
-
-
+  @override
   @override
   Widget build(BuildContext context) {
+    // ✅ Image URL fix helper
+    String getImageUrl(String? path) {
+      if (path == null || path.isEmpty) return '';
+      if (path.startsWith('http')) return path;
+      return '${Global.imageUrl}$path';
+    }
+
     return Container(
       margin: EdgeInsets.only(
         bottom: 8.h,
@@ -317,10 +311,7 @@ class ProductCardWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: const Color(0xFFE5E7EB),
-            width: 1.5,
-          ),
+          border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
@@ -332,7 +323,7 @@ class ProductCardWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
+            // ── Header ──
             Container(
               padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
               decoration: BoxDecoration(
@@ -362,76 +353,105 @@ class ProductCardWidget extends StatelessWidget {
               ),
             ),
 
-            // Product Content
+            // ✅ IMAGE + DETAILS ROW
             Padding(
-              padding: EdgeInsets.all(14.w),
-              child: Column(
+              padding: EdgeInsets.all(12.w),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Product Name
-                  Text(
-                    productCard.productName ?? 'Product',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF111827),
-                      height: 1.3,
-                    ),
-                  ),
-
-                  SizedBox(height: 6.h),
-
-                  // Brand Name
-                  Text(
-                    productCard.brandName ?? 'Brand',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF6B7280),
-                    ),
-                  ),
-
-                  if (productCard.productDescription != null && 
-                      productCard.productDescription!.isNotEmpty) ...[
-                    SizedBox(height: 8.h),
-                    Text(
-                      productCard.productDescription!,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: const Color(0xFF6B7280),
-                        height: 1.4,
+                  // ✅ Product Image
+                  if (productCard.productImage != null &&
+                      productCard.productImage!.isNotEmpty)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10.r),
+                      child: Image.network(
+                        getImageUrl(productCard.productImage),
+                        width: 80.w,
+                        height: 80.w,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 80.w,
+                          height: 80.w,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF3F4F6),
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
+                          child: Icon(
+                            Icons.image_outlined,
+                            size: 32.sp,
+                            color: const Color(0xFF9CA3AF),
+                          ),
+                        ),
                       ),
                     ),
-                  ],
 
-                  SizedBox(height: 12.h),
+                  SizedBox(width: 12.w),
 
-                  // Price Badge
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 12.w,
-                      vertical: 6.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColor.primaryColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: AppColor.primaryColor.withOpacity(0.3),
-                      ),
-                    ),
-                    child: Text(
-                      "Rs: ${productCard.productPrice ?? '0'}",
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w900,
-                        color: AppColor.primaryColor,
-                      ),
+                  // ✅ Product Details
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          productCard.productName ?? 'Product',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF111827),
+                            height: 1.3,
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          productCard.brandName ?? 'Brand',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF6B7280),
+                          ),
+                        ),
+                        if (productCard.productDescription != null &&
+                            productCard.productDescription!.isNotEmpty) ...[
+                          SizedBox(height: 4.h),
+                          Text(
+                            productCard.productDescription!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: const Color(0xFF6B7280),
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                        SizedBox(height: 8.h),
+                        // Price Badge
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 6.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColor.primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: AppColor.primaryColor.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Text(
+                            "Rs: ${productCard.productPrice ?? '0'}",
+                            style: TextStyle(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w900,
+                              color: AppColor.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

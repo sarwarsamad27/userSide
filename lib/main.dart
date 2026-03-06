@@ -22,10 +22,9 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await NotificationService.init();
 
-  // ✅ Push tap -> NotificationScreen
   await NotificationRouter.init();
   await AuthSession.instance.init();
-  ConnectivityService.instance.init(); // ✅ Monitor internet globally
+  ConnectivityService.instance.init();
   runApp(const AppWrapper());
 }
 
@@ -56,20 +55,16 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _initDeepLinks() async {
-    // Cold start deep link
     final Uri? initialUri = await _appLinks.getInitialLink();
     if (initialUri != null) {
       _handleDeepLink(initialUri);
     }
-
-    // Foreground/background deep link
     _sub = _appLinks.uriLinkStream.listen((Uri uri) {
       _handleDeepLink(uri);
     }, onError: (_) {});
   }
 
   void _handleDeepLink(Uri uri) {
-    // expecting: shookoo://product?productId=...&categoryId=...&profileId=...
     if (uri.scheme != "shookoo" || uri.host != "product") return;
 
     final productId = uri.queryParameters["productId"];
@@ -78,7 +73,6 @@ class _MyAppState extends State<MyApp> {
 
     if (productId == null || categoryId == null || profileId == null) return;
 
-    // ✅ Use the SAME navigatorKey as push routing
     NotificationRouter.navigatorKey.currentState?.push(
       MaterialPageRoute(
         builder: (_) => ProductDetailScreen(

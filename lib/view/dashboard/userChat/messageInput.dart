@@ -25,7 +25,7 @@ class _MessageInputState extends State<MessageInput> {
     final p = context.read<UserChatProvider>();
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+      padding: EdgeInsets.only(left: 12.w, right: 12.w, top: 18.h),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -36,46 +36,38 @@ class _MessageInputState extends State<MessageInput> {
           ),
         ],
       ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            IconButton(
-              icon: Icon(Icons.attach_file, color: Colors.black54, size: 24.sp),
-              onPressed: () {},
-            ),
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 14.w),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0F0F0),
-                  borderRadius: BorderRadius.circular(25.r),
-                ),
-                child: TextField(
-                  controller: _controller,
-                  onChanged: p.onTyping,
-                  decoration: InputDecoration(
-                    hintText: "Type a message",
-                    hintStyle: TextStyle(fontSize: 14.sp, color: Colors.black38),
-                    border: InputBorder.none,
-                    suffixIcon: IconButton(
-                      icon: Icon(Icons.emoji_emotions_outlined, color: Colors.black54, size: 22.sp),
-                      onPressed: () {},
-                    ),
-                  ),
-                  maxLines: null,
-                  textCapitalization: TextCapitalization.sentences,
-                ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              maxLength: 6,
+              onChanged: p.onTyping,
+              decoration: InputDecoration(
+                hintText: "Type a message",
+                hintStyle: TextStyle(fontSize: 14.sp, color: Colors.black38),
+                border: InputBorder.none,
               ),
+              maxLines: null,
+              textCapitalization: TextCapitalization.sentences,
             ),
-            SizedBox(width: 8.w),
-            GestureDetector(
-              onTap: () {
-                final text = _controller.text;
-                _controller.clear();
-                p.sendMessage(text);
-              },
+          ),
+          SizedBox(width: 8.w),
+          GestureDetector(
+            onTap: () {
+              final text = _controller.text;
+              _controller.clear();
+              p.sendMessage(text);
+            },
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 24.h),
               child: Container(
-                padding: EdgeInsets.all(12.w),
+                padding: EdgeInsets.only(
+                  left: 12.w,
+                  right: 12.w,
+                  top: 12.h,
+                  bottom: 12.h,
+                ),
                 decoration: BoxDecoration(
                   color: AppColor.primaryColor,
                   shape: BoxShape.circle,
@@ -83,8 +75,8 @@ class _MessageInputState extends State<MessageInput> {
                 child: Icon(Icons.send, color: Colors.white, size: 20.sp),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

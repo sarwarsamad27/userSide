@@ -59,7 +59,8 @@ class UserChatProvider extends ChangeNotifier {
     if (_disposed) return;
 
     final phase = WidgetsBinding.instance.schedulerPhase;
-    final isBuilding = phase == SchedulerPhase.persistentCallbacks ||
+    final isBuilding =
+        phase == SchedulerPhase.persistentCallbacks ||
         phase == SchedulerPhase.midFrameMicrotasks;
 
     if (isBuilding) {
@@ -101,21 +102,24 @@ class UserChatProvider extends ChangeNotifier {
     markMessagesAsDelivered();
     markMessagesAsRead();
 
-    // ✅ Send product card + message if provided
-    _sendProductIfProvided();
-
     isLoadingHistory = false;
     _safeNotify();
+
+    // ✅ FIX: Thodi delay ke baad send karo taake socket fully ready ho
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _sendProductIfProvided();
+    });
   }
 
   /// ✅ FIXED: Direct access to structured data (NO PARSING)
   void _sendProductIfProvided() {
     if (_productSent) return;
-    
     if (initialProductData == null || initialProductData!.isEmpty) return;
 
+    // ✅ Pehle hi true kar do taake double send na ho
+    _productSent = true;
+
     try {
-      // ✅ Direct access - NO text parsing needed
       _sendProductCardMessage(
         productName: initialProductData!['productName'] ?? 'Product',
         brandName: initialProductData!['brandName'] ?? 'Brand',
@@ -124,10 +128,9 @@ class UserChatProvider extends ChangeNotifier {
         productImage: initialProductData!['productImage'] ?? '',
         additionalMessage: initialMessage,
       );
-      
-      _productSent = true;
     } catch (e) {
       print('❌ Error sending product card: $e');
+      _productSent = false; // ✅ Error pe reset karo taake retry ho sake
     }
   }
 
@@ -141,7 +144,22 @@ class UserChatProvider extends ChangeNotifier {
     String? additionalMessage,
   }) {
     final socket = SocketService().socket;
-    if (socket == null || !socket.connected) return;
+
+    // ✅ FIX: Socket ready nahi to retry karo
+    if (socket == null || !socket.connected) {
+      print('⚠️ Socket not ready, retrying in 1s...');
+      Future.delayed(const Duration(seconds: 1), () {
+        _sendProductCardMessage(
+          productName: productName,
+          brandName: brandName,
+          price: price,
+          description: description,
+          productImage: productImage,
+          additionalMessage: additionalMessage,
+        );
+      });
+      return;
+    }
 
     final now = DateTime.now();
     final tempId = "temp_${now.millisecondsSinceEpoch}";
@@ -151,8 +169,16 @@ class UserChatProvider extends ChangeNotifier {
     _pendingClientMap[clientId] = tempId;
     _processedMessageIds.add(tempId);
 
-    // ✅ Create display text
     final displayText = "📦 $productName";
+
+    // ✅ Temp product card — UI mein foran dikhega
+    final tempProductCard = ProductCard(
+      productName: productName,
+      brandName: brandName,
+      productPrice: price,
+      productDescription: description,
+      productImage: productImage,
+    );
 
     final tempMsg = ChatMessage(
       id: tempId,
@@ -160,20 +186,13 @@ class UserChatProvider extends ChangeNotifier {
       fromType: "buyer",
       text: displayText,
       timestamp: tempTs,
-      productCard: ProductCard(
-        productName: productName,
-        brandName: brandName,
-        productPrice: price,
-        productDescription: description,
-        productImage: productImage, // ✅ Include image
-      ),
+      productCard: tempProductCard,
     );
 
     _registerFingerprint(tempMsg);
     messages.insert(0, tempMsg);
     _safeNotify();
 
-    // ✅ Send complete product data to socket
     socket.emitWithAck(
       "chat:send",
       {
@@ -192,35 +211,59 @@ class UserChatProvider extends ChangeNotifier {
         },
       },
       ack: (resp) {
+        print('🔍 ACK response: $resp');
+
         if (resp is! Map || resp["ok"] != true || resp["data"] == null) return;
 
         final serverMessage = ChatMessage.fromJson(
           Map<String, dynamic>.from(resp["data"]),
         );
 
+        print('🔍 Server productCard: ${serverMessage.productCard}');
+
         _processedClientIds.add(clientId);
 
         final tId = _pendingClientMap.remove(clientId);
         if (tId == null) {
-          if (serverMessage.id != null) _processedMessageIds.add(serverMessage.id!);
+          if (serverMessage.id != null)
+            _processedMessageIds.add(serverMessage.id!);
           _registerFingerprint(serverMessage);
           return;
         }
 
         final idx = messages.indexWhere((m) => m.id == tId);
         if (idx != -1) {
-          messages[idx] = serverMessage;
+          // ✅ KEY FIX: Server productCard null ho to temp wala preserve karo
+          final preservedProductCard =
+              serverMessage.productCard ?? messages[idx].productCard;
+
+          final finalMessage = ChatMessage(
+            id: serverMessage.id,
+            threadId: serverMessage.threadId,
+            fromType: serverMessage.fromType,
+            fromId: serverMessage.fromId,
+            text: serverMessage.text,
+            timestamp: serverMessage.timestamp,
+            deliveredAt: serverMessage.deliveredAt,
+            readAt: serverMessage.readAt,
+            isExchangeRequest: serverMessage.isExchangeRequest,
+            exchangeData: serverMessage.exchangeData,
+            productCard: preservedProductCard, // ✅ Kabhi null nahi hoga
+          );
+
+          messages[idx] = finalMessage;
           _processedMessageIds.remove(tId);
-          if (serverMessage.id != null) _processedMessageIds.add(serverMessage.id!);
-          _registerFingerprint(serverMessage);
+          if (finalMessage.id != null)
+            _processedMessageIds.add(finalMessage.id!);
+          _registerFingerprint(finalMessage);
           _safeNotify();
         }
       },
     );
 
-    // ✅ Send additional message if provided
+    // ✅ Additional message thodi delay ke baad
     if (additionalMessage != null && additionalMessage.isNotEmpty) {
-      Future.delayed(const Duration(milliseconds: 300), () {
+      Future.delayed(const Duration(milliseconds: 500), () {
         sendMessage(additionalMessage);
       });
     }
@@ -237,6 +280,14 @@ class UserChatProvider extends ChangeNotifier {
         final data = json.decode(response.body);
         final List<dynamic> messagesData = data['messages'] ?? [];
 
+        // ✅ DEBUG: Server history check karo
+        print('📦 Total messages from server: ${messagesData.length}');
+        for (var msgData in messagesData) {
+          if (msgData['productCard'] != null) {
+            print('✅ ProductCard found in history: ${msgData['productCard']}');
+          }
+        }
+
         messages.clear();
         _processedMessageIds.clear();
         _processedClientIds.clear();
@@ -244,14 +295,43 @@ class UserChatProvider extends ChangeNotifier {
         _recentMsgKeys.clear();
 
         for (var msgData in messagesData.reversed) {
-          final msg = ChatMessage.fromJson(Map<String, dynamic>.from(msgData));
-          messages.add(msg);
-          if (msg.id != null) _processedMessageIds.add(msg.id!);
-          _registerFingerprint(msg);
+          final rawMap = Map<String, dynamic>.from(msgData);
+
+          // ✅ FIX: productCard manually parse karo agar nested ho
+          final msg = ChatMessage.fromJson(rawMap);
+
+          // ✅ FIX: Agar productCard parse nahi hua lekin data exist karta hai
+          final fixedMsg =
+              (msg.productCard == null && rawMap['productCard'] != null)
+              ? ChatMessage(
+                  id: msg.id,
+                  threadId: msg.threadId,
+                  fromType: msg.fromType,
+                  fromId: msg.fromId,
+                  text: msg.text,
+                  timestamp: msg.timestamp,
+                  deliveredAt: msg.deliveredAt,
+                  readAt: msg.readAt,
+                  isExchangeRequest: msg.isExchangeRequest,
+                  exchangeData: msg.exchangeData,
+                  productCard: ProductCard.fromJson(
+                    Map<String, dynamic>.from(rawMap['productCard']),
+                  ),
+                )
+              : msg;
+
+          messages.add(fixedMsg);
+          if (fixedMsg.id != null) _processedMessageIds.add(fixedMsg.id!);
+          _registerFingerprint(fixedMsg);
         }
+
         _safeNotify();
+      } else {
+        print('❌ History load failed: ${response.statusCode}');
       }
-    } catch (_) {}
+    } catch (e) {
+      print('❌ _loadChatHistory error: $e');
+    }
   }
 
   // ==============================
@@ -363,7 +443,9 @@ class UserChatProvider extends ChangeNotifier {
           Map<String, dynamic>.from(data),
         );
 
-        final idx = tempId == null ? -1 : messages.indexWhere((m) => m.id == tempId);
+        final idx = tempId == null
+            ? -1
+            : messages.indexWhere((m) => m.id == tempId);
 
         if (idx != -1) {
           messages[idx] = newMessage;
@@ -384,9 +466,7 @@ class UserChatProvider extends ChangeNotifier {
       }
 
       // normal insert
-      final newMessage = ChatMessage.fromJson(
-        Map<String, dynamic>.from(data),
-      );
+      final newMessage = ChatMessage.fromJson(Map<String, dynamic>.from(data));
       messages.insert(0, newMessage);
       if (newMessage.id != null) _processedMessageIds.add(newMessage.id!);
       if (fromType == "buyer" && clientId != null) {
@@ -518,7 +598,8 @@ class UserChatProvider extends ChangeNotifier {
 
         final tId = _pendingClientMap.remove(clientId);
         if (tId == null) {
-          if (serverMessage.id != null) _processedMessageIds.add(serverMessage.id!);
+          if (serverMessage.id != null)
+            _processedMessageIds.add(serverMessage.id!);
           _registerFingerprint(serverMessage);
           return;
         }
@@ -527,11 +608,13 @@ class UserChatProvider extends ChangeNotifier {
         if (idx != -1) {
           messages[idx] = serverMessage;
           _processedMessageIds.remove(tId);
-          if (serverMessage.id != null) _processedMessageIds.add(serverMessage.id!);
+          if (serverMessage.id != null)
+            _processedMessageIds.add(serverMessage.id!);
           _registerFingerprint(serverMessage);
           _safeNotify();
         } else {
-          if (serverMessage.id != null) _processedMessageIds.add(serverMessage.id!);
+          if (serverMessage.id != null)
+            _processedMessageIds.add(serverMessage.id!);
           _registerFingerprint(serverMessage);
         }
       },
@@ -571,7 +654,9 @@ class UserChatProvider extends ChangeNotifier {
     if (socket == null || !socket.connected) return;
 
     final ids = messages
-        .where((m) => m.fromType != "buyer" && m.deliveredAt == null && m.id != null)
+        .where(
+          (m) => m.fromType != "buyer" && m.deliveredAt == null && m.id != null,
+        )
         .map((m) => m.id!)
         .toList();
 
@@ -603,7 +688,10 @@ class UserChatProvider extends ChangeNotifier {
   void markSingleMessageRead(String messageId) {
     final socket = SocketService().socket;
     if (socket == null || !socket.connected) return;
-    socket.emit("chat:read", {"threadId": threadId, "messageIds": [messageId]});
+    socket.emit("chat:read", {
+      "threadId": threadId,
+      "messageIds": [messageId],
+    });
   }
 
   // ==============================

@@ -14,7 +14,7 @@ class SocketService {
 
   Future<IO.Socket?> ensureConnected({
     required String baseUrl,
-    required Map<String, dynamic> auth, // ✅ token OR buyerId
+    required Map<String, dynamic> auth, 
     String path = "/socket.io",
   }) async {
     if (_socket != null && _socket!.connected) return _socket;
@@ -42,7 +42,7 @@ class SocketService {
             .setReconnectionAttempts(10)
             .setReconnectionDelay(800)
             .setTimeout(8000)
-            .setAuth(auth) // ✅ important
+            .setAuth(auth) 
             .build(),
       );
 

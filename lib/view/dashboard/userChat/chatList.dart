@@ -38,14 +38,24 @@ class ChatList extends StatelessWidget {
               return ExchangeRequestCard(message: m);
             }
 
-            // ✅ Product Card
             if (m.productCard != null) {
-              return ProductCardWidget(
-                productCard: m.productCard!,
-                isMe: m.fromType == "buyer",
+              return Column(
+                crossAxisAlignment: m.fromType == "buyer"
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
+                children: [
+                  ProductCardWidget(
+                    productCard: m.productCard!,
+                    isMe: m.fromType == "buyer",
+                  ),
+                  // Optional: extra message bhi show karo agar hai
+                  if (m.text != null &&
+                      m.text!.isNotEmpty &&
+                      !m.text!.startsWith("📦"))
+                    MessageBubble(message: m),
+                ],
               );
             }
-
             // ✅ Regular Message
             return MessageBubble(message: m);
           },
