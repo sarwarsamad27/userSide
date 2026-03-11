@@ -11,7 +11,7 @@ class HelpCenterScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColor.appimagecolor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColor.appimagecolor,
         elevation: 0,
         centerTitle: true,
         title: Text(
@@ -50,13 +50,23 @@ class HelpCenterScreen extends StatelessWidget {
 
                   /// 📞 Contact Options
                   Card(
+                    color: const Color.fromARGB(255, 241, 137, 68),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.r),
                     ),
                     child: ListTile(
-                      leading: Icon(Icons.phone, color: AppColor.primaryColor),
-                      title: const Text("Call Us"),
-                      subtitle: const Text("+91 98765 43210"),
+                      leading: Icon(Icons.phone, color: AppColor.successColor),
+                      title: const Text(
+                        "Call Us",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: const Text(
+                        "+91 98765 43210",
+                        style: TextStyle(color: Colors.white70),
+                      ),
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () {
                         // Call logic or linking here
@@ -66,16 +76,26 @@ class HelpCenterScreen extends StatelessWidget {
                   SizedBox(height: 10.h),
 
                   Card(
+                    color: const Color.fromARGB(255, 241, 137, 68),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.r),
                     ),
                     child: ListTile(
                       leading: Icon(
                         Icons.email_outlined,
-                        color: AppColor.primaryColor,
+                        color: AppColor.successColor,
                       ),
-                      title: const Text("Email Support"),
-                      subtitle: const Text("support@nichee.com"),
+                      title: const Text(
+                        "Email Support",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: const Text(
+                        "support@nichee.com",
+                        style: TextStyle(color: Colors.white70),
+                      ),
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () {
                         // Open mail app
@@ -85,16 +105,26 @@ class HelpCenterScreen extends StatelessWidget {
                   SizedBox(height: 10.h),
 
                   Card(
+                    color: const Color.fromARGB(255, 241, 137, 68),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.r),
                     ),
                     child: ListTile(
                       leading: Icon(
                         Icons.chat_bubble_outline,
-                        color: AppColor.primaryColor,
+                        color: AppColor.successColor,
                       ),
-                      title: const Text("Chat with Us"),
-                      subtitle: const Text("Available 9 AM - 8 PM"),
+                      title: const Text(
+                        "Chat with Us",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: const Text(
+                        "Available 9 AM - 8 PM",
+                        style: TextStyle(color: Colors.white70),
+                      ),
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () {
                         // Chat support screen or link

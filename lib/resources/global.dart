@@ -1,12 +1,12 @@
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps
 
 class Global {
-  // static var imageUrl = "http://192.168.88.61:5000";
+  static var imageUrl = "http://192.168.88.59:5000";
 
-  // static var BaseUrl = "http://192.168.88.61:5000/api/auth";
-  static var BaseUrl = "http://10.0.2.2:5000/api/auth";
+  static var BaseUrl = "http://192.168.88.59:5000/api/auth";
+  // static var BaseUrl = "http://10.0.2.2:5000/api/auth";
 
-  static var imageUrl = "http://10.0.2.2:5000";
+  // static var imageUrl = "http://10.0.2.2:5000";
 
   static var SignUp = "${BaseUrl}/buyer/signup";
   static var Login = "${BaseUrl}/buyer/login";
@@ -44,4 +44,17 @@ class Global {
   static var createExchangeRequest = "${BaseUrl}/buyer/create/exchange/request";
   static var ChatMessages = "${BaseUrl}/buyer/chat/messages";
   static var ChatThreads = "${BaseUrl}/buyer/chat/threads";
+  static var WalletBalance = "${BaseUrl}/buyer/wallet/balance";
+  static var AddMoneySendOtp = "${BaseUrl}/buyer/wallet/add-money/send-otp";
+  static var AddMoneyVerifyOtp = "${BaseUrl}/buyer/wallet/add-money/verify-otp";
+  static var SendMoneySendOtp = "${BaseUrl}/buyer/wallet/send-money/send-otp";
+  static var SendMoneyVerifyOtp =
+      "${BaseUrl}/buyer/wallet/send-money/verify-otp";
+  static var WalletTransactions = "${BaseUrl}/buyer/wallet/transactions";
+  static var PaymentMethods = "${BaseUrl}/buyer/wallet/payment-methods";
+  static var AddPaymentMethod = "${BaseUrl}/buyer/wallet/payment-methods/add";
+  static var SetDefaultMethod =
+      "${BaseUrl}/buyer/wallet/payment-methods/set-default";
+  static var DeletePaymentMethod =
+      "${BaseUrl}/buyer/wallet/payment-methods/delete";
 }

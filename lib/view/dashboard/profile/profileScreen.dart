@@ -15,10 +15,12 @@ import 'package:user_side/view/dashboard/profile/offer.dart';
 import 'package:user_side/view/dashboard/profile/order/orderHistory.dart';
 import 'package:user_side/view/dashboard/profile/setting.dart';
 import 'package:user_side/view/dashboard/profile/termAndCondition.dart';
+import 'package:user_side/view/dashboard/profile/wallet/walletScreen.dart';
 import 'package:user_side/view/dashboard/profile/widgets/optionTile.dart';
 import 'package:user_side/view/dashboard/profile/widgets/premiumOfferCard.dart';
 import 'package:user_side/viewModel/provider/authProvider/signInWithGoogle_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/recommendedProduct_provider.dart';
+import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 import 'package:user_side/widgets/customButton.dart';
 import 'package:user_side/widgets/productCard.dart';
@@ -35,11 +37,10 @@ class _ProfilescreenState extends State<Profilescreen> {
   late final PageController _offerPageController;
   Timer? _offerTimer;
 
-  static const int _kLoopBase = 1000; // start in middle for "infinite"
+  static const int _kLoopBase = 1000;
   int _pageIndex = _kLoopBase;
   final ValueNotifier<int> _activeIndexNotifier = ValueNotifier(0);
 
-  // Auto-slide config (increased)
   final Duration _autoSlideDuration = const Duration(seconds: 4);
   final Duration _slideAnimationDuration = const Duration(milliseconds: 650);
 
@@ -76,11 +77,16 @@ class _ProfilescreenState extends State<Profilescreen> {
       initialPage: _pageIndex,
     );
 
-    // Update notifier slightly to init
     _activeIndexNotifier.value = _mapToOfferIndex(_pageIndex);
-
     _loadRecommendations();
     _startAutoOffers();
+    // initState mein add karo (existing _loadRecommendations ke baad)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final buyerId = context.read<AuthSession>().userId;
+      if (buyerId != null) {
+        context.read<WalletProvider>().fetchBalance(buyerId);
+      }
+    });
   }
 
   @override
@@ -103,9 +109,7 @@ class _ProfilescreenState extends State<Profilescreen> {
       if (!mounted) return;
       if (!_offerPageController.hasClients) return;
       if (_offers.isEmpty) return;
-
-      _pageIndex++; // Local var, doesn't need setState if controller animates
-
+      _pageIndex++;
       _offerPageController.animateToPage(
         _pageIndex,
         duration: _slideAnimationDuration,
@@ -117,16 +121,24 @@ class _ProfilescreenState extends State<Profilescreen> {
   Future<void> _loadRecommendations() async {
     final deviceId = await LocalStorage.getOrCreateDeviceId();
     if (!mounted) return;
-
     Provider.of<RecommendationProvider>(
       context,
       listen: false,
     ).fetchRecommendations(deviceId);
   }
 
+  // ✅ Format balance with comma separator
+  String _formatBalance(double amount) {
+    if (amount >= 1000) {
+      return 'Rs ${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
+    }
+    return 'Rs ${amount.toStringAsFixed(0)}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLoggedIn = context.watch<AuthSession>().isLoggedIn;
+
     return Scaffold(
       backgroundColor: AppColor.appimagecolor,
       appBar: AppBar(
@@ -135,12 +147,6 @@ class _ProfilescreenState extends State<Profilescreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircleAvatar(
-              radius: 20.r,
-              backgroundColor: AppColor.primaryColor.withOpacity(.3),
-              child: const Text("😊", style: TextStyle(fontSize: 20)),
-            ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
-            SizedBox(width: 12.w),
             Text(
               "Hi, D!",
               style: TextStyle(
@@ -151,18 +157,6 @@ class _ProfilescreenState extends State<Profilescreen> {
             ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.2),
           ],
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => SettingsScreen()),
-              );
-            },
-            icon: const Icon(Icons.settings, color: Colors.black, size: 26),
-          ),
-          SizedBox(width: 10.w),
-        ],
       ),
       body: CustomBgContainer(
         child: SingleChildScrollView(
@@ -179,7 +173,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                   builder: (context, activeIndex, _) {
                     return PageView.builder(
                       controller: _offerPageController,
-                      itemCount: 1000000, // large for infinite illusion
+                      itemCount: 1000000,
                       onPageChanged: (page) {
                         _pageIndex = page;
                         _activeIndexNotifier.value = _mapToOfferIndex(page);
@@ -187,7 +181,6 @@ class _ProfilescreenState extends State<Profilescreen> {
                       itemBuilder: (context, page) {
                         final offerIndex = _mapToOfferIndex(page);
                         final data = _offers[offerIndex];
-
                         final bool isActive = offerIndex == activeIndex;
 
                         return AnimatedScale(
@@ -212,7 +205,7 @@ class _ProfilescreenState extends State<Profilescreen> {
 
               SizedBox(height: 10.h),
 
-              // Dots Indicator (premium)
+              // Dots Indicator
               ValueListenableBuilder<int>(
                 valueListenable: _activeIndexNotifier,
                 builder: (context, activeIndex, _) {
@@ -237,7 +230,289 @@ class _ProfilescreenState extends State<Profilescreen> {
                 },
               ),
 
-              SizedBox(height: 15.h),
+              SizedBox(height: 20.h),
+
+              // ✅ ═══════════════════════════════════════════════════
+              // WALLET BANNER — yahan se start hota hai wallet section
+              // ════════════════════════════════════════════════════════
+              // Login check ke baad conditionally show karo:
+              if (isLoggedIn)
+                // ✅ Wallet Banner — logged in users ke liye
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w),
+                  child: GestureDetector(
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const WalletScreen()),
+                      );
+                    },
+                    child: Consumer<WalletProvider>(
+                      builder: (context, wallet, _) {
+                        return Container(
+                          padding: EdgeInsets.all(18.r),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [
+                                AppColor.appimagecolor,
+                                Color.fromARGB(255, 244, 164, 111),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFF1A1A2E,
+                                ).withOpacity(0.25),
+                                blurRadius: 20,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 54.r,
+                                height: 54.r,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(16.r),
+                                ),
+                                child: const Center(
+                                  child: Text(
+                                    '💳',
+                                    style: TextStyle(fontSize: 26),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 16.w),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'My Wallet',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    SizedBox(height: 5.h),
+                                    wallet.balanceLoading
+                                        ? SizedBox(
+                                            width: 16.r,
+                                            height: 16.r,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white70,
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : Text(
+                                            _formatBalance(wallet.balance),
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 13.sp,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const WalletScreen(),
+                                      ),
+                                    ),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 12.w,
+                                        vertical: 6.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF00C853),
+                                        borderRadius: BorderRadius.circular(
+                                          20.r,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.add_rounded,
+                                            color: Colors.white,
+                                            size: 13.r,
+                                          ),
+                                          SizedBox(width: 3.w),
+                                          Text(
+                                            'Add',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 10.w,
+                                      vertical: 5.h,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.12),
+                                      borderRadius: BorderRadius.circular(20.r),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          'Open',
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 11.sp,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        SizedBox(width: 3.w),
+                                        Icon(
+                                          Icons.arrow_forward_ios_rounded,
+                                          color: Colors.white54,
+                                          size: 10.r,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.1)
+              else
+                // ✅ Login Banner — guest users ke liye
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w),
+                  child: GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    ),
+                    child: Container(
+                      padding: EdgeInsets.all(20.r),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFF6B6B).withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          // Lock Icon
+                          Container(
+                            width: 54.r,
+                            height: 54.r,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(16.r),
+                            ),
+                            child: const Center(
+                              child: Text('🔐', style: TextStyle(fontSize: 26)),
+                            ),
+                          ),
+                          SizedBox(width: 16.w),
+
+                          // Text
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Unlock Your Wallet',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                SizedBox(height: 5.h),
+                                Text(
+                                  'Login to access payments & rewards',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.85),
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Login Button
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 14.w,
+                              vertical: 10.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20.r),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.login_rounded,
+                                  color: const Color(0xFFFF6B6B),
+                                  size: 16.r,
+                                ),
+                                SizedBox(width: 5.w),
+                                Text(
+                                  'Login',
+                                  style: TextStyle(
+                                    color: const Color(0xFFFF6B6B),
+                                    fontSize: 13.sp,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.1),
+              SizedBox(height: 20.h),
 
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8.w),
@@ -278,19 +553,19 @@ class _ProfilescreenState extends State<Profilescreen> {
                         padding: EdgeInsets.zero,
                         scrollDirection: Axis.horizontal,
                         itemCount: provider.products.length,
-                        separatorBuilder: (_, __) => SizedBox(width: 8.w),
+                        separatorBuilder: (_, __) => SizedBox(width: 4.w),
                         itemBuilder: (context, index) {
                           final product = provider.products[index];
 
                           return SizedBox(
-                                width: 180.w,
+                                width: 190.w,
                                 child: ProductCard(
                                   name: product.name,
                                   price: product.afterDiscountPrice.toString(),
                                   imageUrl: product.images.isNotEmpty
                                       ? product.images.first
                                       : "",
-                                  averageRating: product.averageRating, // ✅
+                                  averageRating: product.averageRating,
                                   description: product.description,
                                   onTap: () {
                                     Navigator.push(
@@ -315,6 +590,8 @@ class _ProfilescreenState extends State<Profilescreen> {
                   },
                 ),
               ),
+
+              SizedBox(height: 15.h),
 
               /// 🔹 Quick Options
               Padding(
@@ -365,7 +642,6 @@ class _ProfilescreenState extends State<Profilescreen> {
                           context,
                           Icons.history,
                           "Order History",
-
                           Colors.pinkAccent,
                           OrderHistoryScreen(),
                         ),

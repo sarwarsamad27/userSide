@@ -30,6 +30,7 @@ import 'package:user_side/viewModel/provider/productProvider/getPopularCategory_
 import 'package:user_side/viewModel/provider/productProvider/getPopularProduct_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/productShare_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/reviewEditOrDelete_provider.dart';
+import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
 
 class AppMultiProvider extends StatelessWidget {
   final Widget child;
@@ -75,6 +76,7 @@ class AppMultiProvider extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FollowProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ExchangeProvider()),
+          ChangeNotifierProvider(create: (_) => WalletProvider()),
         ChangeNotifierProvider(create: (_) => ChatThreadProvider()),
         ChangeNotifierProvider<AuthSession>.value(value: AuthSession.instance),
       ],
