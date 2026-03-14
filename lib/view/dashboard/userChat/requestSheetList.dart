@@ -52,7 +52,6 @@ class _ExchangeRequestsScreenState extends State<ExchangeRequestsScreen> {
       requestId: requestId,
       buyerId: buyerId!, // ✅ buyerId pass kar rahe hain
       authHeaders: authHeaders,
-      baseUrl: baseUrl,
     );
 
     if (file == null) {

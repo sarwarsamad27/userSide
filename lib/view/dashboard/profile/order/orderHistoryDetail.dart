@@ -245,7 +245,7 @@ class OrderDetailScreen extends StatelessWidget {
 
     try {
       final delivered = DateTime.parse(deliveredAtOrUpdatedAt);
-      final expiry = delivered.add(const Duration(days: 10));
+      final expiry = delivered.add(const Duration(days: 43));
       return DateTime.now().isBefore(expiry);
     } catch (_) {
       return false;

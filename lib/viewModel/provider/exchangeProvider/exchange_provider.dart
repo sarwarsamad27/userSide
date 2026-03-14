@@ -1,4 +1,5 @@
-// exchange_provider.dart
+// viewModel/provider/exchangeProvider/exchange_provider.dart
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -6,51 +7,60 @@ import 'package:user_side/models/chatModel/exchangeRequestModel.dart';
 import 'package:user_side/viewModel/repository/chatRepository/chat_repository.dart';
 
 class ExchangeProvider extends ChangeNotifier {
-  final ExchangeRepository repository = ExchangeRepository();
+  final ExchangeRepository _repo = ExchangeRepository();
 
+  // ── State ─────────────────────────────────────────────────────
   bool loading = false;
   bool creating = false;
+  bool uploadingProof = false;
 
   ExchangeRequestListModel? listModel;
   ExchangeRequestModel? createModel;
+  ExchangeRequestModel? proofModel;
 
+  String? errorMessage;
+
+  // ── Fetch list ────────────────────────────────────────────────
   Future<void> fetchMyRequests(String buyerId) async {
     loading = true;
+    errorMessage = null;
     notifyListeners();
-
     try {
-      listModel = await repository.listMyExchangeRequests(buyerId);
+      listModel = await _repo.listMyExchangeRequests(buyerId);
     } catch (e) {
-      listModel = ExchangeRequestListModel(message: "Error: $e", requests: []);
+      errorMessage = "Failed to load: $e";
     }
-
     loading = false;
     notifyListeners();
   }
 
+  // ── Create request ────────────────────────────────────────────
   Future<bool> createRequest({
     required String buyerId,
     required String orderId,
     required String productId,
     required String reason,
-    List<String>? images, // ✅ NEW
+    required String reasonCategory,
+    List<String> images = const [],
   }) async {
     creating = true;
+    errorMessage = null;
     notifyListeners();
 
     bool ok = false;
-
     try {
-      createModel = await repository.createExchangeRequest(
+      createModel = await _repo.createExchangeRequest(
         buyerId: buyerId,
         orderId: orderId,
         productId: productId,
         reason: reason,
-        images: images ?? [],
+        reasonCategory: reasonCategory,
+        images: images,
       );
-      ok = (createModel?.exchangeRequest != null);
+      ok = createModel?.exchangeRequest != null;
+      if (!ok) errorMessage = createModel?.message;
     } catch (e) {
-      createModel = ExchangeRequestModel(message: "Error: $e");
+      errorMessage = "Error: $e";
     }
 
     creating = false;
@@ -58,19 +68,68 @@ class ExchangeProvider extends ChangeNotifier {
     return ok;
   }
 
+  // ── Upload return proof ───────────────────────────────────────
+  Future<bool> uploadReturnProof({
+    required String exchangeId,
+    required String buyerId,
+    required String trackingNumber,
+    required String courierName,
+    List<String> proofImages = const [],
+  }) async {
+    uploadingProof = true;
+    errorMessage = null;
+    notifyListeners();
+
+    bool ok = false;
+    try {
+      proofModel = await _repo.uploadReturnProof(
+        exchangeId: exchangeId,
+        buyerId: buyerId,
+        trackingNumber: trackingNumber,
+        courierName: courierName,
+        proofImages: proofImages,
+      );
+      ok = proofModel?.exchangeRequest != null;
+      if (!ok) errorMessage = proofModel?.message;
+
+      // Update local list
+      if (ok && listModel != null) {
+        final updated = listModel!.requests.map((r) {
+          if (r.id == exchangeId) return proofModel!.exchangeRequest!;
+          return r;
+        }).toList();
+        listModel = ExchangeRequestListModel(
+          message: listModel!.message,
+          requests: updated,
+        );
+      }
+    } catch (e) {
+      errorMessage = "Error: $e";
+    }
+
+    uploadingProof = false;
+    notifyListeners();
+    return ok;
+  }
+
+  // ── Download PDF ──────────────────────────────────────────────
   Future<File?> downloadPdf({
     required String requestId,
     required String buyerId,
     required Map<String, String> authHeaders,
-    String? baseUrl,
   }) async {
-    final dir = await getApplicationDocumentsDirectory();
-    return repository.downloadExchangePdf(
-      requestId: requestId,
-      buyerId: buyerId,
-      saveDir: dir,
-      authHeaders: authHeaders,
-      baseUrl: baseUrl,
-    );
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      return await _repo.downloadExchangePdf(
+        requestId: requestId,
+        buyerId: buyerId,
+        saveDir: dir,
+        authHeaders: authHeaders,
+      );
+    } catch (e) {
+      errorMessage = "PDF download failed: $e";
+      notifyListeners();
+      return null;
+    }
   }
 }
