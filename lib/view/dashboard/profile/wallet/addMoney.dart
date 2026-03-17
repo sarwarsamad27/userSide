@@ -419,6 +419,12 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
 
   // ── OTP Verification Screen ───────────────────────────────────────────────
   Widget _buildOtpScreen(WalletProvider wallet) {
+
+
+    final isJazzcash = _selectedMethod == 'jazzcash';
+    final String logoPath = isJazzcash
+    ? 'assets/images/JazzCashLogo.jpg'
+    : 'assets/images/easypaisaLogo.jpg';
     final methodLabel = _selectedMethod == 'easypaisa'
         ? 'EasyPaisa'
         : 'JazzCash';
@@ -432,20 +438,14 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
         children: [
           SizedBox(height: 20.h),
 
-          Container(
-            width: 80.r,
-            height: 80.r,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                _selectedMethod == 'easypaisa' ? '💚' : '🔴',
-                style: TextStyle(fontSize: 36.sp),
-              ),
-            ),
-          ).animate().scale(curve: Curves.elasticOut, duration: 600.ms),
+        CircleAvatar(
+  radius: 70.r,
+  backgroundColor: color.withOpacity(0.1),
+  backgroundImage: AssetImage(logoPath),
+).animate().scale(
+  curve: Curves.elasticOut,
+  duration: 600.ms,
+),
 
           SizedBox(height: 20.h),
 
@@ -598,8 +598,8 @@ class _PaymentMethodCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String logoPath = isJazzcash
-        ? 'assets/images/JazzCashLogo.jpg'
-        : 'assets/images/easypaisaLogo.jpg';
+    ? 'assets/images/JazzCashLogo.jpg'
+    : 'assets/images/easypaisaLogo.jpg';
 
     return GestureDetector(
       onTap: onTap,
@@ -638,15 +638,14 @@ class _PaymentMethodCard extends StatelessWidget {
                 color: bgColor,
                 borderRadius: BorderRadius.circular(14.r),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14.r),
-                child: Image.asset(
-                  logoPath,
-                  width: 50.r,
-                  height: 50.r,
-                  fit: BoxFit.cover, // ✅ logo fill karega
-                ),
-              ),
+              child: Center(
+  child: Image.asset(
+    logoPath,
+    width: 26.r,
+    height: 26.r,
+    fit: BoxFit.contain,
+  ),
+),
             ),
             SizedBox(width: 14.w),
             Expanded(

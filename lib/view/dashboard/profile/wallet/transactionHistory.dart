@@ -1,4 +1,6 @@
 // ─── transactionHistory.dart ──────────────────────────────────────────────────
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -238,6 +240,14 @@ class _TxnList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+
+final   isJazzcash = transactions.isNotEmpty && transactions.first.method.toLowerCase().contains('jazzcash');
+final String logoPath = isJazzcash
+    ? 'assets/images/JazzCashLogo.jpg'
+    : 'assets/images/easypaisaLogo.jpg';
+
+log('First transaction method: ${transactions.isNotEmpty ? transactions.first.method : 'N/A'}');
     if (transactions.isEmpty) {
       return Center(
         child: Column(
@@ -259,6 +269,12 @@ class _TxnList extends StatelessWidget {
       itemCount: transactions.length,
       itemBuilder: (context, index) {
         final tx = transactions[index];
+        final String methodLower = tx.method.toLowerCase().trim();
+  final bool isJazzCash = methodLower == 'send';  // or add more: || methodLower.contains('jazzcash')
+
+  final String logoPath = isJazzCash
+      ? 'assets/images/JazzCashLogo.jpg'
+      : 'assets/images/easypaisaLogo.jpg';
         return Padding(
           padding: EdgeInsets.only(bottom: 10.h),
           child:
@@ -287,11 +303,15 @@ class _TxnList extends StatelessWidget {
                             borderRadius: BorderRadius.circular(14.r),
                           ),
                           child: Center(
-                            child: Text(
-                              tx.iconEmoji,
-                              style: TextStyle(fontSize: 20.sp),
-                            ),
-                          ),
+              child: ClipOval(
+                child: Image.asset(
+                  logoPath,           // ← now correct per transaction
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                ),
+              ),
+            ),
                         ),
                         SizedBox(width: 12.w),
                         Expanded(

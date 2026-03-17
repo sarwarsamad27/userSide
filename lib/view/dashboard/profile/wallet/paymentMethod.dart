@@ -275,6 +275,10 @@ class _MethodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isJazzcash = method.type == 'jazzcash';
+     final String logoPath = isJazzcash
+        ? 'assets/images/JazzCashLogo.jpg'
+        : 'assets/images/easypaisaLogo.jpg';
     final isEasypaisa = method.type == 'easypaisa';
     final color = isEasypaisa
         ? const Color(0xFF00A650)
@@ -309,11 +313,13 @@ class _MethodCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(14.r),
             ),
             child: Center(
-              child: Text(
-                isEasypaisa ? '💚' : '🔴',
-                style: TextStyle(fontSize: 22.sp),
-              ),
-            ),
+  child: Image.asset(
+    logoPath,
+    width: 26.r,
+    height: 26.r,
+    fit: BoxFit.contain,
+  ),
+),
           ),
           SizedBox(width: 12.w),
           Expanded(
@@ -432,9 +438,9 @@ class _AddMethodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String logoPath = isJazzcash
-        ? 'assets/images/JazzCashLogo.jpg'
-        : 'assets/images/easypaisaLogo.jpg';
+  final String logoPath = isJazzcash
+    ? 'assets/images/JazzCashLogo.jpg'
+    : 'assets/images/easypaisaLogo.jpg';
 
     return GestureDetector(
       onTap: () => _showAddSheet(context),
@@ -461,15 +467,14 @@ class _AddMethodCard extends StatelessWidget {
                 color: bgColor,
                 borderRadius: BorderRadius.circular(14.r),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14.r),
-                child: Image.asset(
-                  logoPath,
-                  width: 46.r,
-                  height: 46.r,
-                  fit: BoxFit.cover,
-                ),
-              ),
+              child: Center(
+  child: Image.asset(
+    logoPath,
+    width: 26.r,
+    height: 26.r,
+    fit: BoxFit.contain,
+  ),
+),
             ),
             SizedBox(width: 14.w),
             Expanded(
@@ -501,10 +506,10 @@ class _AddMethodCard extends StatelessWidget {
     final numberCtrl = TextEditingController();
     final titleCtrl = TextEditingController(text: 'My $name');
     final formKey = GlobalKey<FormState>();
-
-    final String logoPath = isJazzcash
-        ? 'assets/images/JazzCashLogo.jpg'
-        : 'assets/images/easypaisaLogo.jpg';
+final String logoPath = isJazzcash
+    ? 'assets/images/JazzCashLogo.jpg'
+    : 'assets/images/easypaisaLogo.jpg';
+   
 
     showModalBottomSheet(
       context: context,
@@ -543,13 +548,20 @@ class _AddMethodCard extends StatelessWidget {
                 Row(
                   children: [
                     // ✅ Sheet header mein bhi logo
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8.r),
-                      child: Image.asset(
-                        logoPath,
-                        width: 28.r,
-                        height: 28.r,
-                        fit: BoxFit.cover,
+                    Container(
+                      width: 28.r,
+                      height: 28.r,
+                      decoration: BoxDecoration(
+                        color: bgColor,
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: CircleAvatar(
+                        child: Image.asset(
+                          logoPath,
+                          width: 20.r,
+                          height: 20.r,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                     SizedBox(width: 10.w),

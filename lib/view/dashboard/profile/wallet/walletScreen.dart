@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -522,7 +524,24 @@ class _QuickActionButton extends StatelessWidget {
     );
   }
 }
-
+String getPaymentLogo(String method) {
+  final lower = method.toLowerCase().trim();
+  
+  switch (lower) {
+    case 'send':
+    case 'jazzcash':
+    case 'jazz cash':
+      return 'assets/images/JazzCashLogo.jpg';
+      
+    case 'easypaisa':
+    case 'easy paisa':
+      return 'assets/images/easypaisaLogo.jpg';
+      
+    default:
+      // fallback if new methods added later
+      return 'assets/images/default_payment.jpg';  // or keep easypaisa as default
+  }
+}
 // ─── Transaction Tile ─────────────────────────────────────────────────────────
 class _TransactionTile extends StatelessWidget {
   final WalletTransactionModel transaction;
@@ -538,6 +557,16 @@ class _TransactionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    log(transaction.method);
+   final String methodLower = transaction.method.toLowerCase().trim();
+
+final bool isJazzcash = methodLower == 'send';  // or methodLower.contains('send') if it can vary
+
+final String logoPath = isJazzcash
+    ? 'assets/images/JazzCashLogo.jpg'
+    : 'assets/images/easypaisaLogo.jpg';
+
+ 
     return Container(
       padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
@@ -557,16 +586,21 @@ class _TransactionTile extends StatelessWidget {
             width: 46.r,
             height: 46.r,
             decoration: BoxDecoration(
+              
               color: transaction.isCredit
                   ? const Color(0xFF00C853).withOpacity(0.1)
                   : const Color(0xFFFF1744).withOpacity(0.1),
               borderRadius: BorderRadius.circular(14.r),
             ),
             child: Center(
-              child: Text(
-                transaction.iconEmoji,
-                style: TextStyle(fontSize: 20.sp),
-              ),
+             child: ClipOval(
+  child: Image.asset(
+    getPaymentLogo(transaction.method),
+    fit: BoxFit.cover,
+    width: double.infinity,
+    height: double.infinity,
+  ),
+),
             ),
           ),
           SizedBox(width: 12.w),
