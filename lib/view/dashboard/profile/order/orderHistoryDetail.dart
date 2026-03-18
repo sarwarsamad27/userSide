@@ -44,7 +44,7 @@ class OrderDetailScreen extends StatelessWidget {
               /// ORDER BASIC INFO
               Text(
                 "Order ID: ${order.orderId ?? 'N/A'}",
-                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.blueAccent),
               ),
 
               SizedBox(height: 8.h),

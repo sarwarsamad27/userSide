@@ -335,7 +335,14 @@ class _NotifTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = _parseHex(accentColorHex);
-    final absoluteImage = Global.imageUrl + (image ?? "");
+    String absoluteImage = "";
+    if (image != null && image!.isNotEmpty) {
+      if (image!.startsWith('http')) {
+        absoluteImage = image!;
+      } else {
+        absoluteImage = Global.imageUrl + image!;
+      }
+    }
     return InkWell(
       borderRadius: BorderRadius.circular(16.r),
       onTap: onTap,

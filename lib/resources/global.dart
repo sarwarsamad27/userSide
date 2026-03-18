@@ -60,4 +60,27 @@ class Global {
   /// Body: { buyerId, trackingNumber, courierName, proofImages[] }
   static String uploadReturnProof(String exchangeId) =>
       "${BaseUrl}/buyer/exchange/$exchangeId/return-proof";
+
+
+
+
+      // Global.dart mein add karo
+static String getImageUrl(String? imagePath) {
+  if (imagePath == null || imagePath.isEmpty) {
+    return ''; // ya koi default image
+  }
+
+  // Agar already full URL hai (cloudinary)
+  if (imagePath.startsWith('http')) {
+    return imagePath;
+  }
+
+  // Agar local upload hai (/uploads/...)
+  if (imagePath.startsWith('/uploads/')) {
+    return imageUrl + imagePath;        // imageUrl = "https://yourapi.com"
+  }
+
+  // Normal case
+  return imageUrl + imagePath;
+}
 }

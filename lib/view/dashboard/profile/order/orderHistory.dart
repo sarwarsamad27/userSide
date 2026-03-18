@@ -159,6 +159,15 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                             children: [
                               /// PRODUCT NAME
                               Text(
+                                "ID: ${order.orderId ?? ''}",
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColor.primaryColor,
+                                ),
+                              ),
+                              SizedBox(height: 2.h),
+                              Text(
                                 product?.name ?? "",
                                 style: TextStyle(
                                   fontSize: 15.sp,

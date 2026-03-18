@@ -16,9 +16,11 @@ class PopularProductAndCategory extends StatefulWidget {
   @override
   State<PopularProductAndCategory> createState() =>
       _PopularProductAndCategoryState();
+      
 }
 
 class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
+  
   @override
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
@@ -84,7 +86,7 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
                             return CustomProductTile(
                                   imageUrl:
                                       //  item.categoryImage != null
-                                      Global.imageUrl + item.categoryImage!,
+                                     Global.getImageUrl(item.categoryImage),
                                   name: item.categoryName ?? "",
                                   saveText:
                                       "Save upto: ${(item.averageDiscountPercentage ?? 0).toStringAsFixed(0)}%",
