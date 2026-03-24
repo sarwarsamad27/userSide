@@ -223,6 +223,28 @@ class WalletProvider with ChangeNotifier {
     await fetchPaymentMethods(buyerId);
   }
 
+  // ── Safepay Checkout: Initiate payment session ──────────────────────────────
+  Future<String?> initSafepayCheckout({
+    required String buyerId,
+    required double amount,
+  }) async {
+    otpLoading = true;
+    errorMessage = '';
+    notifyListeners();
+
+    final url = await _repo.initSafepayCheckout(
+      buyerId: buyerId,
+      amount: amount,
+    );
+
+    otpLoading = false;
+    if (url == null) {
+      errorMessage = "Could not initialize Safepay. Try again.";
+    }
+    notifyListeners();
+    return url;
+  }
+
   // ── Clear error ────────────────────────────────────────────────────────────
   void clearError() {
     errorMessage = '';

@@ -7,6 +7,7 @@ import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AddMoneyScreen extends StatefulWidget {
   const AddMoneyScreen({super.key});
@@ -36,6 +37,32 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
 
   String get _buyerId => context.read<AuthSession>().userId ?? '';
 
+  // ── Safepay Checkout — No OTP ──────────────────────────────────────────────
+  Future<void> _initSafepay() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    final provider = context.read<WalletProvider>();
+    final amount = double.parse(_amountController.text);
+    
+    final url = await provider.initSafepayCheckout(
+      buyerId: _buyerId,
+      amount: amount,
+    );
+
+    if (url != null) {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        // Popping back to wallet so they can see update after webhook
+        if (mounted) Navigator.pop(context);
+      } else {
+        _showError('Could not open checkout page');
+      }
+    } else {
+      _showError(provider.errorMessage);
+    }
+  }
+
   // Step 1: Send OTP
   Future<void> _sendOtp() async {
     if (!_formKey.currentState!.validate()) return;
@@ -43,6 +70,13 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
       _showError('Please select a payment method');
       return;
     }
+
+    // Safepay handles its own flow
+    if (_selectedMethod == 'safepay') {
+      await _initSafepay();
+      return;
+    }
+
     FocusScope.of(context).unfocus();
 
     final success = await context.read<WalletProvider>().sendAddMoneyOtp(
@@ -274,9 +308,22 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
               onTap: () => setState(() => _selectedMethod = 'jazzcash'),
             ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1),
 
+            SizedBox(height: 10.h),
+
+            _PaymentMethodCard(
+              id: 'safepay',
+              name: 'Safepay',
+              description: 'Pay via Credit/Debit card',
+              isSafepay: true,
+              color: const Color(0xFF0052CC),
+              bgColor: const Color(0xFFE8F0FE),
+              isSelected: _selectedMethod == 'safepay',
+              onTap: () => setState(() => _selectedMethod = 'safepay'),
+            ).animate().fadeIn(delay: 250.ms).slideX(begin: -0.1),
+
             SizedBox(height: 28.h),
 
-            if (_selectedMethod.isNotEmpty) ...[
+            if (_selectedMethod.isNotEmpty && _selectedMethod != 'safepay') ...[
               _SectionLabel(
                 label: _selectedMethod == 'easypaisa'
                     ? 'EasyPaisa Number'
@@ -379,7 +426,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
                         child: Utils.loadingLottie(size: 100),
                       )
                     : Text(
-                        'Send OTP',
+                        _selectedMethod == 'safepay' ? 'Proceed to Pay' : 'Send OTP',
                         style: TextStyle(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w700,
@@ -579,7 +626,8 @@ class _SectionLabel extends StatelessWidget {
 
 class _PaymentMethodCard extends StatelessWidget {
   final String id, name, description;
-  final bool isJazzcash; // ✅ false = easypaisa (default), true = jazzcash
+  final bool isJazzcash;
+  final bool isSafepay;
   final Color color, bgColor;
   final bool isSelected;
   final VoidCallback onTap;
@@ -588,7 +636,8 @@ class _PaymentMethodCard extends StatelessWidget {
     required this.id,
     required this.name,
     required this.description,
-    this.isJazzcash = false, // ✅ default: easypaisa
+    this.isJazzcash = false,
+    this.isSafepay = false,
     required this.color,
     required this.bgColor,
     required this.isSelected,
@@ -639,13 +688,19 @@ class _PaymentMethodCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14.r),
               ),
               child: Center(
-  child: Image.asset(
-    logoPath,
-    width: 26.r,
-    height: 26.r,
-    fit: BoxFit.contain,
-  ),
-),
+                child: isSafepay
+                    ? Icon(
+                        Icons.credit_card_rounded,
+                        color: color,
+                        size: 24.r,
+                      )
+                    : Image.asset(
+                        logoPath,
+                        width: 26.r,
+                        height: 26.r,
+                        fit: BoxFit.contain,
+                      ),
+              ),
             ),
             SizedBox(width: 14.w),
             Expanded(

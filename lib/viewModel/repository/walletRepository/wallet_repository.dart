@@ -172,4 +172,19 @@ class WalletRepository {
       return false;
     }
   }
+  // ── Safepay Checkout ────────────────────────────────────────────────────────
+  Future<String?> initSafepayCheckout({
+    required String buyerId,
+    required double amount,
+  }) async {
+    try {
+      final response = await _api.postApi(Global.SafepayCheckout, {
+        'buyerId': buyerId,
+        'amount': amount,
+      });
+      return response['url'] as String?;
+    } catch (e) {
+      return null;
+    }
+  }
 }

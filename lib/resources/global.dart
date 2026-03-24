@@ -2,8 +2,8 @@
 class Global {
   // static var imageUrl = "http://192.168.88.59:5000";
   // static var BaseUrl = "http://192.168.88.59:5000/api/auth";
-  static var BaseUrl = "http://10.0.2.2:5000/api/auth";
-  static var imageUrl = "http://10.0.2.2:5000";
+  static var BaseUrl = "https://seller-and-buyer-backend.onrender.com/api/auth";
+  static var imageUrl = "https://seller-and-buyer-backend.onrender.com";
   static var SignUp = "${BaseUrl}/buyer/signup";
   static var Login = "${BaseUrl}/buyer/login";
   static var GoogleLogin = "${BaseUrl}/buyer/google/login";
@@ -47,6 +47,7 @@ class Global {
   static var AddPaymentMethod = "${BaseUrl}/buyer/wallet/payment-methods/add";
   static var SetDefaultMethod = "${BaseUrl}/buyer/wallet/payment-methods/set-default";
   static var DeletePaymentMethod = "${BaseUrl}/buyer/wallet/payment-methods/delete";
+  static var SafepayCheckout = "${BaseUrl}/buyer/wallet/safepay/checkout";
 
   // ── Exchange (Buyer) ──────────────────────────────────────────
   static var createExchangeRequest = "${BaseUrl}/buyer/create/exchange/request";
