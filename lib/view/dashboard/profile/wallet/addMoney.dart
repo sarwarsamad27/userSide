@@ -7,6 +7,7 @@ import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
+import 'package:user_side/resources/global.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AddMoneyScreen extends StatefulWidget {
@@ -63,6 +64,31 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
     }
   }
 
+  // ── JazzCash Hosted Checkout ──────────────────────────────────────────────
+  Future<void> _initJazzcash() async {
+    final amountText = _amountController.text;
+    final amount = double.tryParse(amountText) ?? 0;
+    if (amount < 100) {
+      _showError('Minimum amount is Rs 100');
+      return;
+    }
+
+    try {
+      final String buyerId = context.read<AuthSession>().userId ?? '';
+      final url = "${Global.JazzcashInitiate}?amount=$amount&userId=$buyerId";
+      final uri = Uri.parse(url);
+      
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (mounted) Navigator.pop(context);
+      } else {
+        _showError('Could not open JazzCash checkout');
+      }
+    } catch (e) {
+      _showError('Payment initiation failed: $e');
+    }
+  }
+
   // Step 1: Send OTP
   Future<void> _sendOtp() async {
     if (!_formKey.currentState!.validate()) return;
@@ -71,9 +97,13 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
       return;
     }
 
-    // Safepay handles its own flow
+    // Safepay & JazzCash handle their own hosted flows
     if (_selectedMethod == 'safepay') {
       await _initSafepay();
+      return;
+    }
+    if (_selectedMethod == 'jazzcash') {
+      await _initJazzcash();
       return;
     }
 

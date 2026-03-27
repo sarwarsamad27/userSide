@@ -247,26 +247,23 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
             _Label('Send Via'),
             SizedBox(height: 10.h),
 
-            Row(
-              children: [
-                Expanded(
-                  child: _SendMethodChip(
-                    isSelected: _selectedMethod == 'easypaisa',
-                    color: const Color(0xFF00A650),
-                    onTap: () => setState(() => _selectedMethod = 'easypaisa'),
-                  ),
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: _SendMethodChip(
-                    isJazzcash: true,
-                    isSelected: _selectedMethod == 'jazzcash',
-                    color: const Color(0xFFCC0000),
-                    onTap: () => setState(() => _selectedMethod = 'jazzcash'),
-                  ),
-                ),
-              ],
-            ).animate().fadeIn(delay: 150.ms),
+            _PaymentMethodCard(
+              isSelected: _selectedMethod == 'easypaisa',
+              label: 'EasyPaisa',
+              description: 'Transfer instantly securely via OTP',
+              logoPath: 'assets/images/easypaisaLogo.jpg',
+              color: const Color(0xFF00A650),
+              onTap: () => setState(() => _selectedMethod = 'easypaisa'),
+            ).animate().fadeIn(delay: 150.ms).slideX(begin: 0.1),
+            SizedBox(height: 12.h),
+            _PaymentMethodCard(
+              isSelected: _selectedMethod == 'jazzcash',
+              label: 'JazzCash',
+              description: 'Professional mobile wallet transfer',
+              logoPath: 'assets/images/JazzCashLogo.jpg',
+              color: const Color(0xFFCC0000),
+              onTap: () => setState(() => _selectedMethod = 'jazzcash'),
+            ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.1),
 
             SizedBox(height: 20.h),
             _Label('Recipient Number'),
@@ -551,58 +548,95 @@ class _Label extends StatelessWidget {
     ),
   );
 }
-
-class _SendMethodChip extends StatelessWidget {
-  final bool isJazzcash; // false = easypaisa (default), true = jazzcash
+class _PaymentMethodCard extends StatelessWidget {
   final bool isSelected;
+  final String label;
+  final String description;
+  final String logoPath;
   final Color color;
   final VoidCallback onTap;
 
-  const _SendMethodChip({
-    this.isJazzcash = false, // ✅ default: easypaisa
+  const _PaymentMethodCard({
     required this.isSelected,
+    required this.label,
+    required this.description,
+    required this.logoPath,
     required this.color,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final String logoPath = isJazzcash
-        ? 'assets/images/JazzCashLogo.jpg' // ✅ apna actual path daalo
-        : 'assets/images/easypaisaLogo.jpg'; // ✅ apna actual path daalo
-
-    final String label = isJazzcash ? 'JazzCash' : 'EasyPaisa';
-
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(vertical: 14.h),
+        duration: const Duration(milliseconds: 250),
+        padding: EdgeInsets.all(16.r),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.1) : Colors.white,
-          borderRadius: BorderRadius.circular(14.r),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
-            color: isSelected ? color : Colors.grey.shade200,
-            width: isSelected ? 2 : 1,
+            color: isSelected ? color : Colors.transparent,
+            width: 2,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected ? color.withOpacity(0.12) : Colors.black.withOpacity(0.04),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              logoPath,
-              width: 24.r,
-              height: 24.r,
-              fit: BoxFit.contain,
-            ),
-            SizedBox(width: 8.w),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w700,
-                color: isSelected ? color : const Color(0xFF1A1A2E),
+            Container(
+              width: 50.r,
+              height: 50.r,
+              padding: EdgeInsets.all(8.r),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12.r),
               ),
+              child: Image.asset(logoPath, fit: BoxFit.contain),
+            ),
+            SizedBox(width: 16.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF1A1A2E),
+                    ),
+                  ),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 22.r,
+              height: 22.r,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? color : Colors.transparent,
+                border: Border.all(
+                  color: isSelected ? color : Colors.grey.shade300,
+                  width: 2,
+                ),
+              ),
+              child: isSelected 
+                ? Icon(Icons.check_rounded, color: Colors.white, size: 14.r)
+                : null,
             ),
           ],
         ),
@@ -610,6 +644,7 @@ class _SendMethodChip extends StatelessWidget {
     );
   }
 }
+
 
 class _SendSuccessSheet extends StatelessWidget {
   final double amount;

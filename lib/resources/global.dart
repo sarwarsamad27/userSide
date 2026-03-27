@@ -2,8 +2,10 @@
 class Global {
   // static var imageUrl = "http://192.168.88.59:5000";
   // static var BaseUrl = "http://192.168.88.59:5000/api/auth";
-  static var BaseUrl = "https://seller-and-buyer-backend.onrender.com/api/auth";
-  static var imageUrl = "https://seller-and-buyer-backend.onrender.com";
+  static var imageUrl = "http://10.0.2.2:5000";
+  static var BaseUrl = "http://10.0.2.2:5000/api/auth";
+  // static var BaseUrl = "https://seller-and-buyer-backend.onrender.com/api/auth";
+  // static var imageUrl = "https://seller-and-buyer-backend.onrender.com";
   static var SignUp = "${BaseUrl}/buyer/signup";
   static var Login = "${BaseUrl}/buyer/login";
   static var GoogleLogin = "${BaseUrl}/buyer/google/login";
@@ -48,6 +50,7 @@ class Global {
   static var SetDefaultMethod = "${BaseUrl}/buyer/wallet/payment-methods/set-default";
   static var DeletePaymentMethod = "${BaseUrl}/buyer/wallet/payment-methods/delete";
   static var SafepayCheckout = "${BaseUrl}/buyer/wallet/safepay/checkout";
+  static var JazzcashInitiate = "${BaseUrl}/jazzcash-initiate";
 
   // ── Exchange (Buyer) ──────────────────────────────────────────
   static var createExchangeRequest = "${BaseUrl}/buyer/create/exchange/request";
@@ -63,7 +66,12 @@ class Global {
       "${BaseUrl}/buyer/exchange/$exchangeId/return-proof";
 
 
-
+static  String WalletOrderSendOtp   = '${BaseUrl}/buyer/wallet/order/send-otp';
+static  String WalletOrderVerifyOtp = '${BaseUrl}/buyer/wallet/order/verify-otp';
+ 
+// JazzCash Direct Payment (buyer JazzCash → your merchant bank account)
+static  String JazzcashPayInitiate  = '${BaseUrl}/buyer/jazzcash/pay/initiate';
+static  String JazzcashPayConfirm   = '${BaseUrl}/buyer/jazzcash/pay/confirm';
 
       // Global.dart mein add karo
 static String getImageUrl(String? imagePath) {

@@ -89,7 +89,7 @@ class _CategoryscreenState extends State<Categoryscreen> {
                 fit: StackFit.expand,
                 children: [
                   Image.network(
-                    Global.imageUrl + (categories[selectedIndex].image ?? ""),
+                    Global.getImageUrl(categories[selectedIndex].image),
                     fit: BoxFit.cover,
                     errorBuilder: (c, e, s) => Container(
                       color: Colors.grey[300],
