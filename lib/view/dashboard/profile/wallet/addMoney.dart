@@ -1,3 +1,4 @@
+// ─── addMoney.dart ────────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -7,8 +8,6 @@ import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
-import 'package:user_side/resources/global.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class AddMoneyScreen extends StatefulWidget {
   const AddMoneyScreen({super.key});
@@ -23,10 +22,13 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
   final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  String _selectedMethod = '';
-  bool _otpSent = false; // OTP screen show karo ya amount screen
+  bool _otpSent = false;
 
   final List<double> _quickAmounts = [500, 1000, 2000, 5000];
+
+  // JazzCash brand colors
+  static const Color _jcRed = Color(0xFFCC0000);
+  static const Color _jcBg = Color(0xFFFFF0F0);
 
   @override
   void dispose() {
@@ -38,81 +40,15 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
 
   String get _buyerId => context.read<AuthSession>().userId ?? '';
 
-  // ── Safepay Checkout — No OTP ──────────────────────────────────────────────
-  Future<void> _initSafepay() async {
-    if (!_formKey.currentState!.validate()) return;
-    
-    final provider = context.read<WalletProvider>();
-    final amount = double.parse(_amountController.text);
-    
-    final url = await provider.initSafepayCheckout(
-      buyerId: _buyerId,
-      amount: amount,
-    );
-
-    if (url != null) {
-      final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-        // Popping back to wallet so they can see update after webhook
-        if (mounted) Navigator.pop(context);
-      } else {
-        _showError('Could not open checkout page');
-      }
-    } else {
-      _showError(provider.errorMessage);
-    }
-  }
-
-  // ── JazzCash Hosted Checkout ──────────────────────────────────────────────
-  Future<void> _initJazzcash() async {
-    final amountText = _amountController.text;
-    final amount = double.tryParse(amountText) ?? 0;
-    if (amount < 100) {
-      _showError('Minimum amount is Rs 100');
-      return;
-    }
-
-    try {
-      final String buyerId = context.read<AuthSession>().userId ?? '';
-      final url = "${Global.JazzcashInitiate}?amount=$amount&userId=$buyerId";
-      final uri = Uri.parse(url);
-      
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-        if (mounted) Navigator.pop(context);
-      } else {
-        _showError('Could not open JazzCash checkout');
-      }
-    } catch (e) {
-      _showError('Payment initiation failed: $e');
-    }
-  }
-
-  // Step 1: Send OTP
+  // ── Step 1: Send OTP ─────────────────────────────────────────────────────
   Future<void> _sendOtp() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedMethod.isEmpty) {
-      _showError('Please select a payment method');
-      return;
-    }
-
-    // Safepay & JazzCash handle their own hosted flows
-    if (_selectedMethod == 'safepay') {
-      await _initSafepay();
-      return;
-    }
-    if (_selectedMethod == 'jazzcash') {
-      await _initJazzcash();
-      return;
-    }
-
     FocusScope.of(context).unfocus();
 
     final success = await context.read<WalletProvider>().sendAddMoneyOtp(
       buyerId: _buyerId,
       amount: double.parse(_amountController.text),
-      method: _selectedMethod,
+      method: 'jazzcash',
       phoneNumber: _numberController.text,
     );
 
@@ -123,7 +59,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
     }
   }
 
-  // Step 2: Verify OTP
+  // ── Step 2: Verify OTP ───────────────────────────────────────────────────
   Future<void> _verifyOtp() async {
     if (_otpController.text.trim().length < 6) {
       _showError('Enter 6-digit OTP');
@@ -143,7 +79,6 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
         MaterialPageRoute(
           builder: (_) => PaymentSuccessScreen(
             amount: result.amount,
-            method: _selectedMethod,
             phoneNumber: result.phoneNumber,
             txnId: result.txnId,
           ),
@@ -184,7 +119,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
               ),
               onPressed: () {
                 if (_otpSent) {
-                  setState(() => _otpSent = false); // OTP se back
+                  setState(() => _otpSent = false);
                 } else {
                   Navigator.pop(context);
                 }
@@ -206,7 +141,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
     );
   }
 
-  // ── Amount + Method Screen ────────────────────────────────────────────────
+  // ── Amount Screen ────────────────────────────────────────────────────────
   Widget _buildAmountScreen(WalletProvider wallet) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(16.r),
@@ -216,10 +151,10 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 8.h),
+
+            // ── Amount Input ───────────────────────────────────────────────
             _SectionLabel(label: 'Enter Amount'),
             SizedBox(height: 10.h),
-
-            // Amount input
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -269,7 +204,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
 
             SizedBox(height: 12.h),
 
-            // Quick amounts
+            // ── Quick Amounts ──────────────────────────────────────────────
             Wrap(
               spacing: 8.w,
               children: _quickAmounts.map((amt) {
@@ -311,139 +246,169 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
 
             SizedBox(height: 28.h),
 
-            _SectionLabel(label: 'Select Payment Method'),
+            // ── JazzCash Banner ────────────────────────────────────────────
+            _SectionLabel(label: 'Payment Method'),
             SizedBox(height: 12.h),
 
-            _PaymentMethodCard(
-              id: 'easypaisa',
-              name: 'EasyPaisa',
-              description: 'Pay via EasyPaisa mobile account',
-
-              color: const Color(0xFF00A650),
-              bgColor: const Color(0xFFE8F5E9),
-              isSelected: _selectedMethod == 'easypaisa',
-              onTap: () => setState(() => _selectedMethod = 'easypaisa'),
+            Container(
+              padding: EdgeInsets.all(16.r),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16.r),
+                border: Border.all(color: _jcRed, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: _jcRed.withOpacity(0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 50.r,
+                    height: 50.r,
+                    decoration: BoxDecoration(
+                      color: _jcBg,
+                      borderRadius: BorderRadius.circular(14.r),
+                    ),
+                    child: Center(
+                      child: Image.asset(
+                        'assets/images/JazzCashLogo.jpg',
+                        width: 30.r,
+                        height: 30.r,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 14.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'JazzCash',
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF1A1A2E),
+                          ),
+                        ),
+                        SizedBox(height: 2.h),
+                        Text(
+                          'Pay via JazzCash mobile account',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Selected indicator
+                  Container(
+                    width: 22.r,
+                    height: 22.r,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _jcRed,
+                      border: Border.all(color: _jcRed, width: 2),
+                    ),
+                    child: Icon(
+                      Icons.check_rounded,
+                      color: Colors.white,
+                      size: 14.r,
+                    ),
+                  ),
+                ],
+              ),
             ).animate().fadeIn(delay: 150.ms).slideX(begin: -0.1),
 
+            SizedBox(height: 24.h),
+
+            // ── JazzCash Number Input ──────────────────────────────────────
+            _SectionLabel(label: 'JazzCash Number'),
             SizedBox(height: 10.h),
 
-            _PaymentMethodCard(
-              id: 'jazzcash',
-              name: 'JazzCash',
-              description: 'Pay via JazzCash mobile account',
-              isJazzcash: true,
-              color: const Color(0xFFCC0000),
-              bgColor: const Color(0xFFFFF0F0),
-              isSelected: _selectedMethod == 'jazzcash',
-              onTap: () => setState(() => _selectedMethod = 'jazzcash'),
-            ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1),
-
-            SizedBox(height: 10.h),
-
-            _PaymentMethodCard(
-              id: 'safepay',
-              name: 'Safepay',
-              description: 'Pay via Credit/Debit card',
-              isSafepay: true,
-              color: const Color(0xFF0052CC),
-              bgColor: const Color(0xFFE8F0FE),
-              isSelected: _selectedMethod == 'safepay',
-              onTap: () => setState(() => _selectedMethod = 'safepay'),
-            ).animate().fadeIn(delay: 250.ms).slideX(begin: -0.1),
-
-            SizedBox(height: 28.h),
-
-            if (_selectedMethod.isNotEmpty && _selectedMethod != 'safepay') ...[
-              _SectionLabel(
-                label: _selectedMethod == 'easypaisa'
-                    ? 'EasyPaisa Number'
-                    : 'JazzCash Number',
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: TextFormField(
-                  controller: _numberController,
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(11),
-                  ],
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1A1A2E),
-                    letterSpacing: 1.2,
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14.r),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
                   ),
-                  decoration: InputDecoration(
-                    hintText: '03XX-XXXXXXX',
-                    hintStyle: TextStyle(
-                      fontSize: 15.sp,
-                      color: Colors.grey.shade300,
-                    ),
-                    prefixIcon: Padding(
-                      padding: EdgeInsets.all(12.r),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 10.w,
-                          vertical: 6.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _selectedMethod == 'easypaisa'
-                              ? const Color(0xFFE8F5E9)
-                              : const Color(0xFFFFF0F0),
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                        child: Text(
-                          '+92',
-                          style: TextStyle(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w700,
-                            color: _selectedMethod == 'easypaisa'
-                                ? const Color(0xFF00A650)
-                                : const Color(0xFFCC0000),
-                          ),
+                ],
+              ),
+              child: TextFormField(
+                controller: _numberController,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(11),
+                ],
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1A1A2E),
+                  letterSpacing: 1.2,
+                ),
+                decoration: InputDecoration(
+                  hintText: '03XX-XXXXXXX',
+                  hintStyle: TextStyle(
+                    fontSize: 15.sp,
+                    color: Colors.grey.shade300,
+                  ),
+                  prefixIcon: Padding(
+                    padding: EdgeInsets.all(12.r),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 6.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _jcBg,
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Text(
+                        '+92',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w700,
+                          color: _jcRed,
                         ),
                       ),
                     ),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 18.h,
-                    ),
                   ),
-                  validator: (val) {
-                    if (val == null || val.isEmpty) return 'Enter number';
-                    if (val.length < 10) return 'Enter valid number';
-                    return null;
-                  },
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 18.h,
+                  ),
                 ),
-              ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.1),
-              SizedBox(height: 28.h),
-            ],
+                validator: (val) {
+                  if (val == null || val.isEmpty)
+                    return 'Enter JazzCash number';
+                  if (val.length < 10) return 'Enter valid number';
+                  return null;
+                },
+              ),
+            ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
 
-            SizedBox(height: 16.h),
+            SizedBox(height: 32.h),
 
+            // ── Send OTP Button ────────────────────────────────────────────
             SizedBox(
               width: double.infinity,
               height: 56.h,
               child: ElevatedButton(
                 onPressed: wallet.otpLoading ? null : _sendOtp,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColor.appimagecolor,
-                  disabledBackgroundColor: AppColor.appimagecolor.withOpacity(
-                    0.5,
-                  ),
+                  backgroundColor: _jcRed,
+                  disabledBackgroundColor: _jcRed.withOpacity(0.5),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16.r),
                   ),
@@ -456,7 +421,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
                         child: Utils.loadingLottie(size: 100),
                       )
                     : Text(
-                        _selectedMethod == 'safepay' ? 'Proceed to Pay' : 'Send OTP',
+                        'Send OTP',
                         style: TextStyle(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w700,
@@ -467,6 +432,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
             ).animate().fadeIn(delay: 250.ms).slideY(begin: 0.1),
 
             SizedBox(height: 12.h),
+
             Center(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -494,35 +460,20 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
     );
   }
 
-  // ── OTP Verification Screen ───────────────────────────────────────────────
+  // ── OTP Screen ───────────────────────────────────────────────────────────
   Widget _buildOtpScreen(WalletProvider wallet) {
-
-
-    final isJazzcash = _selectedMethod == 'jazzcash';
-    final String logoPath = isJazzcash
-    ? 'assets/images/JazzCashLogo.jpg'
-    : 'assets/images/easypaisaLogo.jpg';
-    final methodLabel = _selectedMethod == 'easypaisa'
-        ? 'EasyPaisa'
-        : 'JazzCash';
-    final color = _selectedMethod == 'easypaisa'
-        ? const Color(0xFF00A650)
-        : const Color(0xFFCC0000);
-
     return SingleChildScrollView(
       padding: EdgeInsets.all(24.r),
       child: Column(
         children: [
           SizedBox(height: 20.h),
 
-        CircleAvatar(
-  radius: 70.r,
-  backgroundColor: color.withOpacity(0.1),
-  backgroundImage: AssetImage(logoPath),
-).animate().scale(
-  curve: Curves.elasticOut,
-  duration: 600.ms,
-),
+          // JazzCash Logo
+          CircleAvatar(
+            radius: 70.r,
+            backgroundColor: _jcRed.withOpacity(0.1),
+            backgroundImage: const AssetImage('assets/images/JazzCashLogo.jpg'),
+          ).animate().scale(curve: Curves.elasticOut, duration: 600.ms),
 
           SizedBox(height: 20.h),
 
@@ -536,7 +487,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
           ),
           SizedBox(height: 8.h),
           Text(
-            'Enter the 6-digit OTP sent to\n${_numberController.text} via $methodLabel',
+            'Enter the 6-digit OTP sent to\n${_numberController.text} via JazzCash',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade500),
           ),
@@ -585,16 +536,15 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
 
           SizedBox(height: 32.h),
 
+          // Verify Button
           SizedBox(
             width: double.infinity,
             height: 56.h,
             child: ElevatedButton(
               onPressed: wallet.verifyLoading ? null : _verifyOtp,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.appimagecolor,
-                disabledBackgroundColor: AppColor.appimagecolor.withOpacity(
-                  0.5,
-                ),
+                backgroundColor: _jcRed,
+                disabledBackgroundColor: _jcRed.withOpacity(0.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16.r),
                 ),
@@ -619,14 +569,13 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
 
           SizedBox(height: 16.h),
 
-          // Resend OTP
           TextButton(
             onPressed: wallet.otpLoading ? null : _sendOtp,
             child: Text(
               wallet.otpLoading ? 'Sending...' : 'Resend OTP',
               style: TextStyle(
                 fontSize: 14.sp,
-                color: color,
+                color: _jcRed,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -637,8 +586,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
   }
 }
 
-// ─── Reusable widgets (same as before) ───────────────────────────────────────
-
+// ─── Section Label ────────────────────────────────────────────────────────────
 class _SectionLabel extends StatelessWidget {
   final String label;
   const _SectionLabel({required this.label});
@@ -654,148 +602,21 @@ class _SectionLabel extends StatelessWidget {
   );
 }
 
-class _PaymentMethodCard extends StatelessWidget {
-  final String id, name, description;
-  final bool isJazzcash;
-  final bool isSafepay;
-  final Color color, bgColor;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _PaymentMethodCard({
-    required this.id,
-    required this.name,
-    required this.description,
-    this.isJazzcash = false,
-    this.isSafepay = false,
-    required this.color,
-    required this.bgColor,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final String logoPath = isJazzcash
-    ? 'assets/images/JazzCashLogo.jpg'
-    : 'assets/images/easypaisaLogo.jpg';
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: EdgeInsets.all(16.r),
-        decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.08) : Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: isSelected ? color : Colors.grey.shade200,
-            width: isSelected ? 2 : 1,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: color.withOpacity(0.15),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 50.r,
-              height: 50.r,
-              decoration: BoxDecoration(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(14.r),
-              ),
-              child: Center(
-                child: isSafepay
-                    ? Icon(
-                        Icons.credit_card_rounded,
-                        color: color,
-                        size: 24.r,
-                      )
-                    : Image.asset(
-                        logoPath,
-                        width: 26.r,
-                        height: 26.r,
-                        fit: BoxFit.contain,
-                      ),
-              ),
-            ),
-            SizedBox(width: 14.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1A1A2E),
-                    ),
-                  ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 22.r,
-              height: 22.r,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isSelected ? color : Colors.transparent,
-                border: Border.all(
-                  color: isSelected ? color : Colors.grey.shade300,
-                  width: 2,
-                ),
-              ),
-              child: isSelected
-                  ? Icon(Icons.check_rounded, color: Colors.white, size: 14.r)
-                  : null,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 // ─── Payment Success Screen ───────────────────────────────────────────────────
 class PaymentSuccessScreen extends StatelessWidget {
   final double amount;
-  final String method;
   final String phoneNumber;
   final String txnId;
 
   const PaymentSuccessScreen({
     super.key,
     required this.amount,
-    required this.method,
     required this.phoneNumber,
     required this.txnId,
   });
 
   String _formatDateTime(DateTime dt) {
-    final months = [
+    const months = [
       'Jan',
       'Feb',
       'Mar',
@@ -811,13 +632,12 @@ class PaymentSuccessScreen extends StatelessWidget {
     ];
     final hour = dt.hour > 12 ? dt.hour - 12 : dt.hour;
     final amPm = dt.hour >= 12 ? 'PM' : 'AM';
-    return '${dt.day} ${months[dt.month - 1]} ${dt.year}, $hour:${dt.minute.toString().padLeft(2, '0')} $amPm';
+    return '${dt.day} ${months[dt.month - 1]} ${dt.year}, '
+        '$hour:${dt.minute.toString().padLeft(2, '0')} $amPm';
   }
 
   @override
   Widget build(BuildContext context) {
-    final isEasypaisa = method == 'easypaisa';
-
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
       body: SafeArea(
@@ -826,6 +646,8 @@ class PaymentSuccessScreen extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(),
+
+              // ✅ Success Icon
               Container(
                 width: 100.r,
                 height: 100.r,
@@ -864,6 +686,7 @@ class PaymentSuccessScreen extends StatelessWidget {
 
               SizedBox(height: 32.h),
 
+              // Receipt
               Container(
                 width: double.infinity,
                 padding: EdgeInsets.all(20.r),
@@ -887,9 +710,9 @@ class PaymentSuccessScreen extends StatelessWidget {
                       isBold: true,
                     ),
                     Divider(height: 20.h, color: Colors.grey.shade100),
-                    _ReceiptRow(
+                    const _ReceiptRow(
                       label: 'Payment Method',
-                      value: isEasypaisa ? 'EasyPaisa' : 'JazzCash',
+                      value: 'JazzCash',
                     ),
                     SizedBox(height: 12.h),
                     _ReceiptRow(label: 'Phone', value: phoneNumber),
@@ -901,10 +724,10 @@ class PaymentSuccessScreen extends StatelessWidget {
                       value: _formatDateTime(DateTime.now()),
                     ),
                     SizedBox(height: 12.h),
-                    _ReceiptRow(
+                    const _ReceiptRow(
                       label: 'Status',
                       value: '✅ Completed',
-                      valueColor: const Color(0xFF00C853),
+                      valueColor: Color(0xFF00C853),
                     ),
                   ],
                 ),

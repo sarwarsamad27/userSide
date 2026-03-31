@@ -40,8 +40,10 @@ class Global {
   static var ChatMessages = "${BaseUrl}/buyer/chat/messages";
   static var ChatThreads = "${BaseUrl}/buyer/chat/threads";
   static var WalletBalance = "${BaseUrl}/buyer/wallet/balance";
-  static var AddMoneySendOtp = "${BaseUrl}/buyer/wallet/add-money/send-otp";
-  static var AddMoneyVerifyOtp = "${BaseUrl}/buyer/wallet/add-money/verify-otp";
+  // static var AddMoneySendOtp = "${BaseUrl}/buyer/wallet/add-money/send-otp";
+  // static var AddMoneyVerifyOtp = "${BaseUrl}/buyer/wallet/add-money/verify-otp";
+  static var AddMoneySendOtp = "${BaseUrl}/buyer/wallet/jazzcash/mwallet/initiate";
+  static var AddMoneyVerifyOtp = "${BaseUrl}/buyer/wallet/jazzcash/mwallet/confirm";
   static var SendMoneySendOtp = "${BaseUrl}/buyer/wallet/send-money/send-otp";
   static var SendMoneyVerifyOtp = "${BaseUrl}/buyer/wallet/send-money/verify-otp";
   static var WalletTransactions = "${BaseUrl}/buyer/wallet/transactions";

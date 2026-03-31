@@ -1,5 +1,5 @@
+// ─── wallet.dart ──────────────────────────────────────────────────────────────
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -9,7 +9,6 @@ import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/view/dashboard/profile/wallet/addMoney.dart';
-import 'package:user_side/view/dashboard/profile/wallet/paymentMethod.dart';
 import 'package:user_side/view/dashboard/profile/wallet/sendMoney.dart';
 import 'package:user_side/view/dashboard/profile/wallet/transactionHistory.dart';
 import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
@@ -34,7 +33,6 @@ class _WalletScreenState extends State<WalletScreen>
       duration: const Duration(seconds: 2),
     )..repeat();
 
-    // Fetch balance & recent transactions on load
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
   }
 
@@ -67,7 +65,7 @@ class _WalletScreenState extends State<WalletScreen>
           backgroundColor: const Color(0xFFF5F6FA),
           body: CustomScrollView(
             slivers: [
-              // ── Gradient AppBar ──────────────────────────────────────
+              // ── Gradient AppBar ──────────────────────────────────────────
               SliverAppBar(
                 expandedHeight: 260.h,
                 pinned: true,
@@ -107,7 +105,7 @@ class _WalletScreenState extends State<WalletScreen>
                 centerTitle: true,
               ),
 
-              // ── Quick Actions ────────────────────────────────────────
+              // ── Quick Actions ────────────────────────────────────────────
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(16.w, 24.h, 16.w, 0),
@@ -115,7 +113,7 @@ class _WalletScreenState extends State<WalletScreen>
                 ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.2),
               ),
 
-              // ── Promo Banner ─────────────────────────────────────────
+              // ── Promo Banner ─────────────────────────────────────────────
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
@@ -123,7 +121,7 @@ class _WalletScreenState extends State<WalletScreen>
                 ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
               ),
 
-              // ── Recent Transactions Header ────────────────────────────
+              // ── Recent Transactions Header ────────────────────────────────
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(16.w, 24.h, 16.w, 12.h),
@@ -157,12 +155,12 @@ class _WalletScreenState extends State<WalletScreen>
                 ).animate().fadeIn(delay: 150.ms),
               ),
 
-              // ── Transaction List ─────────────────────────────────────
+              // ── Transaction List ─────────────────────────────────────────
               wallet.txnLoading
                   ? SliverToBoxAdapter(
                       child: Center(
                         child: Padding(
-                          padding: EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(20),
                           child: Utils.loadingLottie(size: 100),
                         ),
                       ),
@@ -325,6 +323,7 @@ class _WalletScreenState extends State<WalletScreen>
     );
   }
 
+  // ── Quick Actions — 3 buttons only (Methods removed) ─────────────────────
   Widget _buildQuickActions(WalletProvider wallet) {
     final buyerId = context.read<AuthSession>().userId ?? '';
 
@@ -353,7 +352,6 @@ class _WalletScreenState extends State<WalletScreen>
                   context,
                   _pageRoute(const AddMoneyScreen()),
                 ).then((_) {
-                  // Refresh balance after returning
                   if (buyerId.isNotEmpty) {
                     context.read<WalletProvider>().fetchBalance(buyerId);
                     context.read<WalletProvider>().fetchTransactions(buyerId);
@@ -374,15 +372,6 @@ class _WalletScreenState extends State<WalletScreen>
                     context.read<WalletProvider>().fetchTransactions(buyerId);
                   }
                 }),
-          ),
-          _QuickActionButton(
-            icon: Icons.credit_card_rounded,
-            label: 'Methods',
-            color: const Color(0xFFFF6D00),
-            onTap: () => Navigator.push(
-              context,
-              _pageRoute(const PaymentMethodScreen()),
-            ),
           ),
           _QuickActionButton(
             icon: Icons.receipt_long_rounded,
@@ -453,19 +442,6 @@ class _WalletScreenState extends State<WalletScreen>
     );
   }
 
-  void _showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: const Color(0xFF00C853),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-      ),
-    );
-  }
-
   PageRouteBuilder _pageRoute(Widget page) {
     return PageRouteBuilder(
       pageBuilder: (_, a, __) => page,
@@ -524,28 +500,10 @@ class _QuickActionButton extends StatelessWidget {
     );
   }
 }
-String getPaymentLogo(String method) {
-  final lower = method.toLowerCase().trim();
-  
-  switch (lower) {
-    case 'send':
-    case 'jazzcash':
-    case 'jazz cash':
-      return 'assets/images/JazzCashLogo.jpg';
-      
-    case 'easypaisa':
-    case 'easy paisa':
-      return 'assets/images/easypaisaLogo.jpg';
-      
-    default:
-      // fallback if new methods added later
-      return 'assets/images/default_payment.jpg';  // or keep easypaisa as default
-  }
-}
+
 // ─── Transaction Tile ─────────────────────────────────────────────────────────
 class _TransactionTile extends StatelessWidget {
   final WalletTransactionModel transaction;
-
   const _TransactionTile({required this.transaction});
 
   String _timeAgo(DateTime dt) {
@@ -558,15 +516,7 @@ class _TransactionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     log(transaction.method);
-   final String methodLower = transaction.method.toLowerCase().trim();
 
-final bool isJazzcash = methodLower == 'send';  // or methodLower.contains('send') if it can vary
-
-final String logoPath = isJazzcash
-    ? 'assets/images/JazzCashLogo.jpg'
-    : 'assets/images/easypaisaLogo.jpg';
-
- 
     return Container(
       padding: EdgeInsets.all(14.r),
       decoration: BoxDecoration(
@@ -586,22 +536,12 @@ final String logoPath = isJazzcash
             width: 46.r,
             height: 46.r,
             decoration: BoxDecoration(
-              
               color: transaction.isCredit
                   ? const Color(0xFF00C853).withOpacity(0.1)
                   : const Color(0xFFFF1744).withOpacity(0.1),
               borderRadius: BorderRadius.circular(14.r),
             ),
-            child: Center(
-             child: ClipOval(
-  child: Image.asset(
-    getPaymentLogo(transaction.method),
-    fit: BoxFit.cover,
-    width: double.infinity,
-    height: double.infinity,
-  ),
-),
-            ),
+            child: Center(child: _getPaymentIcon(transaction.method)),
           ),
           SizedBox(width: 12.w),
           Expanded(
@@ -648,6 +588,50 @@ final String logoPath = isJazzcash
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _getPaymentIcon(String method) {
+    final m = method.toLowerCase().trim();
+
+    // JazzCash — all JazzCash methods
+    if (m.contains('jazz') || m.contains('jazzcash') || m == 'send') {
+      return ClipOval(
+        child: Image.asset(
+          'assets/images/JazzCashLogo.jpg',
+          fit: BoxFit.cover,
+          width: 36.r,
+          height: 36.r,
+        ),
+      );
+    }
+
+    // Order Payment (wallet debit for order)
+    if (m == 'order' || m == 'wallet') {
+      return Icon(
+        Icons.shopping_bag_rounded,
+        color: const Color(0xFF6C63FF),
+        size: 24.sp,
+      );
+    }
+
+    // Cashback
+    if (m == 'cashback') {
+      return Icon(
+        Icons.card_giftcard_rounded,
+        color: const Color(0xFF00C853),
+        size: 24.sp,
+      );
+    }
+
+    // Default fallback → JazzCash logo
+    return ClipOval(
+      child: Image.asset(
+        'assets/images/JazzCashLogo.jpg',
+        fit: BoxFit.cover,
+        width: 36.r,
+        height: 36.r,
       ),
     );
   }

@@ -23,9 +23,11 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
   final _noteController = TextEditingController();
   final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-
-  String _selectedMethod = '';
   bool _otpSent = false;
+
+  // JazzCash brand colors
+  static const Color _jcRed = Color(0xFFCC0000);
+  static const Color _jcBg = Color(0xFFFFF0F0);
 
   @override
   void dispose() {
@@ -38,12 +40,10 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
 
   String get _buyerId => context.read<AuthSession>().userId ?? '';
 
+  // ── Step 1: Send OTP ─────────────────────────────────────────────────────
   Future<void> _sendOtp() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedMethod.isEmpty) {
-      _showError('Please select where to send');
-      return;
-    }
+
     final amt = double.tryParse(_amountController.text) ?? 0;
     if (amt > widget.balance) {
       _showError('Insufficient wallet balance');
@@ -54,7 +54,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     final success = await context.read<WalletProvider>().sendMoneyOtp(
       buyerId: _buyerId,
       amount: amt,
-      method: _selectedMethod,
+      method: 'jazzcash',
       recipientNumber: _numberController.text,
       note: _noteController.text,
     );
@@ -66,6 +66,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     }
   }
 
+  // ── Step 2: Verify OTP ───────────────────────────────────────────────────
   Future<void> _verifyOtp() async {
     if (_otpController.text.trim().length < 6) {
       _showError('Enter 6-digit OTP');
@@ -85,7 +86,6 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
         backgroundColor: Colors.transparent,
         builder: (_) => _SendSuccessSheet(
           amount: result.amount,
-          method: result.method,
           number: result.phoneNumber,
           note: result.note ?? '',
           txnId: result.txnId,
@@ -151,6 +151,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     );
   }
 
+  // ── Form Screen ──────────────────────────────────────────────────────────
   Widget _buildFormScreen(WalletProvider wallet) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(16.r),
@@ -159,7 +160,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Balance display
+            // Available Balance Banner
             Container(
               width: double.infinity,
               padding: EdgeInsets.all(16.r),
@@ -194,9 +195,9 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
 
             SizedBox(height: 20.h),
 
+            // Amount
             _Label('Amount to Send'),
             SizedBox(height: 10.h),
-
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -244,31 +245,85 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
             ).animate().fadeIn(delay: 100.ms),
 
             SizedBox(height: 20.h),
+
+            // ── JazzCash Method (fixed) ────────────────────────────────────
             _Label('Send Via'),
             SizedBox(height: 10.h),
-
-            _PaymentMethodCard(
-              isSelected: _selectedMethod == 'easypaisa',
-              label: 'EasyPaisa',
-              description: 'Transfer instantly securely via OTP',
-              logoPath: 'assets/images/easypaisaLogo.jpg',
-              color: const Color(0xFF00A650),
-              onTap: () => setState(() => _selectedMethod = 'easypaisa'),
+            Container(
+              padding: EdgeInsets.all(16.r),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16.r),
+                border: Border.all(color: _jcRed, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: _jcRed.withOpacity(0.12),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 50.r,
+                    height: 50.r,
+                    padding: EdgeInsets.all(8.r),
+                    decoration: BoxDecoration(
+                      color: _jcBg,
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Image.asset(
+                      'assets/images/JazzCashLogo.jpg',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  SizedBox(width: 16.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'JazzCash',
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF1A1A2E),
+                          ),
+                        ),
+                        Text(
+                          'Transfer instantly via OTP',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    width: 22.r,
+                    height: 22.r,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _jcRed,
+                      border: Border.all(color: _jcRed, width: 2),
+                    ),
+                    child: Icon(
+                      Icons.check_rounded,
+                      color: Colors.white,
+                      size: 14.r,
+                    ),
+                  ),
+                ],
+              ),
             ).animate().fadeIn(delay: 150.ms).slideX(begin: 0.1),
-            SizedBox(height: 12.h),
-            _PaymentMethodCard(
-              isSelected: _selectedMethod == 'jazzcash',
-              label: 'JazzCash',
-              description: 'Professional mobile wallet transfer',
-              logoPath: 'assets/images/JazzCashLogo.jpg',
-              color: const Color(0xFFCC0000),
-              onTap: () => setState(() => _selectedMethod = 'jazzcash'),
-            ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.1),
 
             SizedBox(height: 20.h),
-            _Label('Recipient Number'),
-            SizedBox(height: 10.h),
 
+            // Recipient Number
+            _Label('Recipient JazzCash Number'),
+            SizedBox(height: 10.h),
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -301,10 +356,26 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                     color: Colors.grey.shade300,
                     fontWeight: FontWeight.w400,
                   ),
-                  prefixIcon: Icon(
-                    Icons.phone_outlined,
-                    color: Colors.grey.shade400,
-                    size: 20.r,
+                  prefixIcon: Padding(
+                    padding: EdgeInsets.all(12.r),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 6.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _jcBg,
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Text(
+                        '+92',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w700,
+                          color: _jcRed,
+                        ),
+                      ),
+                    ),
                   ),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(
@@ -321,9 +392,10 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
             ).animate().fadeIn(delay: 200.ms),
 
             SizedBox(height: 20.h),
+
+            // Note
             _Label('Note (Optional)'),
             SizedBox(height: 10.h),
-
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -366,13 +438,14 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
 
             SizedBox(height: 32.h),
 
+            // Send OTP Button
             SizedBox(
               width: double.infinity,
               height: 54.h,
               child: ElevatedButton(
                 onPressed: wallet.otpLoading ? null : _sendOtp,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColor.appimagecolor,
+                  backgroundColor: _jcRed,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16.r),
                   ),
@@ -405,6 +478,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                       ),
               ),
             ).animate().fadeIn(delay: 300.ms),
+
             SizedBox(height: 30.h),
           ],
         ),
@@ -412,24 +486,17 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     );
   }
 
+  // ── OTP Screen ───────────────────────────────────────────────────────────
   Widget _buildOtpScreen(WalletProvider wallet) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(24.r),
       child: Column(
         children: [
           SizedBox(height: 20.h),
-          Container(
-            width: 80.r,
-            height: 80.r,
-            decoration: BoxDecoration(
-              color: const Color(0xFF2979FF).withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.send_rounded,
-              color: const Color(0xFF2979FF),
-              size: 36.r,
-            ),
+          CircleAvatar(
+            radius: 60.r,
+            backgroundColor: _jcRed.withOpacity(0.1),
+            backgroundImage: const AssetImage('assets/images/JazzCashLogo.jpg'),
           ).animate().scale(curve: Curves.elasticOut, duration: 600.ms),
           SizedBox(height: 20.h),
           Text(
@@ -442,7 +509,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
           ),
           SizedBox(height: 8.h),
           Text(
-            'Enter OTP sent to\n${_numberController.text}',
+            'Enter OTP sent to\n${_numberController.text} via JazzCash',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade500),
           ),
@@ -486,7 +553,6 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
               ),
             ),
           ),
-
           SizedBox(height: 32.h),
 
           SizedBox(
@@ -495,7 +561,8 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
             child: ElevatedButton(
               onPressed: wallet.verifyLoading ? null : _verifyOtp,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2979FF),
+                backgroundColor: _jcRed,
+                disabledBackgroundColor: _jcRed.withOpacity(0.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16.r),
                 ),
@@ -524,7 +591,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
               wallet.otpLoading ? 'Sending...' : 'Resend OTP',
               style: TextStyle(
                 fontSize: 14.sp,
-                color: const Color(0xFF2979FF),
+                color: _jcRed,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -535,6 +602,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
   }
 }
 
+// ─── Label ────────────────────────────────────────────────────────────────────
 class _Label extends StatelessWidget {
   final String text;
   const _Label(this.text);
@@ -548,111 +616,14 @@ class _Label extends StatelessWidget {
     ),
   );
 }
-class _PaymentMethodCard extends StatelessWidget {
-  final bool isSelected;
-  final String label;
-  final String description;
-  final String logoPath;
-  final Color color;
-  final VoidCallback onTap;
 
-  const _PaymentMethodCard({
-    required this.isSelected,
-    required this.label,
-    required this.description,
-    required this.logoPath,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: EdgeInsets.all(16.r),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: isSelected ? color : Colors.transparent,
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: isSelected ? color.withOpacity(0.12) : Colors.black.withOpacity(0.04),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 50.r,
-              height: 50.r,
-              padding: EdgeInsets.all(8.r),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              child: Image.asset(logoPath, fit: BoxFit.contain),
-            ),
-            SizedBox(width: 16.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1A1A2E),
-                    ),
-                  ),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 22.r,
-              height: 22.r,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isSelected ? color : Colors.transparent,
-                border: Border.all(
-                  color: isSelected ? color : Colors.grey.shade300,
-                  width: 2,
-                ),
-              ),
-              child: isSelected 
-                ? Icon(Icons.check_rounded, color: Colors.white, size: 14.r)
-                : null,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-
+// ─── Send Success Sheet ───────────────────────────────────────────────────────
 class _SendSuccessSheet extends StatelessWidget {
   final double amount;
-  final String method, number, note, txnId;
+  final String number, note, txnId;
 
   const _SendSuccessSheet({
     required this.amount,
-    required this.method,
     required this.number,
     required this.note,
     required this.txnId,
@@ -681,19 +652,24 @@ class _SendSuccessSheet extends StatelessWidget {
             ),
           ),
           SizedBox(height: 24.h),
+
           Container(
             width: 72.r,
             height: 72.r,
             decoration: BoxDecoration(
-              color: const Color(0xFF2979FF).withOpacity(0.1),
+              color: const Color(0xFFCC0000).withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.check_circle_rounded,
-              color: const Color(0xFF2979FF),
-              size: 44.r,
+            child: Center(
+              child: Image.asset(
+                'assets/images/JazzCashLogo.jpg',
+                width: 44.r,
+                height: 44.r,
+                fit: BoxFit.contain,
+              ),
             ),
           ).animate().scale(curve: Curves.elasticOut, duration: 600.ms),
+
           SizedBox(height: 16.h),
           Text(
             'Money Sent!',
@@ -705,10 +681,11 @@ class _SendSuccessSheet extends StatelessWidget {
           ),
           SizedBox(height: 6.h),
           Text(
-            'Rs ${amount.toStringAsFixed(0)} sent to $number',
+            'Rs ${amount.toStringAsFixed(0)} sent to $number via JazzCash',
             style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade500),
           ),
           SizedBox(height: 20.h),
+
           Container(
             width: double.infinity,
             padding: EdgeInsets.all(16.r),
@@ -718,7 +695,7 @@ class _SendSuccessSheet extends StatelessWidget {
             ),
             child: Column(
               children: [
-                _Row('Method', method),
+                _Row('Method', 'JazzCash'),
                 SizedBox(height: 10.h),
                 _Row('Transaction ID', txnId),
                 if (note.isNotEmpty) ...[
@@ -728,6 +705,7 @@ class _SendSuccessSheet extends StatelessWidget {
               ],
             ),
           ),
+
           SizedBox(height: 20.h),
           SizedBox(
             width: double.infinity,
