@@ -14,7 +14,8 @@ import 'package:user_side/widgets/customTextFeld.dart';
 import 'package:user_side/widgets/customValidation.dart';
 
 class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+  final VoidCallback? onLoginSuccess;
+  const SignUpScreen({super.key, this.onLoginSuccess});
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
@@ -187,8 +188,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                             Navigator.pushReplacement(
                                               context,
                                               MaterialPageRoute(
-                                                builder: (_) =>
-                                                    const LoginScreen(),
+                                                builder: (_) => LoginScreen(
+                                                  onLoginSuccess:
+                                                      widget.onLoginSuccess,
+                                                ),
                                               ),
                                             );
                                           } else {
@@ -251,8 +254,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         Navigator.pushReplacement(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) =>
-                                                const LoginScreen(),
+                                            builder: (context) => LoginScreen(
+                                              onLoginSuccess:
+                                                  widget.onLoginSuccess,
+                                            ),
                                           ),
                                         );
                                       },

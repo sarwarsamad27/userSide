@@ -13,7 +13,12 @@ import 'package:user_side/widgets/customValidation.dart';
 
 class UpdatePasswordScreen extends StatefulWidget {
   final String email;
-  const UpdatePasswordScreen({super.key, required this.email});
+  final VoidCallback? onLoginSuccess;
+  const UpdatePasswordScreen({
+    super.key,
+    required this.email,
+    this.onLoginSuccess,
+  });
 
   @override
   State<UpdatePasswordScreen> createState() => _UpdatePasswordScreenState();
@@ -216,8 +221,10 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                                                   Navigator.pushReplacement(
                                                     context,
                                                     MaterialPageRoute(
-                                                      builder: (_) =>
-                                                          const LoginScreen(),
+                                                      builder: (_) => LoginScreen(
+                                                        onLoginSuccess: widget
+                                                            .onLoginSuccess,
+                                                      ),
                                                     ),
                                                   );
                                                 },

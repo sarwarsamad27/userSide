@@ -73,9 +73,13 @@ class _AuthGateState extends State<AuthGate> {
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pushReplacement(
+                      Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => LoginScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => LoginScreen(
+                            onLoginSuccess: () => Navigator.pop(context),
+                          ),
+                        ),
                       );
                     },
                     child: const Text("Go to Login"),

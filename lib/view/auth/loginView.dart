@@ -18,7 +18,8 @@ import 'package:user_side/widgets/customValidation.dart';
 import 'package:user_side/widgets/social_button.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final VoidCallback? onLoginSuccess;
+  const LoginScreen({super.key, this.onLoginSuccess});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -97,8 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               controller: provider.passwordController,
                               isPassword: true,
                               prefixIcon: Icons.lock_outline,
-                              validator: 
-                                  Validators.password,
+                              validator: Validators.password,
                             ),
                             SizedBox(height: 12.h),
                             Align(
@@ -108,7 +108,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => ForgotScreen(),
+                                      builder: (_) => ForgotScreen(
+                                        onLoginSuccess: widget.onLoginSuccess,
+                                      ),
                                     ),
                                   );
                                 },
@@ -164,12 +166,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                           "Login Successful!",
                                         );
 
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => HomeNavBarScreen(),
-                                          ),
-                                        );
+                                        if (widget.onLoginSuccess != null) {
+                                          widget.onLoginSuccess!();
+                                        } else {
+                                          Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const HomeNavBarScreen(),
+                                            ),
+                                          );
+                                        }
                                       } else {
                                         if (mounted) {
                                           PremiumToast.error(
@@ -236,13 +243,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                           // ✅ Global API Refresh
                                           AuthSession.refreshAppData(context);
 
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  HomeNavBarScreen(),
-                                            ),
-                                          );
+                                          if (widget.onLoginSuccess != null) {
+                                            widget.onLoginSuccess!();
+                                          } else {
+                                            Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const HomeNavBarScreen(),
+                                              ),
+                                            );
+                                          }
                                         } else {
                                           if (mounted) {
                                             PremiumToast.error(
@@ -285,7 +296,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => SignUpScreen(),
+                                        builder: (_) => SignUpScreen(
+                                          onLoginSuccess: widget.onLoginSuccess,
+                                        ),
                                       ),
                                     );
                                   },

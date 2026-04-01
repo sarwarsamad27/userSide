@@ -410,7 +410,11 @@ class _ProfilescreenState extends State<Profilescreen> {
                   child: GestureDetector(
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => LoginScreen(
+                          onLoginSuccess: () => Navigator.pop(context),
+                        ),
+                      ),
                     ),
                     child: Container(
                       padding: EdgeInsets.all(20.r),
@@ -638,7 +642,9 @@ class _ProfilescreenState extends State<Profilescreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
+                              builder: (_) => LoginScreen(
+                                onLoginSuccess: () => Navigator.pop(context),
+                              ),
                             ),
                           );
                         },

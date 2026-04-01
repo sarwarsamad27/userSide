@@ -12,7 +12,8 @@ import 'package:user_side/widgets/customTextFeld.dart';
 import 'package:user_side/widgets/customValidation.dart';
 
 class ForgotScreen extends StatefulWidget {
-  const ForgotScreen({super.key});
+  final VoidCallback? onLoginSuccess;
+  const ForgotScreen({super.key, this.onLoginSuccess});
 
   @override
   State<ForgotScreen> createState() => _ForgotScreenState();
@@ -142,6 +143,8 @@ class _ForgotScreenState extends State<ForgotScreen> {
                                               builder: (_) => VerifyCodeScreen(
                                                 email: emailController.text
                                                     .trim(),
+                                                onLoginSuccess:
+                                                    widget.onLoginSuccess,
                                               ),
                                             ),
                                           );

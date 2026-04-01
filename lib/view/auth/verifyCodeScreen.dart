@@ -12,7 +12,8 @@ import 'package:provider/provider.dart';
 
 class VerifyCodeScreen extends StatelessWidget {
   final String email;
-  VerifyCodeScreen({super.key, required this.email});
+  final VoidCallback? onLoginSuccess;
+  VerifyCodeScreen({super.key, required this.email, this.onLoginSuccess});
 
   final TextEditingController otpController = TextEditingController();
 
@@ -143,8 +144,10 @@ class VerifyCodeScreen extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) =>
-                                      UpdatePasswordScreen(email: email),
+                                  builder: (_) => UpdatePasswordScreen(
+                                    email: email,
+                                    onLoginSuccess: onLoginSuccess,
+                                  ),
                                 ),
                               );
                             } else {
