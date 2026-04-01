@@ -97,8 +97,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               controller: provider.passwordController,
                               isPassword: true,
                               prefixIcon: Icons.lock_outline,
-                              validator: (v) =>
-                                  Validators.minLen(v, 6, label: "Password"),
+                              validator: 
+                                  Validators.password,
                             ),
                             SizedBox(height: 12.h),
                             Align(

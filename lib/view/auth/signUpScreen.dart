@@ -116,11 +116,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   controller: passwordController,
                                   isPassword: true,
                                   prefixIcon: Icons.lock_outline,
-                                  validator: (v) => Validators.minLen(
-                                    v,
-                                    6,
-                                    label: "Password",
-                                  ),
+                                  validator: Validators.password,
                                 ),
                                 SizedBox(height: 18.h),
 
@@ -131,15 +127,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   controller: confirmPasswordController,
                                   isPassword: true,
                                   prefixIcon: Icons.lock_reset_outlined,
-                                  validator: (v) {
-                                    final val = (v ?? "").trim();
-                                    if (val.isEmpty)
-                                      return "Confirm Password is required";
-                                    if (val != passwordController.text.trim()) {
-                                      return "Passwords do not match";
-                                    }
-                                    return null;
-                                  },
+                                  validator: Validators.confirmPassword(
+                                    confirmPasswordController,
+                                    passwordController,
+                                  ),
                                 ),
 
                                 SizedBox(height: 25.h),

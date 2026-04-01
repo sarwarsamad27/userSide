@@ -116,11 +116,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                                           controller: newPasswordController,
                                           prefixIcon: Icons.lock_outline,
                                           isPassword: true,
-                                          validator: (v) => Validators.minLen(
-                                            v,
-                                            6,
-                                            label: "Password",
-                                          ),
+                                          validator: Validators.password,
                                         ),
                                         SizedBox(height: 30.h),
 
@@ -130,17 +126,10 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                                           controller: confirmPasswordController,
                                           prefixIcon: Icons.lock_outline,
                                           isPassword: true,
-                                          validator: (v) {
-                                            final val = (v ?? "").trim();
-                                            if (val.isEmpty)
-                                              return "Confirm Password is required";
-                                            if (val !=
-                                                newPasswordController.text
-                                                    .trim()) {
-                                              return "Passwords do not match";
-                                            }
-                                            return null;
-                                          },
+                                          validator: Validators.confirmPassword(
+                                            confirmPasswordController,
+                                            newPasswordController,
+                                          ),
                                         ),
                                         SizedBox(height: 20.h),
 
