@@ -101,7 +101,7 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
   Widget build(BuildContext context) {
     // ✅ Guard this whole screen (UserId based)
     return AuthGate(child: _buildScaffold(context));
-  }
+  } 
 
   Widget _buildScaffold(BuildContext context) {
     final provider = context.watch<ChatThreadProvider>();
