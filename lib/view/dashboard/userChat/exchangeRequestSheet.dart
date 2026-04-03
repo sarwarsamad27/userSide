@@ -40,14 +40,34 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
 
   // Reason categories
   static const _categories = [
-    _Category("seller_fault", "Wrong Item Received",
-        "Seller sent wrong product", Icons.error_outline, Colors.red),
-    _Category("defective", "Defective / Damaged",
-        "Product is damaged or not working", Icons.broken_image_outlined, Colors.orange),
-    _Category("size_color", "Wrong Size / Color",
-        "Size or color doesn't match", Icons.straighten_outlined, Colors.blue),
-    _Category("buyer_preference", "Changed My Mind",
-        "I want a different product", Icons.swap_horiz, Colors.grey),
+    _Category(
+      "seller_fault",
+      "Wrong Item Received",
+      "Seller sent wrong product",
+      Icons.error_outline,
+      Colors.red,
+    ),
+    _Category(
+      "defective",
+      "Defective / Damaged",
+      "Product is damaged or not working",
+      Icons.broken_image_outlined,
+      Colors.orange,
+    ),
+    _Category(
+      "size_color",
+      "Wrong Size / Color",
+      "Size or color doesn't match",
+      Icons.straighten_outlined,
+      Colors.blue,
+    ),
+    _Category(
+      "buyer_preference",
+      "Changed My Mind",
+      "I want a different product",
+      Icons.swap_horiz,
+      Colors.grey,
+    ),
   ];
 
   @override
@@ -106,6 +126,7 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
     final ok = await provider.createRequest(
       buyerId: buyerId,
       orderId: widget.order.orderId ?? "",
+      id: widget.order.id ?? "", // ✅ Sent ObjectId separately
       productId: _selectedProduct!.productId ?? "",
       reason: _reason.text.trim(),
       reasonCategory: _reasonCategory,
@@ -115,19 +136,22 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
     if (!mounted) return;
 
     if (ok) {
-      PremiumToast.success(context,
-          provider.createModel?.message ?? "Exchange request submitted");
+      PremiumToast.success(
+        context,
+        provider.createModel?.message ?? "Exchange request submitted",
+      );
       Navigator.pop(context);
     } else {
-      PremiumToast.error(context,
-          provider.createModel?.message ?? "Failed to submit request");
+      PremiumToast.error(
+        context,
+        provider.createModel?.message ?? "Failed to submit request",
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final creating =
-        context.select<ExchangeProvider, bool>((p) => p.creating);
+    final creating = context.select<ExchangeProvider, bool>((p) => p.creating);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -153,14 +177,19 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
               ),
             ),
             SizedBox(height: 16.h),
-            Text("Exchange Request",
-                style: TextStyle(
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87)),
+            Text(
+              "Exchange Request",
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
             SizedBox(height: 4.h),
-            Text("Tell us why you want to exchange",
-                style: TextStyle(fontSize: 13.sp, color: Colors.grey)),
+            Text(
+              "Tell us why you want to exchange",
+              style: TextStyle(fontSize: 13.sp, color: Colors.grey),
+            ),
             SizedBox(height: 16.h),
 
             // Product selector
@@ -169,7 +198,9 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
                 value: _selectedProduct,
                 items: widget.products.map((p) {
                   return DropdownMenuItem(
-                      value: p, child: Text(p.name ?? "N/A"));
+                    value: p,
+                    child: Text(p.name ?? "N/A"),
+                  );
                 }).toList(),
                 onChanged: creating
                     ? null
@@ -177,16 +208,18 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
                 decoration: InputDecoration(
                   labelText: "Select Product",
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.r)),
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
                 ),
               ),
 
             SizedBox(height: 14.h),
 
             // Reason category chips
-            Text("Reason Category",
-                style: TextStyle(
-                    fontSize: 14.sp, fontWeight: FontWeight.w600)),
+            Text(
+              "Reason Category",
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+            ),
             SizedBox(height: 10.h),
             GridView.count(
               crossAxisCount: 2,
@@ -203,23 +236,26 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
                       : () => setState(() => _reasonCategory = cat.value),
                   child: Container(
                     padding: EdgeInsets.symmetric(
-                        horizontal: 10.w, vertical: 8.h),
+                      horizontal: 10.w,
+                      vertical: 8.h,
+                    ),
                     decoration: BoxDecoration(
                       color: selected
                           ? cat.color.withOpacity(0.12)
                           : Colors.grey[100],
                       borderRadius: BorderRadius.circular(10.r),
                       border: Border.all(
-                        color:
-                            selected ? cat.color : Colors.grey[300]!,
+                        color: selected ? cat.color : Colors.grey[300]!,
                         width: selected ? 1.5 : 1,
                       ),
                     ),
                     child: Row(
                       children: [
-                        Icon(cat.icon,
-                            size: 16.sp,
-                            color: selected ? cat.color : Colors.grey),
+                        Icon(
+                          cat.icon,
+                          size: 16.sp,
+                          color: selected ? cat.color : Colors.grey,
+                        ),
                         SizedBox(width: 6.w),
                         Expanded(
                           child: Text(
@@ -250,17 +286,20 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
                 color: _isBuyerFault ? Colors.orange[50] : Colors.green[50],
                 borderRadius: BorderRadius.circular(10.r),
                 border: Border.all(
-                    color: _isBuyerFault
-                        ? Colors.orange[200]!
-                        : Colors.green[200]!),
+                  color: _isBuyerFault
+                      ? Colors.orange[200]!
+                      : Colors.green[200]!,
+                ),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.local_shipping_outlined,
-                      size: 16.sp,
-                      color: _isBuyerFault
-                          ? Colors.orange[700]
-                          : Colors.green[700]),
+                  Icon(
+                    Icons.local_shipping_outlined,
+                    size: 16.sp,
+                    color: _isBuyerFault
+                        ? Colors.orange[700]
+                        : Colors.green[700],
+                  ),
                   SizedBox(width: 8.w),
                   Expanded(
                     child: Text(
@@ -291,11 +330,11 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
                 labelText: "Describe the issue *",
                 hintText: "Provide details about what's wrong...",
                 border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.r)),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.r),
-                  borderSide:
-                      BorderSide(color: AppColor.primaryColor),
+                  borderSide: BorderSide(color: AppColor.primaryColor),
                 ),
               ),
             ),
@@ -306,9 +345,13 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Product Photos (${_images.length}/5)",
-                    style: TextStyle(
-                        fontSize: 13.sp, fontWeight: FontWeight.w600)),
+                Text(
+                  "Product Photos (${_images.length}/5)",
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 TextButton.icon(
                   onPressed: creating ? null : _pickImages,
                   icon: Icon(Icons.add_photo_alternate, size: 18.sp),
@@ -330,10 +373,12 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8.r),
-                      child: Image.file(File(_images[i].path),
-                          width: double.infinity,
-                          height: double.infinity,
-                          fit: BoxFit.cover),
+                      child: Image.file(
+                        File(_images[i].path),
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                     Positioned(
                       top: 4,
@@ -341,16 +386,18 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
                       child: GestureDetector(
                         onTap: creating
                             ? null
-                            : () =>
-                                setState(() => _images.removeAt(i)),
+                            : () => setState(() => _images.removeAt(i)),
                         child: Container(
                           padding: EdgeInsets.all(4.w),
                           decoration: BoxDecoration(
                             color: Colors.black54,
                             borderRadius: BorderRadius.circular(20.r),
                           ),
-                          child: Icon(Icons.close,
-                              size: 14.sp, color: Colors.white),
+                          child: Icon(
+                            Icons.close,
+                            size: 14.sp,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -367,15 +414,19 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(vertical: 14.h),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r)),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
                 ),
                 onPressed: creating ? null : _submit,
                 child: creating
                     ? Utils.loadingLottie(size: 24)
-                    : Text("Submit Exchange Request",
+                    : Text(
+                        "Submit Exchange Request",
                         style: TextStyle(
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.bold)),
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -385,8 +436,7 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
   }
 
   bool get _isBuyerFault =>
-      _reasonCategory == "buyer_preference" ||
-      _reasonCategory == "size_color";
+      _reasonCategory == "buyer_preference" || _reasonCategory == "size_color";
 }
 
 class _Category {
@@ -395,6 +445,5 @@ class _Category {
   final String subtitle;
   final IconData icon;
   final Color color;
-  const _Category(
-      this.value, this.label, this.subtitle, this.icon, this.color);
+  const _Category(this.value, this.label, this.subtitle, this.icon, this.color);
 }

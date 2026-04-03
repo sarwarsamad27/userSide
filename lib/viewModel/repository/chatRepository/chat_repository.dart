@@ -16,6 +16,7 @@ class ExchangeRepository {
   Future<ExchangeRequestModel> createExchangeRequest({
     required String buyerId,
     required String orderId,
+    required String id, // ✅ MongoDB ObjectId
     required String productId,
     required String reason,
     required String reasonCategory,
@@ -25,6 +26,7 @@ class ExchangeRepository {
       final body = {
         "buyerId": buyerId,
         "orderId": orderId,
+        "id": id, // ✅ Added
         "productId": productId,
         "reason": reason,
         "reasonCategory": reasonCategory,
@@ -40,7 +42,9 @@ class ExchangeRepository {
   // ─────────────────────────────────────────────────────────────
   // LIST my requests
   // ─────────────────────────────────────────────────────────────
-  Future<ExchangeRequestListModel> listMyExchangeRequests(String buyerId) async {
+  Future<ExchangeRequestListModel> listMyExchangeRequests(
+    String buyerId,
+  ) async {
     try {
       final response = await _api.getApi(
         "${Global.getExchangeRequests}?buyerId=$buyerId",

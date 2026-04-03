@@ -38,6 +38,7 @@ class ExchangeProvider extends ChangeNotifier {
   Future<bool> createRequest({
     required String buyerId,
     required String orderId,
+    required String id, // ✅ Added
     required String productId,
     required String reason,
     required String reasonCategory,
@@ -52,6 +53,7 @@ class ExchangeProvider extends ChangeNotifier {
       createModel = await _repo.createExchangeRequest(
         buyerId: buyerId,
         orderId: orderId,
+        id: id, // ✅ Added
         productId: productId,
         reason: reason,
         reasonCategory: reasonCategory,

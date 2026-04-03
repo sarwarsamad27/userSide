@@ -6,13 +6,14 @@ class MyOrderModel {
   int? totalPages;
   List<Orders>? orders;
 
-  MyOrderModel(
-      {this.success,
-      this.totalItems,
-      this.page,
-      this.limit,
-      this.totalPages,
-      this.orders});
+  MyOrderModel({
+    this.success,
+    this.totalItems,
+    this.page,
+    this.limit,
+    this.totalPages,
+    this.orders,
+  });
 
   MyOrderModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
@@ -43,6 +44,7 @@ class MyOrderModel {
 }
 
 class Orders {
+  String? id;
   String? orderId;
   String? buyerId;
   Seller? seller;
@@ -53,22 +55,26 @@ class Orders {
   BuyerDetails? buyerDetails;
   Product? product;
 
-  Orders(
-      {this.orderId,
-      this.buyerId,
-      this.seller,
-      this.shipmentCharges,
-      this.grandTotal,
-      this.status,
-      this.createdAt,
-      this.buyerDetails,
-      this.product});
+  Orders({
+    this.id,
+    this.orderId,
+    this.buyerId,
+    this.seller,
+    this.shipmentCharges,
+    this.grandTotal,
+    this.status,
+    this.createdAt,
+    this.buyerDetails,
+    this.product,
+  });
 
   Orders.fromJson(Map<String, dynamic> json) {
+    id = json['id'] ?? json['_id'];
     orderId = json['orderId'];
     buyerId = json['buyerId'];
-    seller =
-        json['seller'] != null ? new Seller.fromJson(json['seller']) : null;
+    seller = json['seller'] != null
+        ? new Seller.fromJson(json['seller'])
+        : null;
     shipmentCharges = json['shipmentCharges'];
     grandTotal = json['grandTotal'];
     status = json['status'];
@@ -76,12 +82,14 @@ class Orders {
     buyerDetails = json['buyerDetails'] != null
         ? new BuyerDetails.fromJson(json['buyerDetails'])
         : null;
-    product =
-        json['product'] != null ? new Product.fromJson(json['product']) : null;
+    product = json['product'] != null
+        ? new Product.fromJson(json['product'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
     data['orderId'] = this.orderId;
     data['buyerId'] = this.buyerId;
     if (this.seller != null) {
@@ -114,18 +122,19 @@ class Seller {
   String? updatedAt;
   int? iV;
 
-  Seller(
-      {this.sId,
-      this.userId,
-      this.image,
-      this.name,
-      this.email,
-      this.phone,
-      this.address,
-      this.description,
-      this.createdAt,
-      this.updatedAt,
-      this.iV});
+  Seller({
+    this.sId,
+    this.userId,
+    this.image,
+    this.name,
+    this.email,
+    this.phone,
+    this.address,
+    this.description,
+    this.createdAt,
+    this.updatedAt,
+    this.iV,
+  });
 
   Seller.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -165,8 +174,13 @@ class BuyerDetails {
   String? address;
   String? additionalNote;
 
-  BuyerDetails(
-      {this.name, this.email, this.phone, this.address, this.additionalNote});
+  BuyerDetails({
+    this.name,
+    this.email,
+    this.phone,
+    this.address,
+    this.additionalNote,
+  });
 
   BuyerDetails.fromJson(Map<String, dynamic> json) {
     name = json['name'];
@@ -200,18 +214,19 @@ class Product {
   String? description;
   Review? review;
 
-  Product(
-      {this.productId,
-      this.name,
-      this.quantity,
-      this.price,
-      this.totalPrice,
-      this.selectedColor,
-      this.selectedSize,
-      this.images,
-      this.stock,
-      this.description,
-      this.review});
+  Product({
+    this.productId,
+    this.name,
+    this.quantity,
+    this.price,
+    this.totalPrice,
+    this.selectedColor,
+    this.selectedSize,
+    this.images,
+    this.stock,
+    this.description,
+    this.review,
+  });
 
   Product.fromJson(Map<String, dynamic> json) {
     productId = json['productId'];
@@ -224,8 +239,9 @@ class Product {
     images = json['images'].cast<String>();
     stock = json['stock'];
     description = json['description'];
-    review =
-        json['review'] != null ? new Review.fromJson(json['review']) : null;
+    review = json['review'] != null
+        ? new Review.fromJson(json['review'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -258,16 +274,17 @@ class Review {
   String? updatedAt;
   int? iV;
 
-  Review(
-      {this.sId,
-      this.productId,
-      this.userId,
-      this.stars,
-      this.text,
-      this.reply,
-      this.createdAt,
-      this.updatedAt,
-      this.iV});
+  Review({
+    this.sId,
+    this.productId,
+    this.userId,
+    this.stars,
+    this.text,
+    this.reply,
+    this.createdAt,
+    this.updatedAt,
+    this.iV,
+  });
 
   Review.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
