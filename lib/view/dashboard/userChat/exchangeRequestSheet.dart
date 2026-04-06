@@ -203,7 +203,7 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
                   );
                 }).toList(),
                 onChanged: creating
-                    ? null
+                    ? null  
                     : (v) => setState(() => _selectedProduct = v),
                 decoration: InputDecoration(
                   labelText: "Select Product",

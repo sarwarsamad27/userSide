@@ -15,7 +15,9 @@ class ExchangeProvider extends ChangeNotifier {
   bool uploadingProof = false;
 
   ExchangeRequestListModel? listModel;
+  RefundRequestListModel? refundListModel; // ✅
   ExchangeRequestModel? createModel;
+  RefundRequestModel? createRefundModel; // ✅
   ExchangeRequestModel? proofModel;
 
   String? errorMessage;
@@ -28,7 +30,20 @@ class ExchangeProvider extends ChangeNotifier {
     try {
       listModel = await _repo.listMyExchangeRequests(buyerId);
     } catch (e) {
-      errorMessage = "Failed to load: $e";
+      errorMessage = "Failed to load exchanges: $e";
+    }
+    loading = false;
+    notifyListeners();
+  }
+
+  Future<void> fetchMyRefunds(String buyerId) async {
+    loading = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      refundListModel = await _repo.listMyRefundRequests(buyerId);
+    } catch (e) {
+      errorMessage = "Failed to load refunds: $e";
     }
     loading = false;
     notifyListeners();
@@ -38,7 +53,7 @@ class ExchangeProvider extends ChangeNotifier {
   Future<bool> createRequest({
     required String buyerId,
     required String orderId,
-    required String id, // ✅ Added
+    required String id,
     required String productId,
     required String reason,
     required String reasonCategory,
@@ -53,7 +68,7 @@ class ExchangeProvider extends ChangeNotifier {
       createModel = await _repo.createExchangeRequest(
         buyerId: buyerId,
         orderId: orderId,
-        id: id, // ✅ Added
+        id: id,
         productId: productId,
         reason: reason,
         reasonCategory: reasonCategory,
@@ -61,6 +76,41 @@ class ExchangeProvider extends ChangeNotifier {
       );
       ok = createModel?.exchangeRequest != null;
       if (!ok) errorMessage = createModel?.message;
+    } catch (e) {
+      errorMessage = "Error: $e";
+    }
+
+    creating = false;
+    notifyListeners();
+    return ok;
+  }
+
+  Future<bool> createRefund({
+    required String buyerId,
+    required String orderId,
+    required String id,
+    required String productId,
+    required String reason,
+    required String reasonCategory,
+    List<String> images = const [],
+  }) async {
+    creating = true;
+    errorMessage = null;
+    notifyListeners();
+
+    bool ok = false;
+    try {
+      createRefundModel = await _repo.createRefundRequest(
+        buyerId: buyerId,
+        orderId: orderId,
+        id: id,
+        productId: productId,
+        reason: reason,
+        reasonCategory: reasonCategory,
+        images: images,
+      );
+      ok = createRefundModel?.refundRequest != null;
+      if (!ok) errorMessage = createRefundModel?.message;
     } catch (e) {
       errorMessage = "Error: $e";
     }

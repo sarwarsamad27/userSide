@@ -1,5 +1,3 @@
-// models/chatThread/chatModel.dart (Company Side)
-
 class ChatMessage {
   final String? id;
   final String? threadId;
@@ -10,8 +8,10 @@ class ChatMessage {
   final String? deliveredAt;
   final String? readAt;
   final bool isExchangeRequest;
+  final bool isRefundRequest;
   final ExchangeRequestData? exchangeData;
-  final ProductCard? productCard; // ✅ NEW
+  final RefundRequestData? refundData;
+  final ProductCard? productCard;
 
   ChatMessage({
     this.id,
@@ -23,17 +23,19 @@ class ChatMessage {
     this.deliveredAt,
     this.readAt,
     this.isExchangeRequest = false,
+    this.isRefundRequest = false,
     this.exchangeData,
-    this.productCard, // ✅ NEW
+    this.refundData,
+    this.productCard,
   });
 
   static String? _extractThreadId(Map<String, dynamic> json) {
-    final direct = json["threadId"] ??
+    final direct =
+        json["threadId"] ??
         json["chatThreadId"] ??
         json["thread_id"] ??
         json["threadID"];
     if (direct != null) return direct.toString();
-
     final thread = json["thread"];
     if (thread is String) return thread;
     if (thread is Map) {
@@ -64,15 +66,18 @@ class ChatMessage {
       readAt: json["readAt"]?.toString(),
       isExchangeRequest:
           (json["isExchangeRequest"] ?? json["type"] == "exchange") == true,
-      
-      // ✅ exchangeData
+      isRefundRequest:
+          (json["isRefundRequest"] ?? json["type"] == "refund") == true,
       exchangeData: json["exchangeData"] != null && json["exchangeData"] is Map
           ? ExchangeRequestData.fromJson(
               (json["exchangeData"] as Map).cast<String, dynamic>(),
             )
           : null,
-
-      // ✅ productCard
+      refundData: json["refundData"] != null && json["refundData"] is Map
+          ? RefundRequestData.fromJson(
+              (json["refundData"] as Map).cast<String, dynamic>(),
+            )
+          : null,
       productCard: json["productCard"] != null && json["productCard"] is Map
           ? ProductCard.fromJson(
               (json["productCard"] as Map).cast<String, dynamic>(),
@@ -82,7 +87,143 @@ class ChatMessage {
   }
 }
 
-// ✅ Product Card Model
+class RefundRequestData {
+  final String? refundId;
+  final String? orderId;
+  final String? productId;
+  final String? productName;
+  final String? reason;
+  final String? reasonCategory;
+  final String? status;
+  final String? createdAt;
+  final List<String> images;
+  final String? companyNote;
+  final String? pdfPath;
+
+  RefundRequestData({
+    this.refundId,
+    this.orderId,
+    this.productId,
+    this.productName,
+    this.reason,
+    this.reasonCategory,
+    this.status,
+    this.createdAt,
+    this.images = const [],
+    this.companyNote,
+    this.pdfPath,
+  });
+
+  String get reasonCategoryLabel {
+    switch (reasonCategory) {
+      case "seller_fault":
+        return "Wrong Item";
+      case "defective":
+        return "Defective";
+      case "size_issue":
+        return "Size Issue";
+      case "wrong_item":
+        return "Different Product";
+      case "buyer_preference":
+        return "Changed Mind";
+      default:
+        return reasonCategory ?? "N/A";
+    }
+  }
+
+  factory RefundRequestData.fromJson(Map<String, dynamic> json) {
+    return RefundRequestData(
+      refundId:
+          (json["refundId"] ?? json["exchangeId"] ?? json["_id"] ?? json["id"])
+              ?.toString(),
+      orderId: (json["orderId"] ?? json["order_id"])?.toString(),
+      productId: (json["productId"] ?? json["product_id"])?.toString(),
+      productName: (json["productName"] ?? json["product_name"])?.toString(),
+      reason: (json["reason"] ?? json["note"])?.toString(),
+      reasonCategory: json["reasonCategory"]?.toString(),
+      status: json["status"]?.toString(),
+      createdAt: (json["createdAt"] ?? json["timestamp"])?.toString(),
+      images:
+          (json["images"] as List?)?.map((e) => e.toString()).toList() ??
+          const [],
+      companyNote: json["companyNote"]?.toString(),
+      pdfPath: json["pdfPath"]?.toString(),
+    );
+  }
+}
+
+class ExchangeRequestData {
+  final String? exchangeId;
+  final String? orderId;
+  final String? productId;
+  final String? productName;
+  final String? reason;
+  final String? reasonCategory;
+  final String? status;
+  final String? createdAt;
+  final List<String> images;
+  final String? companyNote;
+  final String? pdfPath;
+
+  ExchangeRequestData({
+    this.exchangeId,
+    this.orderId,
+    this.productId,
+    this.productName,
+    this.reason,
+    this.reasonCategory,
+    this.status,
+    this.createdAt,
+    this.images = const [],
+    this.companyNote,
+    this.pdfPath,
+  });
+
+  String get reasonCategoryLabel {
+    switch (reasonCategory) {
+      case "seller_fault":
+        return "Wrong Item";
+      case "defective":
+        return "Defective";
+      case "size_issue":
+        return "Size Issue";
+      case "wrong_item":
+        return "Different Product";
+      case "buyer_preference":
+        return "Changed Mind";
+      default:
+        return reasonCategory ?? "N/A";
+    }
+  }
+
+  static String _normalizeStatus(String? s) {
+    final v = (s ?? "pending").toLowerCase();
+    if (v == "denied" || v == "reject") return "rejected";
+    if (v == "approved") return "accepted";
+    return v;
+  }
+
+  factory ExchangeRequestData.fromJson(Map<String, dynamic> json) {
+    return ExchangeRequestData(
+      exchangeId:
+          (json["exchangeId"] ??
+                  json["exchangeRequestId"] ??
+                  json["_id"] ??
+                  json["id"])
+              ?.toString(),
+      orderId: (json["orderId"] ?? json["order_id"])?.toString(),
+      productId: (json["productId"] ?? json["product_id"])?.toString(),
+      productName: (json["productName"] ?? json["product_name"])?.toString(),
+      reason: (json["reason"] ?? json["note"])?.toString(),
+      status: _normalizeStatus((json["status"])?.toString()),
+      createdAt: (json["createdAt"] ?? json["timestamp"])?.toString(),
+      images:
+          (json["images"] as List?)?.map((e) => e.toString()).toList() ??
+          const [],
+    );
+  }
+}
+
 class ProductCard {
   final String? productId;
   final String? productName;
@@ -111,52 +252,6 @@ class ProductCard {
       productDescription: json["productDescription"]?.toString(),
       brandName: json["brandName"]?.toString(),
       sellerId: json["sellerId"]?.toString(),
-    );
-  }
-}
-
-class ExchangeRequestData {
-  final String? exchangeId;
-  final String? orderId;
-  final String? productId;
-  final String? productName;
-  final String? reason;
-  final String? status;
-  final String? createdAt;
-  final List<String> images;
-
-  ExchangeRequestData({
-    this.exchangeId,
-    this.orderId,
-    this.productId,
-    this.productName,
-    this.reason,
-    this.status,
-    this.createdAt,
-    this.images = const [],
-  });
-
-  static String _normalizeStatus(String? s) {
-    final v = (s ?? "pending").toLowerCase();
-    if (v == "denied") return "rejected";
-    if (v == "reject") return "rejected";
-    if (v == "approved") return "accepted";
-    return v;
-  }
-
-  factory ExchangeRequestData.fromJson(Map<String, dynamic> json) {
-    return ExchangeRequestData(
-      exchangeId:
-          (json["exchangeId"] ?? json["exchangeRequestId"] ?? json["_id"] ?? json["id"])
-              ?.toString(),
-      orderId: (json["orderId"] ?? json["order_id"])?.toString(),
-      productId: (json["productId"] ?? json["product_id"])?.toString(),
-      productName: (json["productName"] ?? json["product_name"])?.toString(),
-      reason: (json["reason"] ?? json["note"])?.toString(),
-      status: _normalizeStatus((json["status"])?.toString()),
-      createdAt: (json["createdAt"] ?? json["timestamp"])?.toString(),
-      images: (json["images"] as List?)?.map((e) => e.toString()).toList() ??
-          const [],
     );
   }
 }

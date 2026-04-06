@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
@@ -394,10 +395,39 @@ class UserChatProvider extends ChangeNotifier {
 
     socket.off("chat:message");
     socket.off("exchange:new");
-    socket.off("exchange:status");
+    socket.off("refund:new");
+    socket.off("refund:status");
     socket.off("chat:typing");
     socket.off("chat:status");
     socket.off("chat:status_bulk");
+
+    // ------- refund:new -------
+    socket.on("refund:new", (data) {
+      if (data is! Map) return;
+      if (data["threadId"]?.toString() != threadId) return;
+
+      final messageId = (data["_id"] ?? data["id"])?.toString();
+      if (messageId != null && _processedMessageIds.contains(messageId)) return;
+
+      final refundMessage = ChatMessage.fromJson(
+        Map<String, dynamic>.from(data),
+      );
+      messages.insert(0, refundMessage);
+      if (messageId != null) _processedMessageIds.add(messageId);
+      _registerFingerprint(refundMessage);
+
+      _safeNotify();
+    });
+
+    // ------- refund:status -------
+    socket.on("refund:status", (data) {
+      if (data is! Map) return;
+      final refundId = (data["refundId"] ?? data["exchangeId"])?.toString();
+      final newStatus = data["status"]?.toString();
+      if (refundId == null || newStatus == null) return;
+
+      _updateRefundStatusLocally(refundId, newStatus, data);
+    });
 
     socket.on("chat:message", (data) {
       if (data is! Map) return;
@@ -722,19 +752,115 @@ class UserChatProvider extends ChangeNotifier {
     final buyerId = await LocalStorage.getUserId();
     if (buyerId == null || buyerId.isEmpty) return;
 
-    final url = "${Global.getExchangePdf}/$exchangeId/pdf?buyerId=$buyerId";
-    final resp = await http.get(
-      Uri.parse(url),
-      headers: {"Accept": "application/pdf"},
-    );
+    Fluttertoast.showToast(msg: "Downloading PDF...");
+    final url = "${Global.getExchangePdf(exchangeId)}?buyerId=$buyerId";
 
-    if (resp.statusCode != 200) return;
+    try {
+      final resp = await http.get(
+        Uri.parse(url),
+        headers: {"Accept": "application/pdf"},
+      );
 
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File("${dir.path}/exchange_$exchangeId.pdf");
-    await file.writeAsBytes(resp.bodyBytes, flush: true);
+      if (resp.statusCode != 200) {
+        Fluttertoast.showToast(
+          msg: "Failed to download PDF (Error ${resp.statusCode})",
+        );
+        return;
+      }
 
-    await OpenFilex.open(file.path);
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File("${dir.path}/exchange_$exchangeId.pdf");
+      await file.writeAsBytes(resp.bodyBytes, flush: true);
+
+      final result = await OpenFilex.open(file.path);
+      if (result.type != ResultType.done) {
+        Fluttertoast.showToast(
+          msg: "Saved to Documents: exchange_$exchangeId.pdf",
+        );
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Download error: $e");
+    }
+  }
+
+  Future<void> downloadRefundSlip(String refundId) async {
+    final buyerId = await LocalStorage.getUserId();
+    if (buyerId == null || buyerId.isEmpty) return;
+
+    Fluttertoast.showToast(msg: "Downloading PDF...");
+    final url = "${Global.getRefundPdf(refundId)}?buyerId=$buyerId";
+
+    try {
+      final resp = await http.get(
+        Uri.parse(url),
+        headers: {"Accept": "application/pdf"},
+      );
+
+      if (resp.statusCode != 200) {
+        Fluttertoast.showToast(
+          msg: "Failed to download PDF (Error ${resp.statusCode})",
+        );
+        return;
+      }
+
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File("${dir.path}/refund_$refundId.pdf");
+      await file.writeAsBytes(resp.bodyBytes, flush: true);
+
+      final result = await OpenFilex.open(file.path);
+      if (result.type != ResultType.done) {
+        Fluttertoast.showToast(msg: "Saved to Documents: refund_$refundId.pdf");
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Download error: $e");
+    }
+  }
+
+  void _updateRefundStatusLocally(
+    String refundId,
+    String status, [
+    Map? fullData,
+  ]) {
+    bool found = false;
+    for (int i = 0; i < messages.length; i++) {
+      if (messages[i].isRefundRequest &&
+          (messages[i].refundData?.refundId == refundId ||
+              messages[i].refundData?.refundId == null)) {
+        // Fallback if id was missing
+
+        final old = messages[i];
+        messages[i] = ChatMessage(
+          id: old.id,
+          threadId: old.threadId,
+          fromType: old.fromType,
+          fromId: old.fromId,
+          text: old.text,
+          timestamp: old.timestamp,
+          deliveredAt: old.deliveredAt,
+          readAt: old.readAt,
+          isRefundRequest: true,
+          refundData: RefundRequestData(
+            refundId: refundId,
+            orderId: old.refundData?.orderId,
+            productId: old.refundData?.productId,
+            productName: old.refundData?.productName,
+            reason: old.refundData?.reason,
+            reasonCategory: old.refundData?.reasonCategory,
+            status: status,
+            createdAt: old.refundData?.createdAt,
+            images: old.refundData?.images ?? const [],
+            companyNote:
+                fullData?["companyNote"]?.toString() ??
+                old.refundData?.companyNote,
+            pdfPath:
+                fullData?["pdfPath"]?.toString() ?? old.refundData?.pdfPath,
+          ),
+        );
+        found = true;
+        break;
+      }
+    }
+    if (found) _safeNotify();
   }
 
   @override

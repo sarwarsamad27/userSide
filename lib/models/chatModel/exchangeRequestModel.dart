@@ -31,6 +31,37 @@ class ExchangeRequestListModel {
   }
 }
 
+class RefundRequestModel {
+  final String? message;
+  final ExchangeRequest? refundRequest;
+
+  RefundRequestModel({this.message, this.refundRequest});
+
+  factory RefundRequestModel.fromJson(Map<String, dynamic> json) {
+    return RefundRequestModel(
+      message: json["message"],
+      refundRequest: json["refundRequest"] != null
+          ? ExchangeRequest.fromJson(json["refundRequest"])
+          : null,
+    );
+  }
+}
+
+class RefundRequestListModel {
+  final String? message;
+  final List<ExchangeRequest> requests;
+
+  RefundRequestListModel({this.message, this.requests = const []});
+
+  factory RefundRequestListModel.fromJson(Map<String, dynamic> json) {
+    final list = (json["requests"] as List?) ?? [];
+    return RefundRequestListModel(
+      message: json["message"],
+      requests: list.map((e) => ExchangeRequest.fromJson(e)).toList(),
+    );
+  }
+}
+
 class ExchangeRequest {
   final String? id;
   final String? orderId;
@@ -38,10 +69,11 @@ class ExchangeRequest {
   final String? buyerId;
   final String? sellerProfileId;
   final String? reason;
-  final String? reasonCategory;  // seller_fault | defective | buyer_preference | size_color
-  final String? resolutionType;  // replacement | refund
+  final String?
+  reasonCategory; // seller_fault | defective | buyer_preference | size_color
+  final String? resolutionType; // replacement | refund
   final String? status;
-  final String? courierPaidBy;   // seller | buyer | platform
+  final String? courierPaidBy; // seller | buyer | platform
   final List<String> images;
 
   // Return shipping (user → company)
@@ -184,18 +216,30 @@ class ExchangeRequest {
   // ── Status display label ──────────────────────────────────────
   String get statusLabel {
     switch (status) {
-      case "Pending":        return "Pending Review";
-      case "Accepted":       return "Accepted — Ship Product";
-      case "Denied":         return "Rejected";
-      case "ReturnShipped":  return "Return Shipped";
-      case "ReturnReceived": return "Package Received";
-      case "Inspecting":     return "Under Inspection";
-      case "ApprovedInspection": return "Inspection Passed";
-      case "Disputed":       return "Disputed";
-      case "ReplacementShipped": return "Replacement Shipped";
-      case "Refunded":       return "Refund Processed";
-      case "Completed":      return "Completed";
-      default:               return status ?? "Unknown";
+      case "Pending":
+        return "Pending Review";
+      case "Accepted":
+        return "Accepted — Ship Product";
+      case "Denied":
+        return "Rejected";
+      case "ReturnShipped":
+        return "Return Shipped";
+      case "ReturnReceived":
+        return "Package Received";
+      case "Inspecting":
+        return "Under Inspection";
+      case "ApprovedInspection":
+        return "Inspection Passed";
+      case "Disputed":
+        return "Disputed";
+      case "ReplacementShipped":
+        return "Replacement Shipped";
+      case "Refunded":
+        return "Refund Processed";
+      case "Completed":
+        return "Completed";
+      default:
+        return status ?? "Unknown";
     }
   }
 }

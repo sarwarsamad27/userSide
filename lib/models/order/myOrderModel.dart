@@ -213,6 +213,8 @@ class Product {
   String? stock;
   String? description;
   Review? review;
+  ExchangeRequest? exchangeRequest;
+  RefundRequest? refundRequest;
 
   Product({
     this.productId,
@@ -226,6 +228,8 @@ class Product {
     this.stock,
     this.description,
     this.review,
+    this.exchangeRequest,
+    this.refundRequest,
   });
 
   Product.fromJson(Map<String, dynamic> json) {
@@ -234,13 +238,23 @@ class Product {
     quantity = json['quantity'];
     price = json['price'];
     totalPrice = json['totalPrice'];
-    selectedColor = json['selectedColor'].cast<String>();
-    selectedSize = json['selectedSize'].cast<String>();
-    images = json['images'].cast<String>();
+    selectedColor = json['selectedColor'] != null
+        ? json['selectedColor'].cast<String>()
+        : [];
+    selectedSize = json['selectedSize'] != null
+        ? json['selectedSize'].cast<String>()
+        : [];
+    images = json['images'] != null ? json['images'].cast<String>() : [];
     stock = json['stock'];
     description = json['description'];
     review = json['review'] != null
         ? new Review.fromJson(json['review'])
+        : null;
+    exchangeRequest = json['exchangeRequest'] != null
+        ? new ExchangeRequest.fromJson(json['exchangeRequest'])
+        : null;
+    refundRequest = json['refundRequest'] != null
+        ? new RefundRequest.fromJson(json['refundRequest'])
         : null;
   }
 
@@ -259,6 +273,84 @@ class Product {
     if (this.review != null) {
       data['review'] = this.review!.toJson();
     }
+    if (this.exchangeRequest != null) {
+      data['exchangeRequest'] = this.exchangeRequest!.toJson();
+    }
+    if (this.refundRequest != null) {
+      data['refundRequest'] = this.refundRequest!.toJson();
+    }
+    return data;
+  }
+}
+
+class ExchangeRequest {
+  String? id;
+  String? status;
+  String? reason;
+  String? companyNote;
+  String? pdfPath;
+
+  ExchangeRequest({
+    this.id,
+    this.status,
+    this.reason,
+    this.companyNote,
+    this.pdfPath,
+  });
+
+  ExchangeRequest.fromJson(Map<String, dynamic> json) {
+    id = json['_id'];
+    status = json['status'];
+    reason = json['reason'];
+    companyNote = json['companyNote'];
+    pdfPath = json['pdfPath'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['_id'] = this.id;
+    data['status'] = this.status;
+    data['reason'] = this.reason;
+    data['companyNote'] = this.companyNote;
+    data['pdfPath'] = this.pdfPath;
+    return data;
+  }
+}
+
+class RefundRequest {
+  String? id;
+  String? status;
+  String? reason;
+  String? companyNote;
+  String? pdfPath;
+  int? refundAmount;
+
+  RefundRequest({
+    this.id,
+    this.status,
+    this.reason,
+    this.companyNote,
+    this.pdfPath,
+    this.refundAmount,
+  });
+
+  RefundRequest.fromJson(Map<String, dynamic> json) {
+    id = json['_id'];
+    status = json['status'];
+    reason = json['reason'];
+    companyNote = json['companyNote'];
+    pdfPath = json['pdfPath'];
+    refundAmount = json['refundAmount'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['_id'] = this.id;
+    data['status'] = this.status;
+    data['reason'] = this.reason;
+    data['companyNote'] = this.companyNote;
+    data['pdfPath'] = this.pdfPath;
+    data['refundAmount'] = this.refundAmount;
     return data;
   }
 }

@@ -93,7 +93,6 @@ class ExchangeRepository {
     required Map<String, String> authHeaders,
   }) async {
     try {
-      // ✅ Global.getExchangePdf is now a function
       final url = "${Global.getExchangePdf(requestId)}?buyerId=$buyerId";
       final resp = await http.get(Uri.parse(url), headers: authHeaders);
       if (resp.statusCode != 200) return null;
@@ -102,6 +101,46 @@ class ExchangeRepository {
       return file;
     } catch (e) {
       return null;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // REFUND REQUESTS
+  // ─────────────────────────────────────────────────────────────
+  Future<RefundRequestModel> createRefundRequest({
+    required String buyerId,
+    required String orderId,
+    required String id,
+    required String productId,
+    required String reason,
+    required String reasonCategory,
+    List<String> images = const [],
+  }) async {
+    try {
+      final body = {
+        "buyerId": buyerId,
+        "orderId": orderId,
+        "id": id,
+        "productId": productId,
+        "reason": reason,
+        "reasonCategory": reasonCategory,
+        "images": images.take(5).toList(),
+      };
+      final response = await _api.postApi(Global.createRefundRequest, body);
+      return RefundRequestModel.fromJson(response);
+    } catch (e) {
+      return RefundRequestModel(message: "Error: $e");
+    }
+  }
+
+  Future<RefundRequestListModel> listMyRefundRequests(String buyerId) async {
+    try {
+      final response = await _api.getApi(
+        "${Global.getRefundRequests}?buyerId=$buyerId",
+      );
+      return RefundRequestListModel.fromJson(response);
+    } catch (e) {
+      return RefundRequestListModel(message: "Error: $e");
     }
   }
 }

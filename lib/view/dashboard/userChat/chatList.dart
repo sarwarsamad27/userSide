@@ -6,6 +6,7 @@ import 'package:user_side/view/dashboard/homeDashboard/productDetail/widgets/pro
 import 'package:user_side/view/dashboard/userChat/emptyState.dart';
 import 'package:user_side/view/dashboard/userChat/exchangeRequestCard.dart';
 import 'package:user_side/view/dashboard/userChat/messageBubble.dart';
+import 'package:user_side/view/dashboard/userChat/refundRequestCard.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/userChat_provider.dart';
 
 class ChatList extends StatelessWidget {
@@ -36,6 +37,11 @@ class ChatList extends StatelessWidget {
             // ✅ Exchange Request Card
             if (m.isExchangeRequest == true && m.exchangeData != null) {
               return ExchangeRequestCard(message: m);
+            }
+
+            // ✅ Refund Request Card
+            if (m.isRefundRequest == true && m.refundData != null) {
+              return RefundRequestCard(message: m);
             }
 
             if (m.productCard != null) {

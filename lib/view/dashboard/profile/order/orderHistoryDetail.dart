@@ -5,6 +5,7 @@ import 'package:user_side/models/order/myOrderModel.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/view/dashboard/userChat/exchangeRequestSheet.dart';
+import 'package:user_side/view/dashboard/userChat/refundRequestSheet.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 
@@ -44,7 +45,11 @@ class OrderDetailScreen extends StatelessWidget {
               /// ORDER BASIC INFO
               Text(
                 "Order ID: ${order.orderId ?? 'N/A'}",
-                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueAccent,
+                ),
               ),
 
               SizedBox(height: 8.h),
@@ -114,115 +119,117 @@ class OrderDetailScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 12.h),
-              ...products.map(
-                (p) => Padding(
+              ...products.map((p) {
+                final exReq = p.exchangeRequest;
+                final refReq = p.refundRequest;
+
+                return Padding(
                   padding: EdgeInsets.only(bottom: 14.h),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10.r),
-                        child:
-                            (p.images?.isNotEmpty == true &&
-                                (p.images!.first).isNotEmpty)
-                            ? Image.network(
-                                Global.imageUrl + p.images!.first,
-                                height: 80.h,
-                                width: 80.w,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
+                      Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10.r),
+                            child:
+                                (p.images?.isNotEmpty == true &&
+                                    (p.images!.first).isNotEmpty)
+                                ? Image.network(
+                                    Global.imageUrl +
+                                        (p.images!.first.startsWith('/')
+                                            ? ""
+                                            : "/") +
+                                        p.images!.first,
                                     height: 80.h,
                                     width: 80.w,
-                                    alignment: Alignment.center,
-                                    color: Colors.grey.shade200,
-                                    child: Icon(
-                                      Icons.image_not_supported_outlined,
-                                      size: 28.sp,
-                                      color: Colors.grey,
-                                    ),
-                                  );
-                                },
-                                loadingBuilder:
-                                    (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return Container(
-                                        height: 80.h,
-                                        width: 80.w,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey.shade200,
-                                        child: SizedBox(
-                                          height: 20.sp,
-                                          width: 20.sp,
-                                          child:
-                                              const CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                              ),
-                                        ),
-                                      );
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            _fallbackImg(),
+                                    loadingBuilder: (context, child, lp) {
+                                      if (lp == null) return child;
+                                      return _loadingImg();
                                     },
-                              )
-                            : Container(
-                                height: 80.h,
-                                width: 80.w,
-                                alignment: Alignment.center,
-                                color: Colors.grey.shade200,
-                                child: Icon(
-                                  Icons.image_outlined,
-                                  size: 28.sp,
-                                  color: Colors.grey,
+                                  )
+                                : _fallbackImg(),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  p.name ?? "N/A",
+                                  style: TextStyle(
+                                    fontSize: 15.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ),
+                                SizedBox(height: 4.h),
+                                Text("Qty: ${p.quantity ?? 0}"),
+                                Text("Price: Rs ${p.price ?? 0}"),
+                                Text("Total: Rs ${p.totalPrice ?? 0}"),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+
+                      if (exReq != null) ...[
+                        SizedBox(height: 10.h),
+                        _RequestStatusBadge(
+                          type: "Exchange",
+                          status: exReq.status ?? "Pending",
+                          note: exReq.companyNote,
+                        ),
+                      ],
+                      if (refReq != null) ...[
+                        SizedBox(height: 10.h),
+                        _RequestStatusBadge(
+                          type: "Refund",
+                          status: refReq.status ?? "Pending",
+                          note: refReq.companyNote,
+                        ),
+                      ],
+
+                      if (eligible && exReq == null && refReq == null) ...[
+                        SizedBox(height: 10.h),
+                        Row(
                           children: [
-                            Text(
-                              p.name ?? "N/A",
-                              style: TextStyle(
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.w600,
+                            _ActionBtn(
+                              label: "Exchange",
+                              icon: Icons.swap_horiz,
+                              color: Colors.blue,
+                              onTap: () => _openRequestForm(
+                                context,
+                                "exchange",
+                                products,
                               ),
                             ),
-                            SizedBox(height: 4.h),
-                            Text("Qty: ${p.quantity ?? 0}"),
-                            Text("Price: Rs ${p.price ?? 0}"),
-                            Text("Total: Rs ${p.totalPrice ?? 0}"),
-
-                            if (eligible) ...[
-                              SizedBox(height: 10.h),
-                              ElevatedButton(
-                                onPressed: () async {
-                                  // Open dialog form
-                                  await showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    builder: (_) => ExchangeRequestSheet(
-                                      order: order,
-                                      products: products,
-                                    ),
-                                  );
-                                },
-                                child: const Text("Request Exchange"),
-                              ),
-                            ] else ...[
-                              SizedBox(height: 10.h),
-                              Text(
-                                "Exchange option is available within 10 days after delivery.",
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
+                            SizedBox(width: 10.w),
+                            _ActionBtn(
+                              label: "Refund",
+                              icon: Icons.money_off,
+                              color: Colors.red,
+                              onTap: () =>
+                                  _openRequestForm(context, "refund", products),
+                            ),
                           ],
                         ),
-                      ),
+                      ] else if (order.status == "Delivered" &&
+                          exReq == null &&
+                          refReq == null) ...[
+                        SizedBox(height: 10.h),
+                        Text(
+                          "Return/Refund window expired (10 days after delivery).",
+                          style: TextStyle(fontSize: 11.sp, color: Colors.grey),
+                        ),
+                      ],
                     ],
                   ),
-                ),
-              ),
+                );
+              }),
 
               Divider(height: 30.h),
 
@@ -239,16 +246,151 @@ class OrderDetailScreen extends StatelessWidget {
     );
   }
 
-  bool canExchange(String? status, String? deliveredAtOrUpdatedAt) {
-    if (status != "Delivered") return false;
-    if (deliveredAtOrUpdatedAt == null) return false;
+  Widget _fallbackImg() => Container(
+    height: 80.h,
+    width: 80.w,
+    alignment: Alignment.center,
+    color: Colors.grey.shade200,
+    child: Icon(Icons.image_outlined, size: 28.sp, color: Colors.grey),
+  );
 
+  Widget _loadingImg() => Container(
+    height: 80.h,
+    width: 80.w,
+    alignment: Alignment.center,
+    color: Colors.grey.shade200,
+    child: SizedBox(
+      height: 20.sp,
+      width: 20.sp,
+      child: const CircularProgressIndicator(strokeWidth: 2),
+    ),
+  );
+
+  void _openRequestForm(
+    BuildContext context,
+    String type,
+    List<Product> prods,
+  ) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => type == "exchange"
+          ? ExchangeRequestSheet(order: order, products: prods)
+          : RefundRequestSheet(order: order, products: prods),
+    );
+  }
+
+  bool canExchange(String? status, String? createdAt) {
+    if (status != "Delivered") return false;
+    if (createdAt == null) return false;
     try {
-      final delivered = DateTime.parse(deliveredAtOrUpdatedAt);
-      final expiry = delivered.add(const Duration(days: 43));
+      final delivered = DateTime.parse(createdAt);
+      // Align with backend (10 days)
+      final expiry = delivered.add(const Duration(days: 10));
       return DateTime.now().isBefore(expiry);
     } catch (_) {
       return false;
     }
+  }
+}
+
+class _ActionBtn extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionBtn({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 8.h),
+          decoration: BoxDecoration(
+            border: Border.all(color: color.withOpacity(0.5)),
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16.sp, color: color),
+              SizedBox(width: 6.w),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RequestStatusBadge extends StatelessWidget {
+  final String type, status;
+  final String? note;
+
+  const _RequestStatusBadge({
+    required this.type,
+    required this.status,
+    this.note,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Color color = Colors.orange;
+    if (status == "Accepted" || status == "Completed" || status == "Refunded")
+      color = Colors.green;
+    if (status == "Denied" || status == "Disputed") color = Colors.red;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(10.w),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.info_outline, size: 16.sp, color: color),
+              SizedBox(width: 8.w),
+              Text(
+                "$type Request: $status",
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          if (note != null && note!.isNotEmpty) ...[
+            SizedBox(height: 4.h),
+            Text(
+              "Note: $note",
+              style: TextStyle(fontSize: 12.sp, color: Colors.black87),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }

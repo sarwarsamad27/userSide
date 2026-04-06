@@ -42,21 +42,26 @@ class Global {
   static var WalletBalance = "${BaseUrl}/buyer/wallet/balance";
   // static var AddMoneySendOtp = "${BaseUrl}/buyer/wallet/add-money/send-otp";
   // static var AddMoneyVerifyOtp = "${BaseUrl}/buyer/wallet/add-money/verify-otp";
-  static var AddMoneySendOtp = "${BaseUrl}/buyer/wallet/jazzcash/mwallet/initiate";
-  static var AddMoneyVerifyOtp = "${BaseUrl}/buyer/wallet/jazzcash/mwallet/confirm";
+  static var AddMoneySendOtp =
+      "${BaseUrl}/buyer/wallet/jazzcash/mwallet/initiate";
+  static var AddMoneyVerifyOtp =
+      "${BaseUrl}/buyer/wallet/jazzcash/mwallet/confirm";
   static var SendMoneySendOtp = "${BaseUrl}/buyer/wallet/send-money/send-otp";
-  static var SendMoneyVerifyOtp = "${BaseUrl}/buyer/wallet/send-money/verify-otp";
+  static var SendMoneyVerifyOtp =
+      "${BaseUrl}/buyer/wallet/send-money/verify-otp";
   static var WalletTransactions = "${BaseUrl}/buyer/wallet/transactions";
   static var PaymentMethods = "${BaseUrl}/buyer/wallet/payment-methods";
   static var AddPaymentMethod = "${BaseUrl}/buyer/wallet/payment-methods/add";
-  static var SetDefaultMethod = "${BaseUrl}/buyer/wallet/payment-methods/set-default";
-  static var DeletePaymentMethod = "${BaseUrl}/buyer/wallet/payment-methods/delete";
+  static var SetDefaultMethod =
+      "${BaseUrl}/buyer/wallet/payment-methods/set-default";
+  static var DeletePaymentMethod =
+      "${BaseUrl}/buyer/wallet/payment-methods/delete";
   static var SafepayCheckout = "${BaseUrl}/buyer/wallet/safepay/checkout";
   static var JazzcashInitiate = "${BaseUrl}/jazzcash-initiate";
 
   // ── Exchange (Buyer) ──────────────────────────────────────────
   static var createExchangeRequest = "${BaseUrl}/buyer/create/exchange/request";
-  static var getExchangeRequests   = "${BaseUrl}/buyer/get/exchange/requests";
+  static var getExchangeRequests = "${BaseUrl}/buyer/get/exchange/requests";
 
   /// GET /buyer/get/exchange/:id/pdf
   static String getExchangePdf(String exchangeId) =>
@@ -67,31 +72,39 @@ class Global {
   static String uploadReturnProof(String exchangeId) =>
       "${BaseUrl}/buyer/exchange/$exchangeId/return-proof";
 
+  // ── Refund (Buyer) ────────────────────────────────────────────
+  static var createRefundRequest = "${BaseUrl}/buyer/create/refund/request";
+  static var getRefundRequests = "${BaseUrl}/buyer/get/refund/requests";
 
-static  String WalletOrderSendOtp   = '${BaseUrl}/buyer/wallet/order/send-otp';
-static  String WalletOrderVerifyOtp = '${BaseUrl}/buyer/wallet/order/verify-otp';
- 
-// JazzCash Direct Payment (buyer JazzCash → your merchant bank account)
-static  String JazzcashPayInitiate  = '${BaseUrl}/buyer/jazzcash/pay/initiate';
-static  String JazzcashPayConfirm   = '${BaseUrl}/buyer/jazzcash/pay/confirm';
+  /// GET /buyer/get/refund/:id/pdf
+  static String getRefundPdf(String refundId) =>
+      "${BaseUrl}/buyer/get/refund/$refundId/pdf";
 
-      // Global.dart mein add karo
-static String getImageUrl(String? imagePath) {
-  if (imagePath == null || imagePath.isEmpty) {
-    return ''; // ya koi default image
+  static String WalletOrderSendOtp = '${BaseUrl}/buyer/wallet/order/send-otp';
+  static String WalletOrderVerifyOtp =
+      '${BaseUrl}/buyer/wallet/order/verify-otp';
+
+  // JazzCash Direct Payment (buyer JazzCash → your merchant bank account)
+  static String JazzcashPayInitiate = '${BaseUrl}/buyer/jazzcash/pay/initiate';
+  static String JazzcashPayConfirm = '${BaseUrl}/buyer/jazzcash/pay/confirm';
+
+  // Global.dart mein add karo
+  static String getImageUrl(String? imagePath) {
+    if (imagePath == null || imagePath.isEmpty) {
+      return ''; // ya koi default image
+    }
+
+    // Agar already full URL hai (cloudinary)
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+
+    // Agar local upload hai (/uploads/...)
+    if (imagePath.startsWith('/uploads/')) {
+      return imageUrl + imagePath; // imageUrl = "https://yourapi.com"
+    }
+
+    // Normal case
+    return imageUrl + imagePath;
   }
-
-  // Agar already full URL hai (cloudinary)
-  if (imagePath.startsWith('http')) {
-    return imagePath;
-  }
-
-  // Agar local upload hai (/uploads/...)
-  if (imagePath.startsWith('/uploads/')) {
-    return imageUrl + imagePath;        // imageUrl = "https://yourapi.com"
-  }
-
-  // Normal case
-  return imageUrl + imagePath;
-}
 }
