@@ -58,6 +58,9 @@ class ExchangeProvider extends ChangeNotifier {
     required String reason,
     required String reasonCategory,
     List<String> images = const [],
+    int quantity = 1,
+    String? requestedColor,
+    String? requestedSize,
   }) async {
     creating = true;
     errorMessage = null;
@@ -73,6 +76,9 @@ class ExchangeProvider extends ChangeNotifier {
         reason: reason,
         reasonCategory: reasonCategory,
         images: images,
+        quantity: quantity,
+        requestedColor: requestedColor,
+        requestedSize: requestedSize,
       );
       ok = createModel?.exchangeRequest != null;
       if (!ok) errorMessage = createModel?.message;
@@ -93,6 +99,7 @@ class ExchangeProvider extends ChangeNotifier {
     required String reason,
     required String reasonCategory,
     List<String> images = const [],
+    int quantity = 1,
   }) async {
     creating = true;
     errorMessage = null;
@@ -108,6 +115,7 @@ class ExchangeProvider extends ChangeNotifier {
         reason: reason,
         reasonCategory: reasonCategory,
         images: images,
+        quantity: quantity,
       );
       ok = createRefundModel?.refundRequest != null;
       if (!ok) errorMessage = createRefundModel?.message;

@@ -31,6 +31,7 @@ class _RefundRequestSheetState extends State<RefundRequestSheet> {
   String _reasonCategory = "buyer_preference";
   List<XFile> _images = [];
   final ImagePicker _picker = ImagePicker();
+  int _qty = 1;
 
   static const _categories = [
     _Category("seller_fault", "Wrong Item", Icons.error_outline, Colors.red),
@@ -107,6 +108,7 @@ class _RefundRequestSheetState extends State<RefundRequestSheet> {
       reason: _reason.text.trim(),
       reasonCategory: _reasonCategory,
       images: b64Images,
+      quantity: _qty,
     );
 
     if (!mounted) return;
@@ -170,12 +172,90 @@ class _RefundRequestSheetState extends State<RefundRequestSheet> {
                     .toList(),
                 onChanged: (v) => setState(() => _selectedProduct = v),
                 decoration: InputDecoration(
-                  labelText: "Product",
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                 ),
               ),
+
+            if (_selectedProduct != null) ...[
+              SizedBox(height: 15.h),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Current Selection",
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        SizedBox(height: 6.h),
+                        if (_selectedProduct!.selectedColor?.isNotEmpty == true)
+                          Text(
+                            "Color: ${_selectedProduct!.selectedColor!.join(', ')}",
+                            style: TextStyle(fontSize: 12.sp),
+                          ),
+                        if (_selectedProduct!.selectedSize?.isNotEmpty == true)
+                          Text(
+                            "Size: ${_selectedProduct!.selectedSize!.join(', ')}",
+                            style: TextStyle(fontSize: 12.sp),
+                          ),
+                        Text(
+                          "Ordered Qty: ${_selectedProduct!.quantity ?? 1}",
+                          style: TextStyle(fontSize: 12.sp),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if ((_selectedProduct!.quantity ?? 1) > 1)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          "Refund Qty",
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Container(
+                          height: 35.h,
+                          padding: EdgeInsets.symmetric(horizontal: 8.w),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                          child: DropdownButton<int>(
+                            value: _qty,
+                            underline: const SizedBox(),
+                            items:
+                                List.generate(
+                                  _selectedProduct!.quantity!,
+                                  (i) => i + 1,
+                                ).map((q) {
+                                  return DropdownMenuItem(
+                                    value: q,
+                                    child: Text(q.toString()),
+                                  );
+                                }).toList(),
+                            onChanged: creating
+                                ? null
+                                : (v) => setState(() => _qty = v ?? 1),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ],
 
             SizedBox(height: 15.h),
             Align(

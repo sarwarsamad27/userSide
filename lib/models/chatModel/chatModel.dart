@@ -99,6 +99,10 @@ class RefundRequestData {
   final List<String> images;
   final String? companyNote;
   final String? pdfPath;
+  final int? quantity;
+  final List<String> selectedColor;
+  final List<String> selectedSize;
+  final double? refundAmount;
 
   RefundRequestData({
     this.refundId,
@@ -112,6 +116,10 @@ class RefundRequestData {
     this.images = const [],
     this.companyNote,
     this.pdfPath,
+    this.quantity,
+    this.selectedColor = const [],
+    this.selectedSize = const [],
+    this.refundAmount,
   });
 
   String get reasonCategoryLabel {
@@ -148,6 +156,18 @@ class RefundRequestData {
           const [],
       companyNote: json["companyNote"]?.toString(),
       pdfPath: json["pdfPath"]?.toString(),
+      quantity: json["quantity"] is int
+          ? json["quantity"]
+          : int.tryParse(json["quantity"]?.toString() ?? ""),
+      selectedColor:
+          (json["selectedColor"] as List?)?.map((e) => e.toString()).toList() ??
+          const [],
+      selectedSize:
+          (json["selectedSize"] as List?)?.map((e) => e.toString()).toList() ??
+          const [],
+      refundAmount: json["refundAmount"] is num
+          ? (json["refundAmount"] as num).toDouble()
+          : double.tryParse(json["refundAmount"]?.toString() ?? ""),
     );
   }
 }
@@ -164,6 +184,11 @@ class ExchangeRequestData {
   final List<String> images;
   final String? companyNote;
   final String? pdfPath;
+  final int? quantity;
+  final List<String> selectedColor;
+  final List<String> selectedSize;
+  final String? requestedColor;
+  final String? requestedSize;
 
   ExchangeRequestData({
     this.exchangeId,
@@ -177,6 +202,11 @@ class ExchangeRequestData {
     this.images = const [],
     this.companyNote,
     this.pdfPath,
+    this.quantity,
+    this.selectedColor = const [],
+    this.selectedSize = const [],
+    this.requestedColor,
+    this.requestedSize,
   });
 
   String get reasonCategoryLabel {
@@ -215,11 +245,25 @@ class ExchangeRequestData {
       productId: (json["productId"] ?? json["product_id"])?.toString(),
       productName: (json["productName"] ?? json["product_name"])?.toString(),
       reason: (json["reason"] ?? json["note"])?.toString(),
+      reasonCategory: json["reasonCategory"]?.toString(),
       status: _normalizeStatus((json["status"])?.toString()),
       createdAt: (json["createdAt"] ?? json["timestamp"])?.toString(),
       images:
           (json["images"] as List?)?.map((e) => e.toString()).toList() ??
           const [],
+      companyNote: json["companyNote"]?.toString(),
+      pdfPath: json["pdfPath"]?.toString(),
+      quantity: json["quantity"] is int
+          ? json["quantity"]
+          : int.tryParse(json["quantity"]?.toString() ?? ""),
+      selectedColor:
+          (json["selectedColor"] as List?)?.map((e) => e.toString()).toList() ??
+          const [],
+      selectedSize:
+          (json["selectedSize"] as List?)?.map((e) => e.toString()).toList() ??
+          const [],
+      requestedColor: json["requestedColor"]?.toString(),
+      requestedSize: json["requestedSize"]?.toString(),
     );
   }
 }

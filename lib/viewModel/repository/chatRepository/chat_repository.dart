@@ -21,6 +21,9 @@ class ExchangeRepository {
     required String reason,
     required String reasonCategory,
     List<String> images = const [],
+    int quantity = 1,
+    String? requestedColor,
+    String? requestedSize,
   }) async {
     try {
       final body = {
@@ -31,6 +34,9 @@ class ExchangeRepository {
         "reason": reason,
         "reasonCategory": reasonCategory,
         "images": images.take(5).toList(),
+        "quantity": quantity,
+        "requestedColor": requestedColor ?? "",
+        "requestedSize": requestedSize ?? "",
       };
       final response = await _api.postApi(Global.createExchangeRequest, body);
       return ExchangeRequestModel.fromJson(response);
@@ -115,6 +121,7 @@ class ExchangeRepository {
     required String reason,
     required String reasonCategory,
     List<String> images = const [],
+    int quantity = 1,
   }) async {
     try {
       final body = {
@@ -125,6 +132,7 @@ class ExchangeRepository {
         "reason": reason,
         "reasonCategory": reasonCategory,
         "images": images.take(5).toList(),
+        "quantity": quantity,
       };
       final response = await _api.postApi(Global.createRefundRequest, body);
       return RefundRequestModel.fromJson(response);

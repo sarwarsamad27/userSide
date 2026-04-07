@@ -35,6 +35,9 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
   Product? _selectedProduct;
   String _reasonCategory = "buyer_preference"; // default
   List<XFile> _images = [];
+  int _qty = 1;
+  String? _requestedColor;
+  String? _requestedSize;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -73,7 +76,16 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
   @override
   void initState() {
     super.initState();
-    if (widget.products.isNotEmpty) _selectedProduct = widget.products.first;
+    if (widget.products.isNotEmpty) {
+      _selectedProduct = widget.products.first;
+      _qty = 1;
+      _requestedColor = _selectedProduct?.selectedColor?.isNotEmpty == true
+          ? _selectedProduct!.selectedColor!.first
+          : null;
+      _requestedSize = _selectedProduct?.selectedSize?.isNotEmpty == true
+          ? _selectedProduct!.selectedSize!.first
+          : null;
+    }
   }
 
   @override
@@ -131,6 +143,9 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
       reason: _reason.text.trim(),
       reasonCategory: _reasonCategory,
       images: imagesB64,
+      quantity: _qty,
+      requestedColor: _requestedColor,
+      requestedSize: _requestedSize,
     );
 
     if (!mounted) return;
@@ -153,251 +168,289 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
   Widget build(BuildContext context) {
     final creating = context.select<ExchangeProvider, bool>((p) => p.creating);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 16.w,
-        right: 16.w,
-        top: 16.h,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24.h,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Drag handle
-            Center(
-              child: Container(
-                width: 40.w,
-                height: 4.h,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-              ),
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              "Exchange Request",
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            SizedBox(height: 4.h),
-            Text(
-              "Tell us why you want to exchange",
-              style: TextStyle(fontSize: 13.sp, color: Colors.grey),
-            ),
-            SizedBox(height: 16.h),
-
-            // Product selector
-            if (widget.products.length > 1)
-              DropdownButtonFormField<Product>(
-                value: _selectedProduct,
-                items: widget.products.map((p) {
-                  return DropdownMenuItem(
-                    value: p,
-                    child: Text(p.name ?? "N/A"),
-                  );
-                }).toList(),
-                onChanged: creating
-                    ? null  
-                    : (v) => setState(() => _selectedProduct = v),
-                decoration: InputDecoration(
-                  labelText: "Select Product",
-                  border: OutlineInputBorder(
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 16.w,
+          right: 16.w,
+          top: 16.h,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24.h,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 40.w,
+                  height: 4.h,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                 ),
               ),
+              SizedBox(height: 16.h),
+              Text(
+                "Exchange Request",
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              SizedBox(height: 4.h),
+              Text(
+                "Tell us why you want to exchange",
+                style: TextStyle(fontSize: 13.sp, color: Colors.grey),
+              ),
+              SizedBox(height: 16.h),
 
-            SizedBox(height: 14.h),
-
-            // Reason category chips
-            Text(
-              "Reason Category",
-              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
-            ),
-            SizedBox(height: 10.h),
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 10.w,
-              mainAxisSpacing: 10.h,
-              childAspectRatio: 2.8,
-              children: _categories.map((cat) {
-                final selected = _reasonCategory == cat.value;
-                return GestureDetector(
-                  onTap: creating
+              // Product selector
+              if (widget.products.length > 1)
+                DropdownButtonFormField<Product>(
+                  value: _selectedProduct,
+                  items: widget.products.map((p) {
+                    return DropdownMenuItem(
+                      value: p,
+                      child: Text(p.name ?? "N/A"),
+                    );
+                  }).toList(),
+                  onChanged: creating
                       ? null
-                      : () => setState(() => _reasonCategory = cat.value),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 10.w,
-                      vertical: 8.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: selected
-                          ? cat.color.withOpacity(0.12)
-                          : Colors.grey[100],
+                      : (v) => setState(() => _selectedProduct = v),
+                  decoration: InputDecoration(
+                    labelText: "Select Product",
+                    border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.r),
-                      border: Border.all(
-                        color: selected ? cat.color : Colors.grey[300]!,
-                        width: selected ? 1.5 : 1,
-                      ),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          cat.icon,
-                          size: 16.sp,
-                          color: selected ? cat.color : Colors.grey,
-                        ),
-                        SizedBox(width: 6.w),
-                        Expanded(
-                          child: Text(
-                            cat.label,
+                  ),
+                ),
+
+              if (_selectedProduct != null) ...[
+                SizedBox(height: 16.h),
+                // Current Attributes & Qty Selector
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Current Selection",
                             style: TextStyle(
-                              fontSize: 12.sp,
-                              fontWeight: selected
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
-                              color: selected ? cat.color : Colors.grey[600],
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[700],
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-
-            // Courier cost hint
-            SizedBox(height: 10.h),
-            Container(
-              padding: EdgeInsets.all(10.w),
-              decoration: BoxDecoration(
-                color: _isBuyerFault ? Colors.orange[50] : Colors.green[50],
-                borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(
-                  color: _isBuyerFault
-                      ? Colors.orange[200]!
-                      : Colors.green[200]!,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.local_shipping_outlined,
-                    size: 16.sp,
-                    color: _isBuyerFault
-                        ? Colors.orange[700]
-                        : Colors.green[700],
-                  ),
-                  SizedBox(width: 8.w),
-                  Expanded(
-                    child: Text(
-                      _isBuyerFault
-                          ? "Return courier cost will be your responsibility"
-                          : "Seller will cover all courier costs",
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: _isBuyerFault
-                            ? Colors.orange[700]
-                            : Colors.green[700],
-                        fontWeight: FontWeight.w500,
+                          SizedBox(height: 6.h),
+                          if (_selectedProduct!.selectedColor?.isNotEmpty ==
+                              true)
+                            Text(
+                              "Color: ${_selectedProduct!.selectedColor!.join(', ')}",
+                              style: TextStyle(fontSize: 12.sp),
+                            ),
+                          if (_selectedProduct!.selectedSize?.isNotEmpty ==
+                              true)
+                            Text(
+                              "Size: ${_selectedProduct!.selectedSize!.join(', ')}",
+                              style: TextStyle(fontSize: 12.sp),
+                            ),
+                          Text(
+                            "Ordered Qty: ${_selectedProduct!.quantity ?? 1}",
+                            style: TextStyle(fontSize: 12.sp),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 14.h),
-
-            // Reason text
-            TextField(
-              controller: _reason,
-              maxLines: 3,
-              enabled: !creating,
-              decoration: InputDecoration(
-                labelText: "Describe the issue *",
-                hintText: "Provide details about what's wrong...",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
+                    if ((_selectedProduct!.quantity ?? 1) > 1)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            "Exchange Qty",
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          Container(
+                            height: 35.h,
+                            padding: EdgeInsets.symmetric(horizontal: 8.w),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey[300]!),
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: DropdownButton<int>(
+                              value: _qty,
+                              underline: const SizedBox(),
+                              items:
+                                  List.generate(
+                                    _selectedProduct!.quantity!,
+                                    (i) => i + 1,
+                                  ).map((q) {
+                                    return DropdownMenuItem(
+                                      value: q,
+                                      child: Text(q.toString()),
+                                    );
+                                  }).toList(),
+                              onChanged: creating
+                                  ? null
+                                  : (v) => setState(() => _qty = v ?? 1),
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
-                  borderSide: BorderSide(color: AppColor.primaryColor),
-                ),
-              ),
-            ),
 
-            SizedBox(height: 14.h),
-
-            // Images
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+                SizedBox(height: 16.h),
+                // Requested Attributes
                 Text(
-                  "Product Photos (${_images.length}/5)",
+                  "Exchange For (Desired)",
                   style: TextStyle(
                     fontSize: 13.sp,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[700],
                   ),
                 ),
-                TextButton.icon(
-                  onPressed: creating ? null : _pickImages,
-                  icon: Icon(Icons.add_photo_alternate, size: 18.sp),
-                  label: const Text("Add"),
+                SizedBox(height: 10.h),
+                Row(
+                  children: [
+                    if (_selectedProduct!.selectedColor?.isNotEmpty == true)
+                      Expanded(
+                        child: _attrDropdown(
+                          label: "Desired Color",
+                          value: _requestedColor,
+                          options: _selectedProduct!.selectedColor!,
+                          onChanged: (v) => setState(() => _requestedColor = v),
+                        ),
+                      ),
+                    if (_selectedProduct!.selectedColor?.isNotEmpty == true &&
+                        _selectedProduct!.selectedSize?.isNotEmpty == true)
+                      SizedBox(width: 12.w),
+                    if (_selectedProduct!.selectedSize?.isNotEmpty == true)
+                      Expanded(
+                        child: _attrDropdown(
+                          label: "Desired Size",
+                          value: _requestedSize,
+                          options: _selectedProduct!.selectedSize!,
+                          onChanged: (v) => setState(() => _requestedSize = v),
+                        ),
+                      ),
+                  ],
                 ),
               ],
-            ),
-            if (_images.isNotEmpty)
-              GridView.builder(
+
+              SizedBox(height: 14.h),
+
+              // Reason category chips
+              Text(
+                "Reason Category",
+                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+              ),
+              SizedBox(height: 10.h),
+              GridView.count(
+                crossAxisCount: 2,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: _images.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 8.h,
-                  crossAxisSpacing: 8.w,
-                ),
-                itemBuilder: (_, i) => Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8.r),
-                      child: Image.file(
-                        File(_images[i].path),
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.cover,
+                crossAxisSpacing: 10.w,
+                mainAxisSpacing: 10.h,
+                childAspectRatio: 2.8,
+                children: _categories.map((cat) {
+                  final selected = _reasonCategory == cat.value;
+                  return GestureDetector(
+                    onTap: creating
+                        ? null
+                        : () => setState(() => _reasonCategory = cat.value),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 8.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? cat.color.withOpacity(0.12)
+                            : Colors.grey[100],
+                        borderRadius: BorderRadius.circular(10.r),
+                        border: Border.all(
+                          color: selected ? cat.color : Colors.grey[300]!,
+                          width: selected ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            cat.icon,
+                            size: 16.sp,
+                            color: selected ? cat.color : Colors.grey,
+                          ),
+                          SizedBox(width: 6.w),
+                          Expanded(
+                            child: Text(
+                              cat.label,
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: selected
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                                color: selected ? cat.color : Colors.grey[600],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: GestureDetector(
-                        onTap: creating
-                            ? null
-                            : () => setState(() => _images.removeAt(i)),
-                        child: Container(
-                          padding: EdgeInsets.all(4.w),
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(20.r),
-                          ),
-                          child: Icon(
-                            Icons.close,
-                            size: 14.sp,
-                            color: Colors.white,
-                          ),
+                  );
+                }).toList(),
+              ),
+
+              // Courier cost hint
+              SizedBox(height: 10.h),
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: _isBuyerFault ? Colors.orange[50] : Colors.green[50],
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(
+                    color: _isBuyerFault
+                        ? Colors.orange[200]!
+                        : Colors.green[200]!,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.local_shipping_outlined,
+                      size: 16.sp,
+                      color: _isBuyerFault
+                          ? Colors.orange[700]
+                          : Colors.green[700],
+                    ),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        _isBuyerFault
+                            ? "Return courier cost will be your responsibility"
+                            : "Seller will cover all courier costs",
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: _isBuyerFault
+                              ? Colors.orange[700]
+                              : Colors.green[700],
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -405,31 +458,119 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
                 ),
               ),
 
-            SizedBox(height: 20.h),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColor.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 14.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
+              SizedBox(height: 14.h),
+
+              // Reason text
+              TextField(
+                controller: _reason,
+                maxLines: 3,
+                enabled: !creating,
+                decoration: InputDecoration(
+                  labelText: "Why do you want to exchange?what you want? ",
+                  hintText:
+                      "Provide both details and context to help us understand",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.r),
+                    borderSide: BorderSide(color: AppColor.primaryColor),
                   ),
                 ),
-                onPressed: creating ? null : _submit,
-                child: creating
-                    ? Utils.loadingLottie(size: 24)
-                    : Text(
-                        "Submit Exchange Request",
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.bold,
+              ),
+
+              SizedBox(height: 14.h),
+
+              // Images
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Product Photos (${_images.length}/5)",
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: creating ? null : _pickImages,
+                    icon: Icon(Icons.add_photo_alternate, size: 18.sp),
+                    label: const Text("Add"),
+                  ),
+                ],
+              ),
+              if (_images.isNotEmpty)
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _images.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 8.h,
+                    crossAxisSpacing: 8.w,
+                  ),
+                  itemBuilder: (_, i) => Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8.r),
+                        child: Image.file(
+                          File(_images[i].path),
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
                         ),
                       ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: creating
+                              ? null
+                              : () => setState(() => _images.removeAt(i)),
+                          child: Container(
+                            padding: EdgeInsets.all(4.w),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(20.r),
+                            ),
+                            child: Icon(
+                              Icons.close,
+                              size: 14.sp,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              SizedBox(height: 20.h),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColor.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 14.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                  ),
+                  onPressed: creating ? null : _submit,
+                  child: creating
+                      ? Utils.loadingLottie(size: 24)
+                      : Text(
+                          "Submit Exchange Request",
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -437,6 +578,43 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
 
   bool get _isBuyerFault =>
       _reasonCategory == "buyer_preference" || _reasonCategory == "size_color";
+
+  Widget _attrDropdown({
+    required String label,
+    required String? value,
+    required List<String> options,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 11.sp, color: Colors.grey[600]),
+        ),
+        SizedBox(height: 4.h),
+        Container(
+          height: 40.h,
+          padding: EdgeInsets.symmetric(horizontal: 10.w),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+          child: DropdownButton<String>(
+            value: value,
+            isExpanded: true,
+            underline: const SizedBox(),
+            items: options.map((o) {
+              return DropdownMenuItem(value: o, child: Text(o));
+            }).toList(),
+            onChanged: context.watch<ExchangeProvider>().creating
+                ? null
+                : onChanged,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _Category {
