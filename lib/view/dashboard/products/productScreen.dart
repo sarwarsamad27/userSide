@@ -65,6 +65,7 @@ class _ProductScreenState extends State<ProductScreen> {
     await Future.wait([
       allProductProvider.fetchProducts(),
       popularProductProvider.fetchPopularProducts(),
+      popularCategoryProvider.fetchPopularCategories(),
       popularCategoryProvider.refresh(), // ✅ force refresh
     ]);
   }

@@ -1,3 +1,5 @@
+import 'package:user_side/models/chatModel/chatModel.dart';
+
 class MyOrderModel {
   bool? success;
   int? totalItems;
@@ -54,7 +56,8 @@ class Orders {
   String? createdAt;
   BuyerDetails? buyerDetails;
   Product? product;
-
+  ExchangeRequestData? exchangeRequest;
+  RefundRequestData? refundRequest;
   Orders({
     this.id,
     this.orderId,
@@ -66,6 +69,8 @@ class Orders {
     this.createdAt,
     this.buyerDetails,
     this.product,
+    this.exchangeRequest,
+    this.refundRequest,
   });
 
   Orders.fromJson(Map<String, dynamic> json) {
@@ -85,6 +90,12 @@ class Orders {
     product = json['product'] != null
         ? new Product.fromJson(json['product'])
         : null;
+     exchangeRequest = json['exchangeRequest'] != null
+      ? ExchangeRequestData.fromJson(json['exchangeRequest'])
+      : null;
+  refundRequest = json['refundRequest'] != null
+      ? RefundRequestData.fromJson(json['refundRequest'])
+      : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -104,10 +115,91 @@ class Orders {
     }
     if (this.product != null) {
       data['product'] = this.product!.toJson();
+      
     }
     return data;
   }
 }
+
+
+class ExchangeRequestData {
+  final String? id;
+  final String? status;
+  final String? reason;
+  final String? reasonCategory;
+  final String? companyNote;
+  final String? resolutionType;
+  final String? courierPaidBy;
+  final String? returnTrackingNumber;
+  final String? replacementTrackingNumber;
+  final double? refundAmount;
+  final String? createdAt;
+
+  const ExchangeRequestData({
+    this.id,
+    this.status,
+    this.reason,
+    this.reasonCategory,
+    this.companyNote,
+    this.resolutionType,
+    this.courierPaidBy,
+    this.returnTrackingNumber,
+    this.replacementTrackingNumber,
+    this.refundAmount,
+    this.createdAt,
+  });
+
+  factory ExchangeRequestData.fromJson(Map<String, dynamic> json) =>
+      ExchangeRequestData(
+        id: json['_id'],
+        status: json['status'],
+        reason: json['reason'],
+        reasonCategory: json['reasonCategory'],
+        companyNote: json['companyNote'],
+        resolutionType: json['resolutionType'],
+        courierPaidBy: json['courierPaidBy'],
+        returnTrackingNumber: json['returnTrackingNumber'],
+        replacementTrackingNumber: json['replacementTrackingNumber'],
+        refundAmount: (json['refundAmount'] as num?)?.toDouble(),
+        createdAt: json['createdAt'],
+      );
+}
+
+// ── Refund Request Data ────────────────────────────────────────────────────
+class RefundRequestData {
+  final String? id;
+  final String? status;
+  final String? reason;
+  final String? reasonCategory;
+  final String? companyNote;
+  final double? refundAmount;
+  final String? returnTrackingNumber;
+  final String? createdAt;
+
+  const RefundRequestData({
+    this.id,
+    this.status,
+    this.reason,
+    this.reasonCategory,
+    this.companyNote,
+    this.refundAmount,
+    this.returnTrackingNumber,
+    this.createdAt,
+  });
+
+  factory RefundRequestData.fromJson(Map<String, dynamic> json) =>
+      RefundRequestData(
+        id: json['_id'],
+        status: json['status'],
+        reason: json['reason'],
+        reasonCategory: json['reasonCategory'],
+        companyNote: json['companyNote'],
+        refundAmount: (json['refundAmount'] as num?)?.toDouble(),
+        returnTrackingNumber: json['returnTrackingNumber'],
+        createdAt: json['createdAt'],
+      );
+}
+
 
 class Seller {
   String? sId;

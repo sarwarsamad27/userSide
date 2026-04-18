@@ -43,7 +43,7 @@ class ProductMainCard extends StatelessWidget {
     String getValidImageUrl(String? url) {
       if (url == null) return '';
       if (url.startsWith('http')) return url;
-      return Global.imageUrl + url;
+      return Global.getImageUrl(url);
     }
 
     return Column(

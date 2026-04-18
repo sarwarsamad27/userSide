@@ -35,6 +35,7 @@ class WalletTransactionModel {
   final String? phoneNumber;
   final String? note;
   final DateTime createdAt;
+  
 
   bool get isCredit => type == 'credit';
 
@@ -50,6 +51,7 @@ class WalletTransactionModel {
     this.phoneNumber,
     this.note,
     required this.createdAt,
+   
   });
 
   factory WalletTransactionModel.fromJson(Map<String, dynamic> json) {
@@ -153,6 +155,7 @@ class PaymentVerifyModel {
   final DateTime? createdAt;
   final String? recipientNumber;
   final String? note;
+  
 
   PaymentVerifyModel({
     required this.success,
@@ -166,6 +169,7 @@ class PaymentVerifyModel {
     this.createdAt,
     this.recipientNumber,
     this.note,
+
   });
 
   factory PaymentVerifyModel.fromJson(Map<String, dynamic> json) {

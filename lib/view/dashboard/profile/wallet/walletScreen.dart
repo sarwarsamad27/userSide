@@ -8,6 +8,7 @@ import 'package:user_side/models/walletModel/walletModel.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/utiles.dart';
+import 'package:user_side/view/dashboard/profile/wallet/BuyerWithdrawScreen.dart';
 import 'package:user_side/view/dashboard/profile/wallet/addMoney.dart';
 import 'package:user_side/view/dashboard/profile/wallet/sendMoney.dart';
 import 'package:user_side/view/dashboard/profile/wallet/transactionHistory.dart';
@@ -343,29 +344,29 @@ class _WalletScreenState extends State<WalletScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _QuickActionButton(
-            icon: Icons.add_rounded,
-            label: 'Add Money',
-            color: const Color(0xFF00C853),
-            onTap: () =>
-                Navigator.push(
-                  context,
-                  _pageRoute(const AddMoneyScreen()),
-                ).then((_) {
-                  if (buyerId.isNotEmpty) {
-                    context.read<WalletProvider>().fetchBalance(buyerId);
-                    context.read<WalletProvider>().fetchTransactions(buyerId);
-                  }
-                }),
-          ),
+          // _QuickActionButton(
+          //   icon: Icons.add_rounded,
+          //   label: 'Add Money',
+          //   color: const Color(0xFF00C853),
+          //   onTap: () =>
+          //       Navigator.push(
+          //         context,
+          //         _pageRoute(const AddMoneyScreen()),
+          //       ).then((_) {
+          //         if (buyerId.isNotEmpty) {
+          //           context.read<WalletProvider>().fetchBalance(buyerId);
+          //           context.read<WalletProvider>().fetchTransactions(buyerId);
+          //         }
+          //       }),
+          // ),
           _QuickActionButton(
             icon: Icons.send_rounded,
-            label: 'Send',
+            label: 'WithDrawal',
             color: const Color(0xFF2979FF),
             onTap: () =>
                 Navigator.push(
                   context,
-                  _pageRoute(SendMoneyScreen(balance: wallet.balance)),
+                  _pageRoute(BuyerWithdrawScreen(balance: wallet.balance)),
                 ).then((_) {
                   if (buyerId.isNotEmpty) {
                     context.read<WalletProvider>().fetchBalance(buyerId);
@@ -581,10 +582,37 @@ class _TransactionTile extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 3.h),
-              Text(
-                _timeAgo(transaction.createdAt),
-                style: TextStyle(fontSize: 11.sp, color: Colors.grey.shade400),
-              ),
+
+              // ✅ Pending badge ya time
+              transaction.status == 'pending'
+                  ? Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 6.w,
+                        vertical: 2.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(6.r),
+                        border: Border.all(
+                          color: Colors.orange.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Text(
+                        '⏳ Pending',
+                        style: TextStyle(
+                          fontSize: 10.sp,
+                          color: Colors.orange,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    )
+                  : Text(
+                      _timeAgo(transaction.createdAt),
+                      style: TextStyle(
+                        fontSize: 11.sp,
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
             ],
           ),
         ],

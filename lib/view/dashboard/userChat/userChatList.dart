@@ -101,7 +101,7 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
   Widget build(BuildContext context) {
     // ✅ Guard this whole screen (UserId based)
     return AuthGate(child: _buildScaffold(context));
-  } 
+  }
 
   Widget _buildScaffold(BuildContext context) {
     final provider = context.watch<ChatThreadProvider>();
@@ -175,7 +175,7 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
             radius: 28.r,
             backgroundColor: AppColor.primaryColor.withOpacity(0.1),
             backgroundImage: thread.image != null
-                ? NetworkImage(Global.imageUrl + thread.image!)
+                ? NetworkImage(Global.getImageUrl(thread.image!))
                 : null,
             child: thread.image == null
                 ? Icon(Icons.store, size: 28.sp, color: AppColor.primaryColor)

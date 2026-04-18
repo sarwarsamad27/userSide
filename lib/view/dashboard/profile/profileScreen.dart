@@ -518,15 +518,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                   ),
                 ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.1),
               SizedBox(height: 20.h),
-              TextButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MyExchangesScreen(),
-                  ),
-                ),
-                child: const Text("View exchange History"),
-              ),
+
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8.w),
                 child: Text(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:user_side/resources/local_storage.dart';
+import 'package:user_side/view/dashboard/profile/order/successDialog.dart';
 
 class ReviewFormProvider extends ChangeNotifier {
   int selectedRating = 0;
@@ -45,7 +46,14 @@ class ReviewProvider extends ChangeNotifier {
     _isLoaded = true;
     notifyListeners();
   }
-
+Future<void> showSuccessDialog(BuildContext context) async {
+  await showDialog(
+    context: context,
+    barrierDismissible: false,
+    barrierColor: Colors.black.withOpacity(0.6),
+    builder: (_) => const SuccessDialog(),
+  );
+}
   Future<void> markReviewed(String productId) async {
     await LocalStorage.markProductReviewed(productId);
     _reviewedProductIds.add(productId);

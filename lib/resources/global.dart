@@ -79,7 +79,8 @@ class Global {
   /// GET /buyer/get/refund/:id/pdf
   static String getRefundPdf(String refundId) =>
       "${BaseUrl}/buyer/get/refund/$refundId/pdf";
-
+static String BuyerWithdrawSendOtp = '${BaseUrl}/buyer/wallet/withdraw/send-otp';
+static String BuyerWithdrawVerifyOtp = '${BaseUrl}/buyer/wallet/withdraw/verify-otp';
   static String WalletOrderSendOtp = '${BaseUrl}/buyer/wallet/order/send-otp';
   static String WalletOrderVerifyOtp =
       '${BaseUrl}/buyer/wallet/order/verify-otp';

@@ -92,7 +92,43 @@ class WalletRepository {
       return PaymentVerifyModel.error(e.toString());
     }
   }
+// ── Buyer Withdraw: Send OTP ──────────────────────────────────────────────
+Future<OtpResponseModel> sendBuyerWithdrawOtp({
+  required String buyerId,
+  required double amount,
+  required String method,
+  required String name,
+  required String phone,
+}) async {
+  try {
+    final response = await _api.postApi(Global.BuyerWithdrawSendOtp, {
+      'buyerId': buyerId,
+      'amount': amount,
+      'method': method,
+      'name': name,
+      'phone': phone,
+    });
+    return OtpResponseModel.fromJson(response);
+  } catch (e) {
+    return OtpResponseModel.error(e.toString());
+  }
+}
 
+// ── Buyer Withdraw: Verify OTP ────────────────────────────────────────────
+Future<PaymentVerifyModel> verifyBuyerWithdrawOtp({
+  required String buyerId,
+  required String otp,
+}) async {
+  try {
+    final response = await _api.postApi(Global.BuyerWithdrawVerifyOtp, {
+      'buyerId': buyerId,
+      'otp': otp,
+    });
+    return PaymentVerifyModel.fromJson(response);
+  } catch (e) {
+    return PaymentVerifyModel.error(e.toString());
+  }
+}
   // ── Transaction History ─────────────────────────────────────────────────────
   Future<TransactionHistoryModel> getTransactions({
     required String buyerId,

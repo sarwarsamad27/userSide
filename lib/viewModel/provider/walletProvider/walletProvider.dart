@@ -63,32 +63,32 @@ class WalletProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // ── Add Money: Send OTP ────────────────────────────────────────────────────
-  // method is always 'jazzcash'
-  Future<bool> sendAddMoneyOtp({
-    required String buyerId,
-    required double amount,
-    required String method,       // always 'jazzcash'
-    required String phoneNumber,
-  }) async {
-    otpLoading   = true;
-    errorMessage = '';
-    notifyListeners();
+  // // ── Add Money: Send OTP ────────────────────────────────────────────────────
+  // // method is always 'jazzcash'
+  // Future<bool> sendAddMoneyOtp({
+  //   required String buyerId,
+  //   required double amount,
+  //   required String method,       // always 'jazzcash'
+  //   required String phoneNumber,
+  // }) async {
+  //   otpLoading   = true;
+  //   errorMessage = '';
+  //   notifyListeners();
 
-    final result = await _repo.sendAddMoneyOtp(
-      buyerId:     buyerId,
-      amount:      amount,
-      method:      method,
-      phoneNumber: phoneNumber,
-    );
+  //   final result = await _repo.sendAddMoneyOtp(
+  //     buyerId:     buyerId,
+  //     amount:      amount,
+  //     method:      method,
+  //     phoneNumber: phoneNumber,
+  //   );
 
-    otpLoading = false;
-    if (!result.success) {
-      errorMessage = result.message;
-    }
-    notifyListeners();
-    return result.success;
-  }
+  //   otpLoading = false;
+  //   if (!result.success) {
+  //     errorMessage = result.message;
+  //   }
+  //   notifyListeners();
+  //   return result.success;
+  // }
 
   // ── Add Money: Verify OTP → credit balance ─────────────────────────────────
   Future<PaymentVerifyModel?> verifyAddMoneyOtp({
@@ -144,7 +144,60 @@ class WalletProvider with ChangeNotifier {
     notifyListeners();
     return result.success;
   }
+// ── Buyer Withdraw: Send OTP ──────────────────────────────────────────────
+Future<bool> sendBuyerWithdrawOtp({
+  required String buyerId,
+  required double amount,
+  required String method,
+  required String name,
+  required String phone,
+}) async {
+  otpLoading = true;
+  errorMessage = '';
+  notifyListeners();
 
+  final result = await _repo.sendBuyerWithdrawOtp(
+    buyerId: buyerId,
+    amount: amount,
+    method: method,
+    name: name,
+    phone: phone,
+  );
+
+  otpLoading = false;
+  if (!result.success) errorMessage = result.message;
+  notifyListeners();
+  return result.success;
+}
+
+// ── Buyer Withdraw: Verify OTP ────────────────────────────────────────────
+Future<PaymentVerifyModel?> verifyBuyerWithdrawOtp({
+  required String buyerId,
+  required String otp,
+}) async {
+  verifyLoading = true;
+  errorMessage = '';
+  notifyListeners();
+
+  final result = await _repo.verifyBuyerWithdrawOtp(
+    buyerId: buyerId,
+    otp: otp,
+  );
+
+  verifyLoading = false;
+
+  if (result.success) {
+    // ✅ Balance update karo — backend se naya balance aaya
+    if (result.newBalance > 0 || result.newBalance == 0) {
+      balance = result.newBalance;
+    }
+  } else {
+    errorMessage = result.message;
+  }
+
+  notifyListeners();
+  return result.success ? result : null;
+}
   // ── Send Money: Verify OTP → debit balance ─────────────────────────────────
   Future<PaymentVerifyModel?> verifySendMoneyOtp({
     required String buyerId,
