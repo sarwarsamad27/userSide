@@ -56,7 +56,10 @@ class LoginProvider with ChangeNotifier {
         await LocalStorage.saveUserId(userId);
 
         // ✅ CHANGE: Update AuthSession in-memory (AuthGate instantly rebuild)
-        await AuthSession.instance.setUser(userId);
+        await AuthSession.instance.setUser(
+          userId,
+          email: _loginData?.user?.email,
+        );
 
         // ✅ 2) Then register FCM token (now userId exists)
         await NotificationService.registerTokenIfLoggedIn();

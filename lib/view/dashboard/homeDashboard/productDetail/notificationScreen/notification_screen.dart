@@ -340,7 +340,7 @@ class _NotifTile extends StatelessWidget {
       if (image!.startsWith('http')) {
         absoluteImage = image!;
       } else {
-        absoluteImage = Global.imageUrl + image!;
+        absoluteImage = Global.getImageUrl(image!);
       }
     }
     return InkWell(

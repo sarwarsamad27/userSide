@@ -49,7 +49,7 @@ class BuyNowButton extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (_) => ProductBuyForm(
-                imageUrl: Global.imageUrl + selectedImage,
+                imageUrl: Global.getImageUrl(selectedImage),
                 name: name,
                 price: price,
                 colors: selectedColors,

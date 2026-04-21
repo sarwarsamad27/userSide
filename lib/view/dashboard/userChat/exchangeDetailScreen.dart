@@ -476,7 +476,7 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
           itemBuilder: (_, i) {
             final url = images[i].startsWith("http")
                 ? images[i]
-                : "${Global.imageUrl}/${images[i]}";
+                : Global.getImageUrl(images[i]);
             return ClipRRect(
               borderRadius: BorderRadius.circular(8.r),
               child: Image.network(url, fit: BoxFit.cover,

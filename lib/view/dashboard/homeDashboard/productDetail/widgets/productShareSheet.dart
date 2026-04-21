@@ -42,7 +42,7 @@ class _ProductShareSheetState extends State<ProductShareSheet> {
   String _getValidImageUrl(String url) {
     if (url.isEmpty) return '';
     if (url.startsWith('http')) return url;
-    return Global.imageUrl + url;
+    return Global.getImageUrl(url);
   }
 
   void _handleSend() {
@@ -298,7 +298,7 @@ class ProductCardWidget extends StatelessWidget {
     String getImageUrl(String? path) {
       if (path == null || path.isEmpty) return '';
       if (path.startsWith('http')) return path;
-      return '${Global.imageUrl}$path';
+      return Global.getImageUrl(path);
     }
 
     return Container(

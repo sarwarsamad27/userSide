@@ -58,7 +58,7 @@ class ProductCard extends StatelessWidget {
                   child: AspectRatio(
                     aspectRatio: 1.2,
                     child: Image.network(
-                      Global.imageUrl + imageUrl,
+                      Global.getImageUrl(imageUrl),
                       fit: BoxFit.cover,
                       loadingBuilder: (context, child, progress) {
                         if (progress == null) return child;

@@ -30,7 +30,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
             radius: 18.r,
             backgroundColor: Colors.white,
             backgroundImage: sellerImage != null
-                ? NetworkImage(Global.imageUrl + sellerImage!)
+                ? NetworkImage(Global.getImageUrl(sellerImage!))
                 : null,
             child: sellerImage == null
                 ? Icon(Icons.store, size: 20.sp, color: AppColor.primaryColor)

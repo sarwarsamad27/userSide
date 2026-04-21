@@ -26,6 +26,51 @@ class LocalStorage {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove("token");
     await prefs.remove("userId");
+    await prefs.remove("userEmail");
+    await prefs.remove("userName");
+    await prefs.remove("userPhone");
+    await prefs.remove("userAddress");
+  }
+
+  /// -------------------- USER INFO --------------------
+  static Future<void> saveUserEmail(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("userEmail", email);
+  }
+
+  static Future<String?> getUserEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("userEmail");
+  }
+
+  static Future<void> saveUserName(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("userName", name);
+  }
+
+  static Future<String?> getUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("userName");
+  }
+
+  static Future<void> saveUserPhone(String phone) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("userPhone", phone);
+  }
+
+  static Future<String?> getUserPhone() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("userPhone");
+  }
+
+  static Future<void> saveUserAddress(String address) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("userAddress", address);
+  }
+
+  static Future<String?> getUserAddress() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("userAddress");
   }
 
   /// -------------------- TOKEN --------------------

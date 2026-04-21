@@ -54,7 +54,7 @@ class AllProducts extends StatelessWidget {
                     },
                     imageUrl: imageUrl.isNotEmpty
                         ? (imageUrl.startsWith('http')
-                              ? Global.imageUrl + imageUrl
+                              ? Global.getImageUrl(imageUrl)
                               : imageUrl)
                         : '', // pass empty to show icon in ProductCard
                     price: "${product.afterDiscountPrice ?? 0}",

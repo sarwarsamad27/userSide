@@ -17,9 +17,11 @@ class AuthSession extends ChangeNotifier {
   static final AuthSession instance = AuthSession._();
 
   String? _userId;
+  String? _userEmail;
   bool _initialized = false;
 
   String? get userId => _userId;
+  String? get userEmail => _userEmail;
   bool get initialized => _initialized;
 
   bool get isLoggedIn => _userId != null && _userId!.trim().isNotEmpty;
@@ -27,27 +29,34 @@ class AuthSession extends ChangeNotifier {
   /// call once on app start
   Future<void> init() async {
     _userId = await LocalStorage.getUserId();
+    _userEmail = await LocalStorage.getUserEmail();
     _initialized = true;
     notifyListeners();
   }
 
   /// call after login success (jab API se userId milay)
-  Future<void> setUser(String userId) async {
+  Future<void> setUser(String userId, {String? email}) async {
     await LocalStorage.saveUserId(userId);
+    if (email != null) {
+      await LocalStorage.saveUserEmail(email);
+    }
     _userId = userId;
+    _userEmail = email;
     notifyListeners();
   }
 
   /// call on logout
   Future<void> logout() async {
-    await LocalStorage.clearAuth(); // removes token + userId
+    await LocalStorage.clearAuth(); // removes token + userId + email
     _userId = null;
+    _userEmail = null;
     notifyListeners();
   }
 
   /// optional: if you need force sync with storage
   Future<void> reload() async {
     _userId = await LocalStorage.getUserId();
+    _userEmail = await LocalStorage.getUserEmail();
     notifyListeners();
   }
 

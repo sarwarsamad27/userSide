@@ -20,7 +20,6 @@ import 'package:user_side/view/dashboard/homeDashboard/productDetail/widgets/pre
 import 'package:user_side/view/dashboard/userChat/userChatScreen.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/followUnFollow_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getAllCategoryProfileWise_provider.dart';
-import 'package:user_side/widgets/customButton.dart';
 
 class CompanyProfileScreen extends StatefulWidget {
   final String companyName;
@@ -270,7 +269,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                               radius: 42.r,
                               backgroundColor: const Color(0xFFF3F4F6),
                               backgroundImage: NetworkImage(
-                                Global.imageUrl + widget.logoUrl,
+                                Global.getImageUrl(widget.logoUrl),
                               ),
                             ),
                           ),

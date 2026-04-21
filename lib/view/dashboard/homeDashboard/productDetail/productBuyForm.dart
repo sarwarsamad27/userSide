@@ -11,6 +11,7 @@ import 'package:user_side/viewModel/provider/favouriteProvider/getFavourite_prov
 import 'package:user_side/viewModel/provider/orderProvider/createOrder_provider.dart';
 import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
 import 'package:user_side/resources/authSession.dart';
+import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 import 'package:user_side/widgets/customButton.dart';
 import 'package:user_side/widgets/customContainer.dart';
@@ -59,6 +60,25 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
   final ValueNotifier<int> _quantityNotifier = ValueNotifier(1);
 
   PaymentMethod _selectedPayment = PaymentMethod.cod;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPersistedData();
+  }
+
+  Future<void> _loadPersistedData() async {
+    _emailController.text = AuthSession.instance.userEmail ?? '';
+    _nameController.text = await LocalStorage.getUserName() ?? '';
+    _phoneController.text = await LocalStorage.getUserPhone() ?? '';
+    _addressController.text = await LocalStorage.getUserAddress() ?? '';
+  }
+
+  Future<void> _saveFormData() async {
+    await LocalStorage.saveUserName(_nameController.text.trim());
+    await LocalStorage.saveUserPhone(_phoneController.text.trim());
+    await LocalStorage.saveUserAddress(_addressController.text.trim());
+  }
 
   @override
   void dispose() {
@@ -234,14 +254,12 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
     return result ?? false;
   }
 
-
-
-
   // ──────────────────────────────────────────────────────────────────────────
   // Handle order result
   // ──────────────────────────────────────────────────────────────────────────
   void _handleOrderResult(CreateOrderProvider provider) {
     if (provider.orderData != null && provider.orderData!.order != null) {
+      _saveFormData(); // Save form data for next time
       context.read<FavouriteProvider>().deleteAllFavourites();
       if (mounted) Utils.showOrderSuccessLottie(context);
     } else {
@@ -314,7 +332,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(8.r),
                                       child: Image.network(
-                                        Global.imageUrl + item['imageUrl'],
+                                        Global.getImageUrl(item['imageUrl']),
                                         height: 60.h,
                                         width: 60.w,
                                         fit: BoxFit.cover,

@@ -27,7 +27,7 @@ class _ProductImageState extends State<ProductImage> {
   String getValidImageUrl(String url) {
     if (url.startsWith('http')) return url;
     if (!url.startsWith('/')) url = '/$url';
-    return Global.imageUrl + url;
+    return Global.getImageUrl(url);
   }
 
   @override

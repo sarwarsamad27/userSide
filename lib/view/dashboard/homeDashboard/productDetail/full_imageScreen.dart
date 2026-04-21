@@ -16,7 +16,7 @@ class FullScreenImageGallery extends StatelessWidget {
     if (url.startsWith('http')) {
       return url; // full URL, use directly
     }
-    return Global.imageUrl + url; // relative path from backend
+    return Global.getImageUrl(url); // relative path from backend
   }
 
   @override

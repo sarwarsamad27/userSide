@@ -67,7 +67,7 @@ class _CategoryTileState extends State<CategoryTile>
   @override
   Widget build(BuildContext context) {
     final String finalImageUrl = (widget.image.isNotEmpty)
-        ? "${Global.imageUrl}${widget.image}"
+        ? Global.getImageUrl(widget.image)
         : "";
 
     return GestureDetector(

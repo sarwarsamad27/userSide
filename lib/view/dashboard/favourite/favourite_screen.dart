@@ -23,7 +23,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
   String fixImage(String? url) {
     if (url == null || url.isEmpty) return "";
     if (url.startsWith("http")) return url;
-    return Global.imageUrl + url;
+    return Global.getImageUrl(url);
   }
 
   Widget buildImageOrPlaceholder(String? url, double size) {
