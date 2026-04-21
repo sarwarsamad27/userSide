@@ -1,5 +1,7 @@
 // view/dashboard/userChat/userChatListScreen.dart
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -166,7 +168,7 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
 
   Widget _buildChatTile(thread) {
     final hasUnread = thread.unreadCount > 0;
-
+    log(Global.getImageUrl(thread.image));
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       leading: Stack(
@@ -174,12 +176,29 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
           CircleAvatar(
             radius: 28.r,
             backgroundColor: AppColor.primaryColor.withOpacity(0.1),
-            backgroundImage: thread.image != null
-                ? NetworkImage(Global.getImageUrl(thread.image!))
-                : null,
-            child: thread.image == null
-                ? Icon(Icons.store, size: 28.sp, color: AppColor.primaryColor)
-                : null,
+            child: ClipOval(
+              child: thread.image != null && thread.image!.isNotEmpty
+                  ? Image.network(
+                      Global.getImageUrl(thread.image),
+                      width: 56.r,
+                      height: 56.r,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.store,
+                        size: 28.sp,
+                        color: AppColor.primaryColor,
+                      ),
+                    )
+                  : Icon(
+                      Icons.store,
+                      size: 28.sp,
+                      color: AppColor.primaryColor,
+                    ),
+            ),
           ),
           if (hasUnread)
             Positioned(

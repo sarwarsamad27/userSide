@@ -1,4 +1,6 @@
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps
+import 'dart:developer';
+
 class Global {
   // static var imageUrl = "http://192.168.88.59:5000";
   // static var BaseUrl = "http://192.168.88.59:5000/api/auth";
@@ -79,8 +81,10 @@ class Global {
   /// GET /buyer/get/refund/:id/pdf
   static String getRefundPdf(String refundId) =>
       "${BaseUrl}/buyer/get/refund/$refundId/pdf";
-static String BuyerWithdrawSendOtp = '${BaseUrl}/buyer/wallet/withdraw/send-otp';
-static String BuyerWithdrawVerifyOtp = '${BaseUrl}/buyer/wallet/withdraw/verify-otp';
+  static String BuyerWithdrawSendOtp =
+      '${BaseUrl}/buyer/wallet/withdraw/send-otp';
+  static String BuyerWithdrawVerifyOtp =
+      '${BaseUrl}/buyer/wallet/withdraw/verify-otp';
   static String WalletOrderSendOtp = '${BaseUrl}/buyer/wallet/order/send-otp';
   static String WalletOrderVerifyOtp =
       '${BaseUrl}/buyer/wallet/order/verify-otp';
@@ -91,21 +95,28 @@ static String BuyerWithdrawVerifyOtp = '${BaseUrl}/buyer/wallet/withdraw/verify-
 
   // Global.dart mein add karo
   static String getImageUrl(String? imagePath) {
-    if (imagePath == null || imagePath.isEmpty) {
-      return ''; // ya koi default image
+    if (imagePath == null) return '';
+    String path = imagePath.trim();
+    if (path.isEmpty) return '';
+
+    // Handle full URLs
+    if (path.toLowerCase().startsWith('http')) {
+      return path;
     }
 
-    // Agar already full URL hai (cloudinary)
-    if (imagePath.startsWith('http')) {
-      return imagePath;
+    // Ensure baseUrl doesn't end with slash
+    String baseUrl = imageUrl.trim();
+    if (baseUrl.endsWith('/')) {
+      baseUrl = baseUrl.substring(0, baseUrl.length - 1);
     }
 
-    // Agar local upload hai (/uploads/...)
-    if (imagePath.startsWith('/uploads/')) {
-      return imageUrl + imagePath; // imageUrl = "https://yourapi.com"
+    // Ensure path starts with exactly one slash
+    if (!path.startsWith('/')) {
+      path = '/$path';
     }
 
-    // Normal case
-    return imageUrl + imagePath;
+    final finalUrl = baseUrl + path;
+    log("🖼️ Generated URL: $finalUrl");
+    return finalUrl;
   }
 }

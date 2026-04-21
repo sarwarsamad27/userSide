@@ -235,7 +235,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                   threadId: threadId,
                                   toType: "seller",
                                   toId: sellerProfileId,
-                                  title: "Exchange Chat",
+                                  title: (n.title ?? "Chat").toString(),
                                 ),
                               ),
                             );
@@ -271,8 +271,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               ),
                             );
                           }
-                        }
-                         else if (dataMap.containsKey("threadId")) {
+                        } else if (dataMap.containsKey("threadId")) {
                           final threadId = (dataMap["threadId"] ?? "")
                               .toString();
                           final toType = (dataMap["toType"] ?? "seller")

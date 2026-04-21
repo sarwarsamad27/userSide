@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -10,16 +12,12 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final String? sellerImage;
 
-  const ChatAppBar({
-    super.key,
-    required this.title,
-    this.sellerImage,
-  });
+  const ChatAppBar({super.key, required this.title, this.sellerImage});
 
   @override
   Widget build(BuildContext context) {
     final isTyping = context.select<UserChatProvider, bool>((p) => p.isTyping);
-
+    log(Global.getImageUrl(sellerImage));
     return AppBar(
       backgroundColor: AppColor.primaryColor,
       elevation: 1,
@@ -29,12 +27,29 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
           CircleAvatar(
             radius: 18.r,
             backgroundColor: Colors.white,
-            backgroundImage: sellerImage != null
-                ? NetworkImage(Global.getImageUrl(sellerImage!))
-                : null,
-            child: sellerImage == null
-                ? Icon(Icons.store, size: 20.sp, color: AppColor.primaryColor)
-                : null,
+            child: ClipOval(
+              child: sellerImage != null && sellerImage!.isNotEmpty
+                  ? Image.network(
+                      Global.getImageUrl(sellerImage),
+                      width: 36.r,
+                      height: 36.r,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.store,
+                        size: 20.sp,
+                        color: AppColor.primaryColor,
+                      ),
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    )
+                  : Icon(
+                      Icons.store,
+                      size: 20.sp,
+                      color: AppColor.primaryColor,
+                    ),
+            ),
           ),
           SizedBox(width: 10.w),
           Expanded(

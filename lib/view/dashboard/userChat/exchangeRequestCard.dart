@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:user_side/resources/global.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/userChat_provider.dart';
 
 import '../../../models/chatModel/chatModel.dart';
 import '../../../resources/appColor.dart';
 import 'full_image.dart';
-import '../../../resources/utiles.dart';
 
 class ExchangeRequestCard extends StatelessWidget {
   final ChatMessage message;
@@ -172,25 +172,34 @@ class ExchangeRequestCard extends StatelessWidget {
                 crossAxisSpacing: 8.w,
               ),
               itemBuilder: (_, i) {
-                final url = p.imgUrl(data.images[i]);
+                final url = Global.getImageUrl(data.images[i]);
 
                 return InkWell(
                   onTap: () => _openImageViewer(context, data.images, i),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10.r),
-                    child: Image.network(
-                      url,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, progress) {
-                        if (progress == null) return child;
-                        return Utils.loadingLottie(size: 40);
-                      },
-                      errorBuilder: (_, __, ___) => Container(
-                        color: Colors.black12,
-                        child: Icon(
-                          Icons.broken_image,
-                          size: 26.sp,
-                          color: Colors.black38,
+                  child: Container(
+                    height: 100.h,
+                    color: Colors.black.withOpacity(0.03),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10.r),
+                      child: Image.network(
+                        url,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, progress) {
+                          if (progress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColor.primaryColor,
+                            ),
+                          );
+                        },
+                        errorBuilder: (_, __, ___) => Container(
+                          color: Colors.black.withOpacity(0.05),
+                          child: Icon(
+                            Icons.broken_image,
+                            size: 26.sp,
+                            color: Colors.black38,
+                          ),
                         ),
                       ),
                     ),

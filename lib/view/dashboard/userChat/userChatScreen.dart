@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/view/dashboard/userChat/chatAppBar.dart';
@@ -12,7 +14,7 @@ class UserChatScreen extends StatelessWidget {
   final String toId;
   final String title;
   final String? sellerImage;
-  
+
   // ✅ CHANGED: Use Map instead of String
   final Map<String, dynamic>? initialProductData;
   final String? initialMessage;
@@ -30,6 +32,9 @@ class UserChatScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    log(
+      "Opening UserChatScreen with threadId: $threadId, toType: $toType, sellerImage: $sellerImage, toId: $toId, title: $title",
+    );
     return ChangeNotifierProvider(
       create: (_) => UserChatProvider(
         threadId: threadId,
