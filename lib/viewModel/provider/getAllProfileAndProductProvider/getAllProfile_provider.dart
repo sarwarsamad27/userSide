@@ -6,24 +6,25 @@ class GetAllProfileProvider with ChangeNotifier {
   final GetAllProfileRepository repo = GetAllProfileRepository();
 
   bool isLoading = false;
-  bool isFetchedOnce = false; 
+  bool isFetchedOnce = false;
   int currentPage = 1;
   int limit = 10;
   GetAllProfileModel? productData;
   List<Profiles> filteredProfiles = [];
 
   Future<void> fetchProfiles({int page = 1}) async {
-    if (isFetchedOnce) return;
-    isFetchedOnce = true; 
+    if (isFetchedOnce) return; // ✅ pehli baar sirf
+    isFetchedOnce = true;
 
     isLoading = true;
     notifyListeners();
 
     try {
       productData = await repo.getAllProfile(page: currentPage, limit: limit);
-      filteredProfiles = productData?.profiles ?? [];
+      filteredProfiles = productData?.profiles ?? []; // ✅ update karo
     } catch (e) {
       productData = GetAllProfileModel(message: e.toString(), profiles: []);
+      filteredProfiles = [];
     }
 
     isLoading = false;
@@ -34,25 +35,29 @@ class GetAllProfileProvider with ChangeNotifier {
     if (query.isEmpty) {
       filteredProfiles = productData?.profiles ?? [];
     } else {
-      filteredProfiles = productData!.profiles!
+      filteredProfiles = (productData?.profiles ?? [])
           .where((p) => p.name!.toLowerCase().contains(query.toLowerCase()))
           .toList();
     }
     notifyListeners();
   }
 
-  /// 👇 FOR REFRESHER
+  // ✅ Refresh — isFetchedOnce reset karo + filteredProfiles update karo
   Future<void> refreshProfiles() async {
+    isFetchedOnce = false; // ✅ yeh missing tha
     isLoading = true;
     notifyListeners();
 
     try {
       productData = await repo.getAllProfile(page: currentPage, limit: limit);
+      filteredProfiles = productData?.profiles ?? []; // ✅ yeh bhi missing tha
     } catch (e) {
       productData = GetAllProfileModel(message: e.toString(), profiles: []);
+      filteredProfiles = [];
     }
 
     isLoading = false;
+    isFetchedOnce = true; // ✅ refresh ke baad wapas lock
     notifyListeners();
   }
 }

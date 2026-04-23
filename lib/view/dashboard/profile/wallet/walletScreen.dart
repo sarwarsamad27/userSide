@@ -344,21 +344,21 @@ class _WalletScreenState extends State<WalletScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          // _QuickActionButton(
-          //   icon: Icons.add_rounded,
-          //   label: 'Add Money',
-          //   color: const Color(0xFF00C853),
-          //   onTap: () =>
-          //       Navigator.push(
-          //         context,
-          //         _pageRoute(const AddMoneyScreen()),
-          //       ).then((_) {
-          //         if (buyerId.isNotEmpty) {
-          //           context.read<WalletProvider>().fetchBalance(buyerId);
-          //           context.read<WalletProvider>().fetchTransactions(buyerId);
-          //         }
-          //       }),
-          // ),
+          _QuickActionButton(
+            icon: Icons.add_rounded,
+            label: 'Add Money',
+            color: const Color(0xFF00C853),
+            onTap: () =>
+                Navigator.push(
+                  context,
+                  _pageRoute(const AddMoneyScreen()),
+                ).then((_) {
+                  if (buyerId.isNotEmpty) {
+                    context.read<WalletProvider>().fetchBalance(buyerId);
+                    context.read<WalletProvider>().fetchTransactions(buyerId);
+                  }
+                }),
+          ),
           _QuickActionButton(
             icon: Icons.send_rounded,
             label: 'WithDrawal',

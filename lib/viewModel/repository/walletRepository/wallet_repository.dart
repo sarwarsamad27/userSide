@@ -38,22 +38,24 @@ class WalletRepository {
   }
 
   // ── Add Money: Verify OTP ───────────────────────────────────────────────────
-  Future<PaymentVerifyModel> verifyAddMoneyOtp({
-    required String buyerId,
-    required String phoneNumber,
-    required String otp,
-  }) async {
-    try {
-      final response = await _api.postApi(Global.AddMoneyVerifyOtp, {
-        'buyerId': buyerId,
-        'phoneNumber': phoneNumber,
-        'otp': otp,
-      });
-      return PaymentVerifyModel.fromJson(response);
-    } catch (e) {
-      return PaymentVerifyModel.error(e.toString());
-    }
+Future<PaymentVerifyModel> verifyAddMoneyOtp({
+  required String buyerId,
+  required String phoneNumber,
+  required String otp,
+  String txnRefNo = '',   // ✅
+}) async {
+  try {
+    final response = await _api.postApi(Global.AddMoneyVerifyOtp, {
+      'buyerId':   buyerId,
+      'phoneNumber': phoneNumber,
+      'otp':       otp,
+      'txnRefNo':  txnRefNo,   // ✅
+    });
+    return PaymentVerifyModel.fromJson(response);
+  } catch (e) {
+    return PaymentVerifyModel.error(e.toString());
   }
+}
 
   // ── Send Money: Send OTP ────────────────────────────────────────────────────
   Future<OtpResponseModel> sendMoneyOtp({

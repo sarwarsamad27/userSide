@@ -537,7 +537,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                 child: Consumer<RecommendationProvider>(
                   builder: (context, provider, _) {
                     if (provider.loading) {
-                      return Utils.loadingLottie(size: 100);
+                      return Utils.whiteLoadingLottie(size: 100);
                     }
 
                     if (provider.products.isEmpty) {

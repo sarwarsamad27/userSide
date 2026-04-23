@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:user_side/resources/premium_toast.dart';
-import 'package:user_side/resources/toast.dart';
 
 class Utils {
   static Widget loadingLottie({double? size}) => Center(
     child: Lottie.asset(
       'assets/gif/loading.json',
+      height: size ?? 100,
+      width: size ?? 100,
+    ),
+  );
+
+  static Widget whiteLoadingLottie({double? size}) => Center(
+    child: Lottie.asset(
+      'assets/gif/white_loading.json',
       height: size ?? 100,
       width: size ?? 100,
     ),

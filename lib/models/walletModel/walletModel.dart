@@ -128,18 +128,27 @@ class TransactionHistoryModel {
 class OtpResponseModel {
   final bool success;
   final String message;
+  final String txnRefNo;
 
-  OtpResponseModel({required this.success, required this.message});
+  OtpResponseModel({
+    required this.success,
+    required this.message,
+    required this.txnRefNo,
+  });
 
   factory OtpResponseModel.fromJson(Map<String, dynamic> json) {
     return OtpResponseModel(
-      success: true,
-      message: json['message'] ?? '',
+      success:   true,
+      message:   json['message'] ?? '',
+      txnRefNo:  json['txnRefNo'] ?? '',  // ✅ backend se aayega
     );
   }
 
-  factory OtpResponseModel.error(String msg) =>
-      OtpResponseModel(success: false, message: msg);
+  factory OtpResponseModel.error(String msg) => OtpResponseModel(
+    success:  false,
+    message:  msg,
+    txnRefNo: '', 
+  );
 }
 
 // ─── Add/Send Money Verify Response ──────────────────────────────────────────
@@ -172,35 +181,43 @@ class PaymentVerifyModel {
 
   });
 
-  factory PaymentVerifyModel.fromJson(Map<String, dynamic> json) {
-    final txn = json['transaction'] ?? {};
-    return PaymentVerifyModel(
-      success: true,
-      message: json['message'] ?? '',
-      newBalance: (json['newBalance'] as num?)?.toDouble() ?? 0.0,
-      txnId: txn['txnId'] ?? '',
-      amount: (txn['amount'] as num?)?.toDouble() ?? 0.0,
-      method: txn['method'] ?? '',
-      phoneNumber: txn['phoneNumber'] ?? txn['recipientNumber'] ?? '',
-      status: txn['status'] ?? 'success',
-      createdAt: txn['createdAt'] != null
-          ? DateTime.tryParse(txn['createdAt'])
-          : null,
-      recipientNumber: txn['recipientNumber'],
-      note: txn['note'],
-    );
-  }
+factory PaymentVerifyModel.fromJson(Map<String, dynamic> json) {
+  final txn = json['transaction'] ?? {};
+  
+  // ✅ success properly detect karo
+  final bool isSuccess = json['message'] != null && 
+      (json['message'].toString().toLowerCase().contains('success') ||
+       json['message'].toString().toLowerCase().contains('credited') ||
+       json['newBalance'] != null);
 
-  factory PaymentVerifyModel.error(String msg) => PaymentVerifyModel(
-        success: false,
-        message: msg,
-        newBalance: 0,
-        txnId: '',
-        amount: 0,
-        method: '',
-        phoneNumber: '',
-        status: 'failed',
-      );
+  return PaymentVerifyModel(
+    success:     isSuccess,
+    message:     json['message'] ?? '',
+    newBalance:  (json['newBalance'] as num?)?.toDouble() ?? 0.0,
+    txnId:       txn['txnId'] ?? json['txnId'] ?? '',
+    amount:      (txn['amount'] as num?)?.toDouble() ?? 
+                 (json['amount'] as num?)?.toDouble() ?? 0.0,
+    method:      txn['method'] ?? json['method'] ?? '',
+    phoneNumber: txn['phoneNumber'] ?? json['phoneNumber'] ?? '',
+    status:      txn['status'] ?? json['status'] ?? 'success',
+    createdAt:   txn['createdAt'] != null
+        ? DateTime.tryParse(txn['createdAt'])
+        : null,
+    recipientNumber: txn['recipientNumber'],
+    note:        txn['note'],
+  );
+}
+
+factory PaymentVerifyModel.error(String msg) => PaymentVerifyModel(
+  success:     false,
+  message:     msg,
+  newBalance:  0,
+  txnId:       '',
+  amount:      0,
+  method:      '',
+  phoneNumber: '',
+  status:      'failed',
+);
 }
 
 // ─── Saved Payment Method Model ───────────────────────────────────────────────

@@ -908,8 +908,9 @@ class _WalletPhoneSheetState extends State<_WalletPhoneSheet> {
             builder: (_, provider, __) => SizedBox(
               width: double.infinity,
               height: 50.h,
-              child: ElevatedButton(
-                onPressed: provider.walletOtpLoading
+              child: CustomButton(
+                text: "Send OTP",
+                onTap: provider.walletOtpLoading
                     ? null
                     : () async {
                         final phone = widget.controller.text.trim();
@@ -936,26 +937,56 @@ class _WalletPhoneSheetState extends State<_WalletPhoneSheet> {
                           );
                         }
                       },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2979FF),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                ),
-                child: provider.walletOtpLoading
-                    ? const CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      )
-                    : Text(
-                        'Send OTP',
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
               ),
+
+              // ElevatedButton(
+              //   onPressed: provider.walletOtpLoading
+              //       ? null
+              //       : () async {
+              //           final phone = widget.controller.text.trim();
+              //           if (phone.isEmpty ||
+              //               !RegExp(r'^03[0-9]{9}$').hasMatch(phone)) {
+              //             ScaffoldMessenger.of(context).showSnackBar(
+              //               const SnackBar(
+              //                 content: Text(
+              //                   'Enter a valid Pakistani number (03XXXXXXXXX)',
+              //                 ),
+              //               ),
+              //             );
+              //             return;
+              //           }
+              //           final sent = await provider.sendWalletOtp(
+              //             amount: widget.amount,
+              //             phoneNumber: phone,
+              //           );
+              //           if (sent) {
+              //             widget.onOtpSent();
+              //           } else if (provider.errorMessage != null) {
+              //             ScaffoldMessenger.of(context).showSnackBar(
+              //               SnackBar(content: Text(provider.errorMessage!)),
+              //             );
+              //           }
+              //         },
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: const Color(0xFF2979FF),
+              //     shape: RoundedRectangleBorder(
+              //       borderRadius: BorderRadius.circular(12.r),
+              //     ),
+              //   ),
+              //   child: provider.walletOtpLoading
+              //       ? const CircularProgressIndicator(
+              //           color: Colors.white,
+              //           strokeWidth: 2,
+              //         )
+              //       : Text(
+              //           'Send OTP',
+              //           style: TextStyle(
+              //             fontSize: 15.sp,
+              //             color: Colors.white,
+              //             fontWeight: FontWeight.w600,
+              //           ),
+              //         ),
+              // ),
             ),
           ),
           SizedBox(height: 10.h),
