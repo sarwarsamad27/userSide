@@ -11,6 +11,7 @@ import 'package:user_side/viewModel/provider/orderProvider/getMyOrder_provider.d
 import 'package:user_side/viewModel/provider/productProvider/getPopularCategory_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/recommendedProduct_provider.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/chatThread_provider.dart';
+import 'package:user_side/models/notification_services/notification_services.dart';
 
 class AuthSession extends ChangeNotifier {
   AuthSession._();
@@ -47,6 +48,7 @@ class AuthSession extends ChangeNotifier {
 
   /// call on logout
   Future<void> logout() async {
+    await NotificationService.clearToken();
     await LocalStorage.clearAuth(); // removes token + userId + email
     _userId = null;
     _userEmail = null;

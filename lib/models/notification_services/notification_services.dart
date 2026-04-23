@@ -47,7 +47,8 @@ class NotificationService {
     // ✅ create Android channel
     await _local
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(_channel);
 
     // ✅ FOREGROUND: show local notif
@@ -100,6 +101,15 @@ class NotificationService {
     await _sendTokenToBackend(userId: userId, token: token);
   }
 
+  static Future<void> clearToken() async {
+    try {
+      await _fcm.deleteToken();
+      print("FCM token deleted successfully");
+    } catch (e) {
+      print("FCM token deletion failed: $e");
+    }
+  }
+
   static Future<void> _sendTokenToBackend({
     required String userId,
     required String token,
@@ -109,8 +119,8 @@ class NotificationService {
     final platform = Platform.isAndroid
         ? "android"
         : Platform.isIOS
-            ? "ios"
-            : "unknown";
+        ? "ios"
+        : "unknown";
 
     final payload = {"userId": userId, "token": token, "platform": platform};
 

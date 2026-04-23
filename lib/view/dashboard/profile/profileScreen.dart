@@ -138,7 +138,35 @@ class _ProfilescreenState extends State<Profilescreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoggedIn = context.watch<AuthSession>().isLoggedIn;
+    final authSession = context.watch<AuthSession>();
+    final isLoggedIn = authSession.isLoggedIn;
+
+    String getTimeBasedGreeting() {
+      final hour = DateTime.now().hour;
+      if (hour >= 5 && hour < 12) {
+        return "Good Morning";
+      } else if (hour >= 12 && hour < 17) {
+        return "Good Afternoon";
+      } else {
+        return "Good Evening";
+      }
+    }
+
+    String getUserGreeting() {
+      if (isLoggedIn && authSession.userEmail != null) {
+        // Extract name before @
+        String emailName = authSession.userEmail!.split('@').first;
+        // Remove numbers
+        String nameOnly = emailName.replaceAll(RegExp(r'[0-9]'), '');
+        // Capitalize first letter for better UI
+        if (nameOnly.isNotEmpty) {
+          nameOnly =
+              nameOnly[0].toUpperCase() + nameOnly.substring(1).toLowerCase();
+          return "Hi, $nameOnly!";
+        }
+      }
+      return getTimeBasedGreeting();
+    }
 
     return Scaffold(
       backgroundColor: AppColor.appimagecolor,
@@ -149,7 +177,7 @@ class _ProfilescreenState extends State<Profilescreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              "Hi, D!",
+              getUserGreeting(),
               style: TextStyle(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,

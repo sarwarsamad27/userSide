@@ -78,8 +78,8 @@ class GoogleLoginProvider with ChangeNotifier {
 
   /// ✅ Actual logout (NO dialog, NO navigation)
   Future<void> logout() async {
-    // Clear app auth only (don’t clear deviceId if you use it)
-    await LocalStorage.clearAuth();
+    // Clear global session (including FCM and LocalStorage)
+    await AuthSession.instance.logout();
 
     // Clear Google session
     await googleSignIn.signOut();
