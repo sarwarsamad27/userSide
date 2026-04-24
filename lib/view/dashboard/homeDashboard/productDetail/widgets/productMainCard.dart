@@ -1,7 +1,10 @@
 import 'dart:developer';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -297,35 +300,80 @@ class ProductMainCard extends StatelessWidget {
                         size: 22.sp,
                         color: const Color(0xFF111827),
                       ),
-                      onPressed: () async {
-                        final shareProvider = context
-                            .read<ProductShareProvider>();
+                     onPressed: () async {
+  final shareProvider = context.read<ProductShareProvider>();
 
-                        final link = await shareProvider.fetchShareLink(
-                          productId: product.sId ?? '',
-                          profileId: product.profileId ?? '',
-                        );
+  final link = await shareProvider.fetchShareLink(
+    productId: product.sId ?? '',
+    profileId: product.profileId ?? '',
+  );
 
-                        if (link == null || link.isEmpty) return;
+  if (link == null || link.isEmpty) return;
 
-                        final name = product.name ?? '';
-                        final desc = product.description ?? '';
-                        final price = product.afterDiscountPrice ?? 0;
-                        final brand = data.profileName ?? '';
+  final name     = product.name ?? '';
+  final price    = product.afterDiscountPrice ?? 0;
+  final oldPrice = product.beforeDiscountPrice ?? 0;
+  final brand    = data.profileName ?? '';
+  final desc     = product.description ?? '';
+  final rating   = (data.averageRating ?? 0).toStringAsFixed(1);
+  final reviews  = data.reviews?.length ?? 0;
 
-                        final shareText =
-                            '''
-$name
-$desc
+  String discountLine = '';
+  if (oldPrice > 0 && oldPrice > price) {
+    final pct = (((oldPrice - price) / oldPrice) * 100).round();
+    discountLine = '🏷️ *${pct}% OFF* — ~~Rs: $oldPrice~~\n';
+  }
 
-Brand: $brand
-Price: Rs: $price
+  final shareText = '''🛍️ *$name*
 
+${discountLine}💰 *Price: Rs: $price*
+⭐ *$rating* ($reviews reviews)
+🏪 *Brand:* $brand
+
+📝 ${desc.length > 120 ? '${desc.substring(0, 120)}...' : desc}
+
+━━━━━━━━━━━━━━━━━━━━
+🔗 *Shop Now:*
 $link
-''';
+━━━━━━━━━━━━━━━━━━━━
 
-                        await Share.share(shareText);
-                      },
+_Powered by Shookoo 🇵🇰_''';
+
+  // ✅ Image bhi share karo
+  final imageUrl = product.images?.isNotEmpty == true
+      ? product.images!.first
+      : null;
+
+  if (imageUrl != null && imageUrl.isNotEmpty) {
+    try {
+      // Image download karke share karo
+      final http = await HttpClient().getUrl(
+        Uri.parse(Global.getImageUrl(imageUrl)),
+      );
+      final response = await http.close();
+      final bytes = await consolidateHttpClientResponseBytes(response);
+
+      final tempDir = await getTemporaryDirectory();
+      final file    = File('${tempDir.path}/share_product.jpg');
+      await file.writeAsBytes(bytes);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: shareText,
+        subject: '$name — Rs: $price | Shookoo',
+      );
+      return;
+    } catch (_) {
+      // Image fail hoi toh sirf text share karo
+    }
+  }
+
+  // Fallback — sirf text
+  await Share.share(
+    shareText,
+    subject: '$name — Rs: $price | Shookoo',
+  );
+},
                     ),
 
                     // Stock badge

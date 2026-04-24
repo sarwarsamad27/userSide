@@ -163,7 +163,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                   Icon(
                                     Icons.receipt_long_rounded,
                                     size: 13.sp,
-                                    color: Colors.blueAccent,
+                                    color: AppColor.appimagecolor,
                                   ),
                                   SizedBox(width: 4.w),
                                   Text(
@@ -171,7 +171,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                     style: TextStyle(
                                       fontSize: 11.sp,
                                       fontWeight: FontWeight.w700,
-                                      color: Colors.blueAccent,
+                                      color: AppColor.primaryColor,
                                     ),
                                   ),
                                   const Spacer(),

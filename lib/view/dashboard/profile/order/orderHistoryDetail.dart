@@ -109,7 +109,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         elevation: 0,
         title: Text(
           "Order Details",
-          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
         ),
       ),
       body: RefreshIndicator(
@@ -138,6 +142,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             // ── SELLER CARD ──────────────────────────────────────────
             _buildInfoCard(
               title: "Seller Details",
+              imagePath: _order.seller?.image,
               icon: Icons.storefront_rounded,
               iconColor: Colors.purple,
               children: [
@@ -247,7 +252,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             children: [
               Icon(
                 Icons.receipt_long_rounded,
-                color: Colors.blueAccent,
+                color: AppColor.primaryColor,
                 size: 18.sp,
               ),
               SizedBox(width: 6.w),
@@ -256,7 +261,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 style: TextStyle(
                   fontSize: 14.sp,
                   fontWeight: FontWeight.w700,
-                  color: Colors.blueAccent,
+                  color: AppColor.primaryColor,
                 ),
               ),
             ],
@@ -802,7 +807,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   // ── Info Card ────────────────────────────────────────────────────────────
   Widget _buildInfoCard({
     required String title,
-    required IconData icon,
+    IconData? icon, // ✅ optional
+    String? imagePath, // ✅ optional
     required Color iconColor,
     required List<Widget> children,
   }) {
@@ -825,12 +831,32 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8.w),
+                padding: EdgeInsets.all(imagePath != null ? 0 : 8.w),
                 decoration: BoxDecoration(
                   color: iconColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10.r),
                 ),
-                child: Icon(icon, color: iconColor, size: 18.sp),
+                // ✅ image ho tw image, warna icon
+                child: imagePath != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8.r),
+                        child: Image.network(
+                          imagePath,
+                          width: 36.sp, // ✅ 18 se 36 kiya
+                          height: 36.sp, // ✅ 18 se 36 kiya
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(
+                            icon ?? Icons.store_outlined,
+                            color: iconColor,
+                            size: 22.sp,
+                          ),
+                        ),
+                      )
+                    : Icon(
+                        icon ?? Icons.store_outlined,
+                        color: iconColor,
+                        size: 22.sp,
+                      ),
               ),
               SizedBox(width: 10.w),
               Text(

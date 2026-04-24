@@ -60,7 +60,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
             leading: IconButton(
               icon: const Icon(
                 Icons.arrow_back_ios_new,
-                color: Color(0xFF1A1A2E),
+                color: Colors.white,
                 size: 20,
               ),
               onPressed: () => Navigator.pop(context),
@@ -68,7 +68,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
             title: Text(
               'Transaction History',
               style: TextStyle(
-                color: const Color(0xFF1A1A2E),
+                color: Colors.white,
                 fontSize: 18.sp,
                 fontWeight: FontWeight.w700,
               ),
@@ -240,14 +240,16 @@ class _TxnList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isJazzcash =
+        transactions.isNotEmpty &&
+        transactions.first.method.toLowerCase().contains('jazzcash');
+    final String logoPath = isJazzcash
+        ? 'assets/images/JazzCashLogo.jpg'
+        : 'assets/images/easypaisaLogo.jpg';
 
-
-final   isJazzcash = transactions.isNotEmpty && transactions.first.method.toLowerCase().contains('jazzcash');
-final String logoPath = isJazzcash
-    ? 'assets/images/JazzCashLogo.jpg'
-    : 'assets/images/easypaisaLogo.jpg';
-
-log('First transaction method: ${transactions.isNotEmpty ? transactions.first.method : 'N/A'}');
+    log(
+      'First transaction method: ${transactions.isNotEmpty ? transactions.first.method : 'N/A'}',
+    );
     if (transactions.isEmpty) {
       return Center(
         child: Column(
@@ -270,11 +272,13 @@ log('First transaction method: ${transactions.isNotEmpty ? transactions.first.me
       itemBuilder: (context, index) {
         final tx = transactions[index];
         final String methodLower = tx.method.toLowerCase().trim();
-  final bool isJazzCash = methodLower == 'send';  // or add more: || methodLower.contains('jazzcash')
+        final bool isJazzCash =
+            methodLower ==
+            'send'; // or add more: || methodLower.contains('jazzcash')
 
-  final String logoPath = isJazzCash
-      ? 'assets/images/JazzCashLogo.jpg'
-      : 'assets/images/easypaisaLogo.jpg';
+        final String logoPath = isJazzCash
+            ? 'assets/images/JazzCashLogo.jpg'
+            : 'assets/images/easypaisaLogo.jpg';
         return Padding(
           padding: EdgeInsets.only(bottom: 10.h),
           child:
@@ -303,15 +307,15 @@ log('First transaction method: ${transactions.isNotEmpty ? transactions.first.me
                             borderRadius: BorderRadius.circular(14.r),
                           ),
                           child: Center(
-              child: ClipOval(
-                child: Image.asset(
-                  logoPath,           // ← now correct per transaction
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
-                ),
-              ),
-            ),
+                            child: ClipOval(
+                              child: Image.asset(
+                                logoPath, // ← now correct per transaction
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                            ),
+                          ),
                         ),
                         SizedBox(width: 12.w),
                         Expanded(
