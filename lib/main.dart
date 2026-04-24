@@ -52,6 +52,14 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _initDeepLinks();
+    final appLinks = AppLinks();
+appLinks.uriLinkStream.listen((uri) {
+  if (uri.pathSegments.length >= 2 && uri.pathSegments[0] == 'p') {
+    final productId = uri.pathSegments[1];
+    // Product detail screen pe navigate karo
+    Navigator.pushNamed(context, '/product', arguments: productId);
+  }
+});
   }
 
   Future<void> _initDeepLinks() async {
