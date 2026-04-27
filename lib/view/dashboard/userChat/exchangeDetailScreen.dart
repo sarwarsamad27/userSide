@@ -59,62 +59,66 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
         backgroundColor: AppColor.primaryColor,
         foregroundColor: Colors.white,
         centerTitle: true,
-        title: Text("Exchange Details",
-            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
+        title: Text(
+          "Exchange Details",
+          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+        ),
       ),
       body: _loading
           ? const Center(
-              child: CircularProgressIndicator(color: AppColor.primaryColor))
+              child: CircularProgressIndicator(color: AppColor.primaryColor),
+            )
           : _exchange == null
-              ? _buildNotFound()
-              : RefreshIndicator(
-                  onRefresh: _loadExchange,
-                  color: AppColor.primaryColor,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: EdgeInsets.all(16.w),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStatusTimeline(),
-                        SizedBox(height: 16.h),
-                        _buildInfoCard(),
-                        SizedBox(height: 16.h),
-                        if (_exchange!.courierPaidBy != null)
-                          _buildCourierCard(),
-                        if (_exchange!.isAccepted) ...[
-                          SizedBox(height: 16.h),
-                          _buildReturnProofSection(),
-                        ],
-                        if (_exchange!.isReturnShipped ||
-                            _exchange!.isReturnReceived ||
-                            _exchange!.isInspecting ||
-                            _exchange!.isApprovedInspection) ...[
-                          SizedBox(height: 16.h),
-                          _buildReturnTrackingCard(),
-                        ],
-                        if (_exchange!.isReplacementShipped) ...[
-                          SizedBox(height: 16.h),
-                          _buildReplacementTrackingCard(),
-                        ],
-                        if (_exchange!.isRefunded || _exchange!.isCompleted) ...[
-                          SizedBox(height: 16.h),
-                          _buildCompletionCard(),
-                        ],
-                        if (_exchange!.isDisputed) ...[
-                          SizedBox(height: 16.h),
-                          _buildDisputeCard(),
-                        ],
-                        if (_exchange!.images.isNotEmpty) ...[
-                          SizedBox(height: 16.h),
-                          _buildImagesSection(
-                              "Your Product Photos", _exchange!.images),
-                        ],
-                        SizedBox(height: 40.h),
-                      ],
-                    ),
-                  ),
+          ? _buildNotFound()
+          : RefreshIndicator(
+              onRefresh: _loadExchange,
+              color: AppColor.primaryColor,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.all(16.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildStatusTimeline(),
+                    SizedBox(height: 16.h),
+                    _buildInfoCard(),
+                    SizedBox(height: 16.h),
+                    if (_exchange!.courierPaidBy != null) _buildCourierCard(),
+                    if (_exchange!.isAccepted) ...[
+                      SizedBox(height: 16.h),
+                      _buildReturnProofSection(),
+                    ],
+                    if (_exchange!.isReturnShipped ||
+                        _exchange!.isReturnReceived ||
+                        _exchange!.isInspecting ||
+                        _exchange!.isApprovedInspection) ...[
+                      SizedBox(height: 16.h),
+                      _buildReturnTrackingCard(),
+                    ],
+                    if (_exchange!.isReplacementShipped) ...[
+                      SizedBox(height: 16.h),
+                      _buildReplacementTrackingCard(),
+                    ],
+                    if (_exchange!.isRefunded || _exchange!.isCompleted) ...[
+                      SizedBox(height: 16.h),
+                      _buildCompletionCard(),
+                    ],
+                    if (_exchange!.isDisputed) ...[
+                      SizedBox(height: 16.h),
+                      _buildDisputeCard(),
+                    ],
+                    if (_exchange!.images.isNotEmpty) ...[
+                      SizedBox(height: 16.h),
+                      _buildImagesSection(
+                        "Your Product Photos",
+                        _exchange!.images,
+                      ),
+                    ],
+                    SizedBox(height: 40.h),
+                  ],
                 ),
+              ),
+            ),
     );
   }
 
@@ -134,8 +138,12 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
     ];
 
     final statusOrder = [
-      "Pending", "Accepted", "ReturnShipped", "ReturnReceived",
-      "Inspecting", "ApprovedInspection",
+      "Pending",
+      "Accepted",
+      "ReturnShipped",
+      "ReturnReceived",
+      "Inspecting",
+      "ApprovedInspection",
       if (_exchange!.resolutionType == "replacement")
         "ReplacementShipped"
       else
@@ -152,26 +160,31 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4)),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Progress",
-              style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87)),
+          Text(
+            "Progress",
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
           SizedBox(height: 16.h),
           ...steps.asMap().entries.map((entry) {
             final i = entry.key;
             final step = entry.value;
             final stepIndex = statusOrder.indexOf(step.status);
             final isDone = currentIndex >= stepIndex && stepIndex != -1;
-            final isCurrent = _exchange!.status == step.status ||
+            final isCurrent =
+                _exchange!.status == step.status ||
                 (_exchange!.status == "ApprovedInspection" &&
                     step.status == "Inspecting");
             final isLast = i == steps.length - 1;
@@ -191,7 +204,9 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
                         shape: BoxShape.circle,
                         border: isCurrent
                             ? Border.all(
-                                color: AppColor.primaryColor, width: 2.w)
+                                color: AppColor.primaryColor,
+                                width: 2.w,
+                              )
                             : null,
                       ),
                       child: Icon(
@@ -204,7 +219,9 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
                       Container(
                         width: 2.w,
                         height: 32.h,
-                        color: isDone ? AppColor.primaryColor : Colors.grey[200],
+                        color: isDone
+                            ? AppColor.primaryColor
+                            : Colors.grey[200],
                       ),
                   ],
                 ),
@@ -215,13 +232,14 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
                     step.label,
                     style: TextStyle(
                       fontSize: 14.sp,
-                      fontWeight:
-                          isCurrent ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isCurrent
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                       color: isCurrent
                           ? AppColor.primaryColor
                           : isDone
-                              ? Colors.black87
-                              : Colors.grey,
+                          ? Colors.black87
+                          : Colors.grey,
                     ),
                   ),
                 ),
@@ -246,8 +264,7 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
                   Expanded(
                     child: Text(
                       "Request Rejected${_exchange!.companyNote?.isNotEmpty == true ? ': ${_exchange!.companyNote}' : ''}",
-                      style: TextStyle(
-                          fontSize: 13.sp, color: Colors.red[700]),
+                      style: TextStyle(fontSize: 13.sp, color: Colors.red[700]),
                     ),
                   ),
                 ],
@@ -265,7 +282,10 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
       icon: Icons.info_outline,
       children: [
         _infoRow("Reason", _exchange!.reason ?? "N/A"),
-        _infoRow("Reason Type", _reasonCategoryLabel(_exchange!.reasonCategory)),
+        _infoRow(
+          "Reason Type",
+          _reasonCategoryLabel(_exchange!.reasonCategory),
+        ),
         if (_exchange!.resolutionType != null)
           _infoRow(
             "Resolution",
@@ -293,9 +313,11 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.local_shipping_outlined,
-              color: isBuyerPays ? Colors.orange[700] : Colors.green[700],
-              size: 22.sp),
+          Icon(
+            Icons.local_shipping_outlined,
+            color: isBuyerPays ? Colors.orange[700] : Colors.green[700],
+            size: 22.sp,
+          ),
           SizedBox(width: 12.w),
           Expanded(
             child: Column(
@@ -306,9 +328,7 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
                   style: TextStyle(
                     fontSize: 13.sp,
                     fontWeight: FontWeight.bold,
-                    color: isBuyerPays
-                        ? Colors.orange[800]
-                        : Colors.green[800],
+                    color: isBuyerPays ? Colors.orange[800] : Colors.green[800],
                   ),
                 ),
                 SizedBox(height: 4.h),
@@ -316,9 +336,7 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
                   _exchange!.courierCostLabel,
                   style: TextStyle(
                     fontSize: 12.sp,
-                    color: isBuyerPays
-                        ? Colors.orange[700]
-                        : Colors.green[700],
+                    color: isBuyerPays ? Colors.orange[700] : Colors.green[700],
                   ),
                 ),
               ],
@@ -331,9 +349,107 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
 
   // ── Return Proof Section ──────────────────────────────────────
   Widget _buildReturnProofSection() {
-    return _ReturnProofWidget(
-      exchange: _exchange!,
-      onSuccess: _loadExchange,
+    final ex = _exchange!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Leopard pre-booked return label card ──────────────────
+        Container(
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            color: Colors.indigo[50],
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(color: Colors.indigo[200]!),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.local_shipping,
+                    color: Colors.indigo[700],
+                    size: 22.sp,
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    "📦 Return Booked via Leopards",
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.indigo[800],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10.h),
+              Text(
+                "A Leopards courier will collect the parcel from your address. Use the return label below.",
+                style: TextStyle(fontSize: 12.sp, color: Colors.indigo[600]),
+              ),
+              if (ex.returnTrackingNumber?.isNotEmpty == true) ...[
+                SizedBox(height: 10.h),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.confirmation_number_outlined,
+                      size: 14.sp,
+                      color: Colors.indigo[400],
+                    ),
+                    SizedBox(width: 6.w),
+                    Text(
+                      "Track #",
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      ex.returnTrackingNumber!,
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.indigo[800],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              if (ex.returnSlipLink?.isNotEmpty == true) ...[
+                SizedBox(height: 12.h),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final uri = Uri.parse(ex.returnSlipLink!);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(
+                          uri,
+                          mode: LaunchMode.externalApplication,
+                        );
+                      }
+                    },
+                    icon: Icon(Icons.download_rounded, size: 16.sp),
+                    label: const Text("Download Return Label"),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.indigo[700],
+                      side: BorderSide(color: Colors.indigo[400]!),
+                      padding: EdgeInsets.symmetric(vertical: 10.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        SizedBox(height: 12.h),
+        // ── Proof photos upload ─────────────────────────────────
+        _ReturnProofWidget(exchange: ex, onSuccess: _loadExchange),
+      ],
     );
   }
 
@@ -358,47 +474,47 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
   }
 
   // ── Replacement Tracking Card ─────────────────────────────────
- Widget _buildReplacementTrackingCard() {
-  return _buildCard(
-    title: "Replacement Shipping 🚀",
-    icon: Icons.replay_circle_filled_outlined,
-    iconColor: Colors.green,
-    children: [
-      if (_exchange!.replacementTrackingNumber?.isNotEmpty == true)
-        _infoRow("Tracking #", _exchange!.replacementTrackingNumber!),
-      if (_exchange!.replacementCourierName?.isNotEmpty == true)
-        _infoRow("Courier", _exchange!.replacementCourierName!),
-      if (_exchange!.replacementShippedAt != null)
-        _infoRow("Shipped At", _formatDate(_exchange!.replacementShippedAt)),
+  Widget _buildReplacementTrackingCard() {
+    return _buildCard(
+      title: "Replacement Shipping 🚀",
+      icon: Icons.replay_circle_filled_outlined,
+      iconColor: Colors.green,
+      children: [
+        if (_exchange!.replacementTrackingNumber?.isNotEmpty == true)
+          _infoRow("Tracking #", _exchange!.replacementTrackingNumber!),
+        if (_exchange!.replacementCourierName?.isNotEmpty == true)
+          _infoRow("Courier", _exchange!.replacementCourierName!),
+        if (_exchange!.replacementShippedAt != null)
+          _infoRow("Shipped At", _formatDate(_exchange!.replacementShippedAt)),
 
-      // ✅ Leopards replacement slip download
-      if (_exchange!.replacementSlipLink?.isNotEmpty == true) ...[
-        SizedBox(height: 12.h),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () async {
-              final uri = Uri.parse(_exchange!.replacementSlipLink!);
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-              }
-            },
-            icon: Icon(Icons.download_rounded, size: 16.sp),
-            label: const Text("Download Replacement Slip"),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.green,
-              side: const BorderSide(color: Colors.green),
-              padding: EdgeInsets.symmetric(vertical: 10.h),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.r),
+        // ✅ Leopards replacement slip download
+        if (_exchange!.replacementSlipLink?.isNotEmpty == true) ...[
+          SizedBox(height: 12.h),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                final uri = Uri.parse(_exchange!.replacementSlipLink!);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+              icon: Icon(Icons.download_rounded, size: 16.sp),
+              label: const Text("Download Replacement Slip"),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.green,
+                side: const BorderSide(color: Colors.green),
+                padding: EdgeInsets.symmetric(vertical: 10.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ],
-    ],
-  );
-}
+    );
+  }
 
   // ── Completion Card ───────────────────────────────────────────
   Widget _buildCompletionCard() {
@@ -429,8 +545,7 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
                     _exchange!.refundAmount! > 0)
                   Text(
                     "Rs ${_exchange!.refundAmount!.toStringAsFixed(0)} refunded to your wallet",
-                    style:
-                        TextStyle(fontSize: 13.sp, color: Colors.green[700]),
+                    style: TextStyle(fontSize: 13.sp, color: Colors.green[700]),
                   ),
               ],
             ),
@@ -476,8 +591,7 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
           SizedBox(height: 8.h),
           Text(
             "Admin will review and resolve within 48 hours.",
-            style: TextStyle(
-                fontSize: 12.sp, color: Colors.red[400]),
+            style: TextStyle(fontSize: 12.sp, color: Colors.red[400]),
           ),
         ],
       ),
@@ -505,12 +619,18 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
                 : Global.getImageUrl(images[i]);
             return ClipRRect(
               borderRadius: BorderRadius.circular(8.r),
-              child: Image.network(url, fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                        color: Colors.grey[200],
-                        child: Icon(Icons.broken_image,
-                            color: Colors.grey, size: 24.sp),
-                      )),
+              child: Image.network(
+                url,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: Colors.grey[200],
+                  child: Icon(
+                    Icons.broken_image,
+                    color: Colors.grey,
+                    size: 24.sp,
+                  ),
+                ),
+              ),
             );
           },
         ),
@@ -532,9 +652,10 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4)),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -542,14 +663,20 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
         children: [
           Row(
             children: [
-              Icon(icon,
-                  size: 20.sp, color: iconColor ?? AppColor.primaryColor),
+              Icon(
+                icon,
+                size: 20.sp,
+                color: iconColor ?? AppColor.primaryColor,
+              ),
               SizedBox(width: 8.w),
-              Text(title,
-                  style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87)),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
             ],
           ),
           Divider(height: 20.h, color: Colors.grey[100]),
@@ -567,18 +694,24 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
         children: [
           SizedBox(
             width: 110.w,
-            child: Text(label,
-                style: TextStyle(
-                    fontSize: 13.sp,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500)),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
           Expanded(
-            child: Text(value,
-                style: TextStyle(
-                    fontSize: 13.sp,
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w600)),
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: Colors.black87,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -592,9 +725,10 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
         children: [
           Icon(Icons.search_off, size: 64.w, color: Colors.grey[300]),
           SizedBox(height: 16.h),
-          Text("Request not found",
-              style:
-                  TextStyle(fontSize: 18.sp, color: Colors.grey[600])),
+          Text(
+            "Request not found",
+            style: TextStyle(fontSize: 18.sp, color: Colors.grey[600]),
+          ),
         ],
       ),
     );
@@ -612,11 +746,16 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
 
   String _reasonCategoryLabel(String? cat) {
     switch (cat) {
-      case "seller_fault": return "Wrong Item Received";
-      case "defective": return "Defective / Damaged";
-      case "buyer_preference": return "Changed My Mind";
-      case "size_color": return "Wrong Size / Color";
-      default: return cat ?? "N/A";
+      case "seller_fault":
+        return "Wrong Item Received";
+      case "defective":
+        return "Defective / Damaged";
+      case "buyer_preference":
+        return "Changed My Mind";
+      case "size_color":
+        return "Wrong Size / Color";
+      default:
+        return cat ?? "N/A";
     }
   }
 }
@@ -626,23 +765,18 @@ class _ReturnProofWidget extends StatefulWidget {
   final ExchangeRequest exchange;
   final VoidCallback onSuccess;
 
-  const _ReturnProofWidget(
-      {required this.exchange, required this.onSuccess});
+  const _ReturnProofWidget({required this.exchange, required this.onSuccess});
 
   @override
   State<_ReturnProofWidget> createState() => _ReturnProofWidgetState();
 }
 
 class _ReturnProofWidgetState extends State<_ReturnProofWidget> {
-  final _trackingCtrl = TextEditingController();
-  final _courierCtrl = TextEditingController();
   final _picker = ImagePicker();
   List<XFile> _images = [];
 
   @override
   void dispose() {
-    _trackingCtrl.dispose();
-    _courierCtrl.dispose();
     super.dispose();
   }
 
@@ -669,27 +803,23 @@ class _ReturnProofWidgetState extends State<_ReturnProofWidget> {
   }
 
   Future<void> _submit() async {
-    if (_trackingCtrl.text.trim().isEmpty) {
-      PremiumToast.error(context, "Please enter tracking number");
-      return;
-    }
-
     final buyerId = await LocalStorage.getUserId() ?? "";
     if (buyerId.isEmpty) return;
 
     final images = await _toBase64();
     final ok = await context.read<ExchangeProvider>().uploadReturnProof(
-          exchangeId: widget.exchange.id ?? "",
-          buyerId: buyerId,
-          trackingNumber: _trackingCtrl.text.trim(),
-          courierName: _courierCtrl.text.trim(),
-          proofImages: images,
-        );
+      exchangeId: widget.exchange.id ?? "",
+      buyerId: buyerId,
+      // Tracking number already auto-set by Leopards on acceptance
+      trackingNumber: widget.exchange.returnTrackingNumber ?? "Leopards",
+      courierName: widget.exchange.returnCourierName ?? "Leopards",
+      proofImages: images,
+    );
 
     if (!mounted) return;
 
     if (ok) {
-      PremiumToast.success(context, "Return proof uploaded!");
+      PremiumToast.success(context, "Parcel photos uploaded!");
       widget.onSuccess();
     } else {
       final err =
@@ -700,8 +830,9 @@ class _ReturnProofWidgetState extends State<_ReturnProofWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final uploading =
-        context.select<ExchangeProvider, bool>((p) => p.uploadingProof);
+    final uploading = context.select<ExchangeProvider, bool>(
+      (p) => p.uploadingProof,
+    );
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -715,10 +846,14 @@ class _ReturnProofWidgetState extends State<_ReturnProofWidget> {
         children: [
           Row(
             children: [
-              Icon(Icons.local_shipping, color: Colors.blue[700], size: 22.sp),
+              Icon(
+                Icons.photo_camera_outlined,
+                color: Colors.blue[700],
+                size: 22.sp,
+              ),
               SizedBox(width: 8.w),
               Text(
-                "Upload Return Proof",
+                "Attach Proof Photos",
                 style: TextStyle(
                   fontSize: 15.sp,
                   fontWeight: FontWeight.bold,
@@ -727,61 +862,20 @@ class _ReturnProofWidgetState extends State<_ReturnProofWidget> {
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 8.h),
           Text(
-            "Ship the product and enter the tracking details below.",
-            style: TextStyle(fontSize: 13.sp, color: Colors.blue[700]),
+            "Take photos of the packed parcel before handing it to the Leopards courier.",
+            style: TextStyle(fontSize: 12.sp, color: Colors.blue[600]),
           ),
-          if (widget.exchange.courierPaidBy == "seller") ...[
-            SizedBox(height: 6.h),
-            Text(
-              "💡 Seller will cover return courier cost.",
-              style: TextStyle(
-                  fontSize: 12.sp,
-                  color: Colors.green[700],
-                  fontWeight: FontWeight.w500),
-            ),
-          ],
           SizedBox(height: 16.h),
-          TextField(
-            controller: _trackingCtrl,
-            enabled: !uploading,
-            decoration: InputDecoration(
-              labelText: "Tracking Number *",
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(10.r)),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.r),
-                borderSide: BorderSide(color: Colors.blue[700]!),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-            ),
-          ),
-          SizedBox(height: 10.h),
-          TextField(
-            controller: _courierCtrl,
-            enabled: !uploading,
-            decoration: InputDecoration(
-              labelText: "Courier Name (e.g. TCS, Leopards)",
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(10.r)),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.r),
-                borderSide: BorderSide(color: Colors.blue[700]!),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-            ),
-          ),
-          SizedBox(height: 12.h),
 
-          // Image picker
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Parcel Photos (${_images.length}/5)",
-                  style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600)),
+              Text(
+                "Parcel Photos (${_images.length}/5)",
+                style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600),
+              ),
               TextButton.icon(
                 onPressed: uploading ? null : _pickImages,
                 icon: Icon(Icons.add_photo_alternate, size: 18.sp),
@@ -803,10 +897,12 @@ class _ReturnProofWidgetState extends State<_ReturnProofWidget> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8.r),
-                    child: Image.file(File(_images[i].path),
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.cover),
+                    child: Image.file(
+                      File(_images[i].path),
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                   Positioned(
                     top: 4,
@@ -814,16 +910,18 @@ class _ReturnProofWidgetState extends State<_ReturnProofWidget> {
                     child: GestureDetector(
                       onTap: uploading
                           ? null
-                          : () => setState(
-                              () => _images.removeAt(i)),
+                          : () => setState(() => _images.removeAt(i)),
                       child: Container(
                         padding: EdgeInsets.all(4.w),
                         decoration: BoxDecoration(
                           color: Colors.black54,
                           borderRadius: BorderRadius.circular(20.r),
                         ),
-                        child: Icon(Icons.close,
-                            size: 14.sp, color: Colors.white),
+                        child: Icon(
+                          Icons.close,
+                          size: 14.sp,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -841,13 +939,18 @@ class _ReturnProofWidgetState extends State<_ReturnProofWidget> {
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(vertical: 14.h),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r)),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
               ),
               child: uploading
                   ? Utils.loadingLottie(size: 24)
-                  : Text("Submit Return Proof",
+                  : Text(
+                      "Submit Return Proof",
                       style: TextStyle(
-                          fontSize: 15.sp, fontWeight: FontWeight.bold)),
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
           ),
         ],

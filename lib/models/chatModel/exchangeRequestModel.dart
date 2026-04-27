@@ -92,10 +92,13 @@ class ExchangeRequest {
   final String? replacementTrackingNumber;
   final String? replacementCourierName;
   final String? replacementShippedAt;
-  final String? replacementSlipLink; // ✅ NEW — Leopards slip
+  final String? replacementSlipLink; // ✅ Leopard replacement slip
+  final String? returnSlipLink; // ✅ Leopard return label for buyer
 
   // Refund
   final double? refundAmount;
+  final double? netRefundAmount; // ✅ refund after courier deduction
+
   final String? refundedAt;
 
   // PDF
@@ -133,8 +136,12 @@ class ExchangeRequest {
     this.replacementTrackingNumber,
     this.replacementCourierName,
     this.replacementShippedAt,
-    this.replacementSlipLink, // ✅
+    this.replacementSlipLink,
+    this.returnSlipLink,
+
     this.refundAmount,
+    this.netRefundAmount,
+
     this.refundedAt,
     this.pdfPath,
     this.companyNote,
@@ -170,8 +177,12 @@ class ExchangeRequest {
       replacementTrackingNumber: json["replacementTrackingNumber"]?.toString(),
       replacementCourierName: json["replacementCourierName"]?.toString(),
       replacementShippedAt: json["replacementShippedAt"]?.toString(),
-      replacementSlipLink: json["replacementSlipLink"]?.toString(), // ✅
+      replacementSlipLink: json["replacementSlipLink"]?.toString(),
+      returnSlipLink: json["returnSlipLink"]?.toString(), // ✅
+
       refundAmount: (json["refundAmount"] as num?)?.toDouble(),
+      netRefundAmount: (json["netRefundAmount"] as num?)?.toDouble(), // ✅
+
       refundedAt: json["refundedAt"]?.toString(),
       pdfPath: json["pdfPath"]?.toString(),
       companyNote: json["companyNote"]?.toString(),
@@ -204,38 +215,60 @@ class ExchangeRequest {
 
   String get courierCostLabel {
     switch (courierPaidBy) {
-      case "seller": return "Courier cost: Seller's responsibility";
-      case "buyer": return "Return courier cost: Your responsibility";
-      case "platform": return "Courier cost: Platform will handle";
-      default: return "";
+      case "seller":
+        return "Courier cost: Seller's responsibility";
+      case "buyer":
+        return "Return courier cost: Your responsibility";
+      case "platform":
+        return "Courier cost: Platform will handle";
+      default:
+        return "";
     }
   }
 
   String get statusLabel {
     switch (status) {
-      case "Pending": return "Pending Review";
-      case "Accepted": return "Accepted — Ship Product";
-      case "Denied": return "Rejected";
-      case "ReturnShipped": return "Return In Transit";
-      case "ReturnReceived": return "Parcel Received";
-      case "Inspecting": return "Under Inspection";
-      case "ApprovedInspection": return "Inspection Passed";
-      case "Disputed": return "Disputed";
-      case "ReplacementShipped": return "Replacement Shipped";
-      case "Refunded": return "Refund Processed";
-      case "Completed": return "Completed";
-      default: return status ?? "Unknown";
+      case "Pending":
+        return "Pending Review";
+      case "Accepted":
+        return "Accepted — Ship Product";
+      case "Denied":
+        return "Rejected";
+      case "ReturnShipped":
+        return "Return In Transit";
+      case "ReturnReceived":
+        return "Parcel Received";
+      case "Inspecting":
+        return "Under Inspection";
+      case "ApprovedInspection":
+        return "Inspection Passed";
+      case "Disputed":
+        return "Disputed";
+      case "ReplacementShipped":
+        return "Replacement Shipped";
+      case "Refunded":
+        return "Refund Processed";
+      case "Completed":
+        return "Completed";
+      default:
+        return status ?? "Unknown";
     }
   }
 
   String get reasonCategoryLabel {
     switch (reasonCategory) {
-      case "seller_fault": return "Wrong Item Received";
-      case "defective": return "Defective / Damaged";
-      case "size_color": return "Wrong Size / Color";
-      case "size_issue": return "Size Issue";
-      case "buyer_preference": return "Changed My Mind";
-      default: return reasonCategory ?? "N/A";
+      case "seller_fault":
+        return "Wrong Item Received";
+      case "defective":
+        return "Defective / Damaged";
+      case "size_color":
+        return "Wrong Size / Color";
+      case "size_issue":
+        return "Size Issue";
+      case "buyer_preference":
+        return "Changed My Mind";
+      default:
+        return reasonCategory ?? "N/A";
     }
   }
 }

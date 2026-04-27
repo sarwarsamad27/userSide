@@ -12,6 +12,7 @@ import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/resources/premium_toast.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/exchange_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class RefundDetailScreen extends StatefulWidget {
   final String refundId;
@@ -40,7 +41,8 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
     }
     await context.read<ExchangeProvider>().fetchMyRefunds(buyerId);
     if (!mounted) return;
-    final list = context.read<ExchangeProvider>().refundListModel?.requests ?? [];
+    final list =
+        context.read<ExchangeProvider>().refundListModel?.requests ?? [];
     final found = list.where((r) => r.id == widget.refundId).firstOrNull;
     setState(() {
       _refund = found;
@@ -56,71 +58,78 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
         backgroundColor: AppColor.primaryColor,
         foregroundColor: Colors.white,
         centerTitle: true,
-        title: Text("Refund Details",
-            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
+        title: Text(
+          "Refund Details",
+          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+        ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColor.primaryColor))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColor.primaryColor),
+            )
           : _refund == null
-              ? _buildNotFound()
-              : RefreshIndicator(
-                  onRefresh: _loadRefund,
-                  color: AppColor.primaryColor,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: EdgeInsets.all(16.w),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStatusTimeline(),
-                        SizedBox(height: 16.h),
-                        _buildInfoCard(),
-                        SizedBox(height: 16.h),
+          ? _buildNotFound()
+          : RefreshIndicator(
+              onRefresh: _loadRefund,
+              color: AppColor.primaryColor,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.all(16.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildStatusTimeline(),
+                    SizedBox(height: 16.h),
+                    _buildInfoCard(),
+                    SizedBox(height: 16.h),
 
-                        // ✅ Return proof — sirf Accepted pe
-                        if (_refund!.isAccepted) ...[
-                          _buildReturnProofSection(),
-                          SizedBox(height: 16.h),
-                        ],
+                    // ✅ Return proof — sirf Accepted pe
+                    if (_refund!.isAccepted) ...[
+                      _buildReturnProofSection(),
+                      SizedBox(height: 16.h),
+                    ],
 
-                        // ✅ Return tracking
-                        if (_refund!.isReturnShipped ||
-                            _refund!.isReturnReceived ||
-                            _refund!.isInspecting ||
-                            _refund!.isApprovedInspection) ...[
-                          _buildReturnTrackingCard(),
-                          SizedBox(height: 16.h),
-                        ],
+                    // ✅ Return tracking
+                    if (_refund!.isReturnShipped ||
+                        _refund!.isReturnReceived ||
+                        _refund!.isInspecting ||
+                        _refund!.isApprovedInspection) ...[
+                      _buildReturnTrackingCard(),
+                      SizedBox(height: 16.h),
+                    ],
 
-                        // ✅ Refund complete
-                        if (_refund!.isRefunded || _refund!.isCompleted) ...[
-                          _buildRefundCompleteCard(),
-                          SizedBox(height: 16.h),
-                        ],
+                    // ✅ Refund complete
+                    if (_refund!.isRefunded || _refund!.isCompleted) ...[
+                      _buildRefundCompleteCard(),
+                      SizedBox(height: 16.h),
+                    ],
 
-                        // ✅ Dispute
-                        if (_refund!.isDisputed) ...[
-                          _buildDisputeCard(),
-                          SizedBox(height: 16.h),
-                        ],
+                    // ✅ Dispute
+                    if (_refund!.isDisputed) ...[
+                      _buildDisputeCard(),
+                      SizedBox(height: 16.h),
+                    ],
 
-                        // ✅ Rejected
-                        if (_refund!.isDenied) ...[
-                          _buildRejectedCard(),
-                          SizedBox(height: 16.h),
-                        ],
+                    // ✅ Rejected
+                    if (_refund!.isDenied) ...[
+                      _buildRejectedCard(),
+                      SizedBox(height: 16.h),
+                    ],
 
-                        // ✅ Images
-                        if (_refund!.images.isNotEmpty) ...[
-                          _buildImagesSection("Your Product Photos", _refund!.images),
-                          SizedBox(height: 16.h),
-                        ],
+                    // ✅ Images
+                    if (_refund!.images.isNotEmpty) ...[
+                      _buildImagesSection(
+                        "Your Product Photos",
+                        _refund!.images,
+                      ),
+                      SizedBox(height: 16.h),
+                    ],
 
-                        SizedBox(height: 40.h),
-                      ],
-                    ),
-                  ),
+                    SizedBox(height: 40.h),
+                  ],
                 ),
+              ),
+            ),
     );
   }
 
@@ -137,8 +146,14 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
     ];
 
     final statusOrder = [
-      "Pending", "Accepted", "ReturnShipped", "ReturnReceived",
-      "Inspecting", "ApprovedInspection", "Refunded", "Completed",
+      "Pending",
+      "Accepted",
+      "ReturnShipped",
+      "ReturnReceived",
+      "Inspecting",
+      "ApprovedInspection",
+      "Refunded",
+      "Completed",
     ];
 
     final currentIndex = statusOrder.indexOf(_refund!.status ?? "");
@@ -149,19 +164,25 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [BoxShadow(
+        boxShadow: [
+          BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: const Offset(0, 4))],
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Refund Progress",
-              style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87)),
+          Text(
+            "Refund Progress",
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
           SizedBox(height: 16.h),
 
           if (isDenied)
@@ -193,7 +214,8 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
                   final step = steps[i];
                   final stepIndex = statusOrder.indexOf(step.status);
                   final isDone = currentIndex >= stepIndex && stepIndex != -1;
-                  final isCurrent = _refund!.status == step.status ||
+                  final isCurrent =
+                      _refund!.status == step.status ||
                       (_refund!.status == "ApprovedInspection" &&
                           step.status == "Inspecting");
                   final isLast = i == steps.length - 1;
@@ -211,14 +233,19 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
                               color: isDone ? Colors.blue : Colors.grey[200],
                               shape: BoxShape.circle,
                               boxShadow: isCurrent
-                                  ? [BoxShadow(
-                                      color: Colors.blue.withOpacity(0.4),
-                                      blurRadius: 8)]
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.blue.withOpacity(0.4),
+                                        blurRadius: 8,
+                                      ),
+                                    ]
                                   : null,
                             ),
-                            child: Icon(step.icon,
-                                size: isCurrent ? 17.sp : 14.sp,
-                                color: isDone ? Colors.white : Colors.grey[400]),
+                            child: Icon(
+                              step.icon,
+                              size: isCurrent ? 17.sp : 14.sp,
+                              color: isDone ? Colors.white : Colors.grey[400],
+                            ),
                           ),
                           SizedBox(height: 5.h),
                           SizedBox(
@@ -267,13 +294,18 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
         _infoRow("Reason", _refund!.reason ?? "N/A"),
         _infoRow("Category", _reasonLabel(_refund!.reasonCategory)),
         if (_refund!.resolutionType != null)
-          _infoRow("Resolution",
-              _refund!.resolutionType == "refund" ? "Wallet Refund" : "Replacement"),
+          _infoRow(
+            "Resolution",
+            _refund!.resolutionType == "refund"
+                ? "Wallet Refund"
+                : "Replacement",
+          ),
         if (_refund!.refundAmount != null && _refund!.refundAmount! > 0)
           _infoRow(
-              "Refund Amount",
-              "Rs ${_refund!.refundAmount!.toStringAsFixed(0)}",
-              valueColor: Colors.green),
+            "Refund Amount",
+            "Rs ${_refund!.refundAmount!.toStringAsFixed(0)}",
+            valueColor: Colors.green,
+          ),
         if (_refund!.companyNote?.isNotEmpty == true)
           _infoRow("Seller Note", _refund!.companyNote!),
       ],
@@ -282,9 +314,108 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
 
   // ── Return Proof Section ──────────────────────────────────────
   Widget _buildReturnProofSection() {
-    return _RefundReturnProofWidget(
-      refund: _refund!,
-      onSuccess: _loadRefund,
+    final refund = _refund!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Leopard pre-booked return label card ──────────────────
+        Container(
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            color: Colors.indigo[50],
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(color: Colors.indigo[200]!),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.local_shipping,
+                    color: Colors.indigo[700],
+                    size: 22.sp,
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    "📦 Return Booked via Leopards",
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.indigo[800],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10.h),
+              Text(
+                "A Leopards courier will collect the parcel from your address. Use the return label below.",
+                style: TextStyle(fontSize: 12.sp, color: Colors.indigo[600]),
+              ),
+              if (refund.returnTrackingNumber?.isNotEmpty == true) ...[
+                SizedBox(height: 10.h),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.confirmation_number_outlined,
+                      size: 14.sp,
+                      color: Colors.indigo[400],
+                    ),
+                    SizedBox(width: 6.w),
+                    Text(
+                      "Track #",
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      refund.returnTrackingNumber!,
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.indigo[800],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              if (refund.returnSlipLink?.isNotEmpty == true) ...[
+                SizedBox(height: 12.h),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final uri = Uri.parse(refund.returnSlipLink!);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(
+                          uri,
+                          mode: LaunchMode.externalApplication,
+                        );
+                      }
+                    },
+                    icon: Icon(Icons.download_rounded, size: 16.sp),
+                    label: const Text("Download Return Label"),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.indigo[700],
+                      side: BorderSide(color: Colors.indigo[400]!),
+                      padding: EdgeInsets.symmetric(vertical: 10.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        SizedBox(height: 12.h),
+
+        // ── Proof photos upload ─────────────────────────────────
+        _RefundReturnProofWidget(refund: refund, onSuccess: _loadRefund),
+      ],
     );
   }
 
@@ -323,11 +454,14 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Refund Processed! 🎉",
-                    style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green[800])),
+                Text(
+                  "Refund Processed! 🎉",
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green[800],
+                  ),
+                ),
                 if (_refund!.refundAmount != null &&
                     _refund!.refundAmount! > 0) ...[
                   SizedBox(height: 4.h),
@@ -360,21 +494,28 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
             children: [
               Icon(Icons.warning_amber, color: Colors.red[700], size: 24.sp),
               SizedBox(width: 8.w),
-              Text("Inspection Disputed",
-                  style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red[800])),
+              Text(
+                "Inspection Disputed",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red[800],
+                ),
+              ),
             ],
           ),
           if (_refund!.disputeNote?.isNotEmpty == true) ...[
             SizedBox(height: 8.h),
-            Text(_refund!.disputeNote!,
-                style: TextStyle(fontSize: 13.sp, color: Colors.red[700])),
+            Text(
+              _refund!.disputeNote!,
+              style: TextStyle(fontSize: 13.sp, color: Colors.red[700]),
+            ),
           ],
           SizedBox(height: 8.h),
-          Text("Admin will review and resolve within 48 hours.",
-              style: TextStyle(fontSize: 12.sp, color: Colors.red[400])),
+          Text(
+            "Admin will review and resolve within 48 hours.",
+            style: TextStyle(fontSize: 12.sp, color: Colors.red[400]),
+          ),
         ],
       ),
     );
@@ -397,15 +538,20 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Refund Rejected",
-                    style: TextStyle(
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red[800])),
+                Text(
+                  "Refund Rejected",
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red[800],
+                  ),
+                ),
                 if (_refund!.companyNote?.isNotEmpty == true) ...[
                   SizedBox(height: 4.h),
-                  Text(_refund!.companyNote!,
-                      style: TextStyle(fontSize: 13.sp, color: Colors.red[700])),
+                  Text(
+                    _refund!.companyNote!,
+                    style: TextStyle(fontSize: 13.sp, color: Colors.red[700]),
+                  ),
                 ],
               ],
             ),
@@ -436,11 +582,18 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
                 : Global.getImageUrl(images[i]);
             return ClipRRect(
               borderRadius: BorderRadius.circular(8.r),
-              child: Image.network(url, fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                      color: Colors.grey[200],
-                      child: Icon(Icons.broken_image,
-                          color: Colors.grey, size: 24.sp))),
+              child: Image.network(
+                url,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: Colors.grey[200],
+                  child: Icon(
+                    Icons.broken_image,
+                    color: Colors.grey,
+                    size: 24.sp,
+                  ),
+                ),
+              ),
             );
           },
         ),
@@ -459,10 +612,13 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [BoxShadow(
+        boxShadow: [
+          BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: const Offset(0, 4))],
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -471,11 +627,14 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
             children: [
               Icon(icon, size: 20.sp, color: AppColor.primaryColor),
               SizedBox(width: 8.w),
-              Text(title,
-                  style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87)),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
             ],
           ),
           Divider(height: 20.h, color: Colors.grey[100]),
@@ -493,18 +652,24 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
         children: [
           SizedBox(
             width: 110.w,
-            child: Text(label,
-                style: TextStyle(
-                    fontSize: 13.sp,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500)),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
           Expanded(
-            child: Text(value,
-                style: TextStyle(
-                    fontSize: 13.sp,
-                    color: valueColor ?? Colors.black87,
-                    fontWeight: FontWeight.w600)),
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: valueColor ?? Colors.black87,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -518,8 +683,10 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
         children: [
           Icon(Icons.search_off, size: 64.w, color: Colors.grey[300]),
           SizedBox(height: 16.h),
-          Text("Refund request not found",
-              style: TextStyle(fontSize: 18.sp, color: Colors.grey[600])),
+          Text(
+            "Refund request not found",
+            style: TextStyle(fontSize: 18.sp, color: Colors.grey[600]),
+          ),
         ],
       ),
     );
@@ -537,13 +704,20 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
 
   String _reasonLabel(String? cat) {
     switch (cat) {
-      case "seller_fault": return "Wrong Item Received";
-      case "defective": return "Defective / Damaged";
-      case "buyer_preference": return "Changed My Mind";
-      case "size_color": return "Wrong Size / Color";
-      case "size_issue": return "Size Issue";
-      case "wrong_item": return "Different Product";
-      default: return cat ?? "N/A";
+      case "seller_fault":
+        return "Wrong Item Received";
+      case "defective":
+        return "Defective / Damaged";
+      case "buyer_preference":
+        return "Changed My Mind";
+      case "size_color":
+        return "Wrong Size / Color";
+      case "size_issue":
+        return "Size Issue";
+      case "wrong_item":
+        return "Different Product";
+      default:
+        return cat ?? "N/A";
     }
   }
 }
@@ -566,15 +740,11 @@ class _RefundReturnProofWidget extends StatefulWidget {
 }
 
 class _RefundReturnProofWidgetState extends State<_RefundReturnProofWidget> {
-  final _trackingCtrl = TextEditingController();
-  final _courierCtrl = TextEditingController();
   final _picker = ImagePicker();
   List<XFile> _images = [];
 
   @override
   void dispose() {
-    _trackingCtrl.dispose();
-    _courierCtrl.dispose();
     super.dispose();
   }
 
@@ -599,27 +769,23 @@ class _RefundReturnProofWidgetState extends State<_RefundReturnProofWidget> {
   }
 
   Future<void> _submit() async {
-    if (_trackingCtrl.text.trim().isEmpty) {
-      PremiumToast.error(context, "Please enter tracking number");
-      return;
-    }
-
     final buyerId = await LocalStorage.getUserId() ?? "";
     if (buyerId.isEmpty) return;
 
     final images = await _toBase64();
     final ok = await context.read<ExchangeProvider>().uploadRefundReturnProof(
-          refundId: widget.refund.id ?? "",
-          buyerId: buyerId,
-          trackingNumber: _trackingCtrl.text.trim(),
-          courierName: _courierCtrl.text.trim(),
-          proofImages: images,
-        );
+      refundId: widget.refund.id ?? "",
+      buyerId: buyerId,
+      // Tracking auto-set on acceptance
+      trackingNumber: widget.refund.returnTrackingNumber ?? "Leopards",
+      courierName: widget.refund.returnCourierName ?? "Leopards",
+      proofImages: images,
+    );
 
     if (!mounted) return;
 
     if (ok) {
-      PremiumToast.success(context, "Return proof uploaded! ✅");
+      PremiumToast.success(context, "Parcel photos uploaded! ✅");
       widget.onSuccess();
     } else {
       final err =
@@ -630,8 +796,9 @@ class _RefundReturnProofWidgetState extends State<_RefundReturnProofWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final uploading =
-        context.select<ExchangeProvider, bool>((p) => p.uploadingProof);
+    final uploading = context.select<ExchangeProvider, bool>(
+      (p) => p.uploadingProof,
+    );
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -645,51 +812,36 @@ class _RefundReturnProofWidgetState extends State<_RefundReturnProofWidget> {
         children: [
           Row(
             children: [
-              Icon(Icons.local_shipping, color: Colors.blue[700], size: 22.sp),
+              Icon(
+                Icons.photo_camera_outlined,
+                color: Colors.blue[700],
+                size: 22.sp,
+              ),
               SizedBox(width: 8.w),
-              Text("Upload Return Proof",
-                  style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue[800])),
+              Text(
+                "Attach Proof Photos",
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[800],
+                ),
+              ),
             ],
           ),
           SizedBox(height: 8.h),
-          Text("Ship the product back and enter tracking details.",
-              style: TextStyle(fontSize: 13.sp, color: Colors.blue[700])),
+          Text(
+            "Take photos of the packed parcel before handing it to the Leopards courier.",
+            style: TextStyle(fontSize: 12.sp, color: Colors.blue[600]),
+          ),
           SizedBox(height: 16.h),
-
-          TextField(
-            controller: _trackingCtrl,
-            enabled: !uploading,
-            decoration: InputDecoration(
-              labelText: "Tracking Number *",
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r)),
-              filled: true,
-              fillColor: Colors.white,
-            ),
-          ),
-          SizedBox(height: 10.h),
-          TextField(
-            controller: _courierCtrl,
-            enabled: !uploading,
-            decoration: InputDecoration(
-              labelText: "Courier Name (e.g. TCS, Leopards)",
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r)),
-              filled: true,
-              fillColor: Colors.white,
-            ),
-          ),
-          SizedBox(height: 12.h),
 
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Parcel Photos (${_images.length}/5)",
-                  style: TextStyle(
-                      fontSize: 13.sp, fontWeight: FontWeight.w600)),
+              Text(
+                "Parcel Photos (${_images.length}/5)",
+                style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600),
+              ),
               TextButton.icon(
                 onPressed: uploading ? null : _pickImages,
                 icon: Icon(Icons.add_photo_alternate, size: 18.sp),
@@ -719,7 +871,8 @@ class _RefundReturnProofWidgetState extends State<_RefundReturnProofWidget> {
                     ),
                   ),
                   Positioned(
-                    top: 4, right: 4,
+                    top: 4,
+                    right: 4,
                     child: GestureDetector(
                       onTap: uploading
                           ? null
@@ -730,8 +883,11 @@ class _RefundReturnProofWidgetState extends State<_RefundReturnProofWidget> {
                           color: Colors.black54,
                           borderRadius: BorderRadius.circular(20.r),
                         ),
-                        child: Icon(Icons.close,
-                            size: 14.sp, color: Colors.white),
+                        child: Icon(
+                          Icons.close,
+                          size: 14.sp,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -749,13 +905,18 @@ class _RefundReturnProofWidgetState extends State<_RefundReturnProofWidget> {
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(vertical: 14.h),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r)),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
               ),
               child: uploading
                   ? Utils.loadingLottie(size: 24)
-                  : Text("Submit Return Proof",
+                  : Text(
+                      "Submit Return Proof",
                       style: TextStyle(
-                          fontSize: 15.sp, fontWeight: FontWeight.bold)),
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
           ),
         ],

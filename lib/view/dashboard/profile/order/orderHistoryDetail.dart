@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:user_side/models/order/myOrderModel.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
@@ -29,7 +28,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   void initState() {
     super.initState();
     _order = widget.order;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshExchangeStatus());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _refreshExchangeStatus(),
+    );
   }
 
   Future<void> _refreshExchangeStatus() async {
@@ -39,10 +40,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     await context.read<ExchangeProvider>().fetchMyRefunds(buyerId);
     if (!mounted) return;
 
-    final exchanges = context.read<ExchangeProvider>().listModel?.requests ?? [];
-    final refunds = context.read<ExchangeProvider>().refundListModel?.requests ?? [];
+    final exchanges =
+        context.read<ExchangeProvider>().listModel?.requests ?? [];
+    final refunds =
+        context.read<ExchangeProvider>().refundListModel?.requests ?? [];
 
-    final myExchange = exchanges.where((e) => e.orderId == _order.id).firstOrNull;
+    final myExchange = exchanges
+        .where((e) => e.orderId == _order.id)
+        .firstOrNull;
     final myRefund = refunds.where((r) => r.orderId == _order.id).firstOrNull;
 
     if (myExchange != null || myRefund != null) {
@@ -71,7 +76,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   resolutionType: myExchange.resolutionType,
                   courierPaidBy: myExchange.courierPaidBy,
                   returnTrackingNumber: myExchange.returnTrackingNumber,
-                  replacementTrackingNumber: myExchange.replacementTrackingNumber,
+                  replacementTrackingNumber:
+                      myExchange.replacementTrackingNumber,
                   replacementSlipLink: myExchange.replacementSlipLink,
                   refundAmount: myExchange.refundAmount,
                   pdfPath: myExchange.pdfPath,
@@ -129,8 +135,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         foregroundColor: Colors.white,
         centerTitle: true,
         elevation: 0,
-        title: Text("Order Details",
-            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700, color: Colors.white)),
+        title: Text(
+          "Order Details",
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
       ),
       body: RefreshIndicator(
         color: AppColor.primaryColor,
@@ -170,10 +182,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               icon: Icons.storefront_rounded,
               iconColor: Colors.purple,
               children: [
-                _infoRow(Icons.badge_outlined, "Brand", _order.seller?.name ?? 'N/A'),
-                _infoRow(Icons.email_outlined, "Email", _order.seller?.email ?? 'N/A'),
-                _infoRow(Icons.phone_outlined, "Phone", _order.seller?.phone ?? 'N/A'),
-                _infoRow(Icons.location_on_outlined, "Address", _order.seller?.address ?? 'N/A'),
+                _infoRow(
+                  Icons.badge_outlined,
+                  "Brand",
+                  _order.seller?.name ?? 'N/A',
+                ),
+                _infoRow(
+                  Icons.email_outlined,
+                  "Email",
+                  _order.seller?.email ?? 'N/A',
+                ),
+                _infoRow(
+                  Icons.phone_outlined,
+                  "Phone",
+                  _order.seller?.phone ?? 'N/A',
+                ),
+                _infoRow(
+                  Icons.location_on_outlined,
+                  "Address",
+                  _order.seller?.address ?? 'N/A',
+                ),
               ],
             ),
             SizedBox(height: 14.h),
@@ -184,12 +212,33 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               icon: Icons.person_outline_rounded,
               iconColor: Colors.blue,
               children: [
-                _infoRow(Icons.person_outline, "Name", _order.buyerDetails?.name ?? 'N/A'),
-                _infoRow(Icons.email_outlined, "Email", _order.buyerDetails?.email ?? 'N/A'),
-                _infoRow(Icons.phone_outlined, "Phone", _order.buyerDetails?.phone ?? 'N/A'),
-                _infoRow(Icons.location_on_outlined, "Address", _order.buyerDetails?.address ?? 'N/A'),
-                _infoRow(Icons.calendar_today_outlined, "Date",
-                    _order.createdAt != null ? formatDate(_order.createdAt!) : 'N/A'),
+                _infoRow(
+                  Icons.person_outline,
+                  "Name",
+                  _order.buyerDetails?.name ?? 'N/A',
+                ),
+                _infoRow(
+                  Icons.email_outlined,
+                  "Email",
+                  _order.buyerDetails?.email ?? 'N/A',
+                ),
+                _infoRow(
+                  Icons.phone_outlined,
+                  "Phone",
+                  _order.buyerDetails?.phone ?? 'N/A',
+                ),
+                _infoRow(
+                  Icons.location_on_outlined,
+                  "Address",
+                  _order.buyerDetails?.address ?? 'N/A',
+                ),
+                _infoRow(
+                  Icons.calendar_today_outlined,
+                  "Date",
+                  _order.createdAt != null
+                      ? formatDate(_order.createdAt!)
+                      : 'N/A',
+                ),
               ],
             ),
             SizedBox(height: 14.h),
@@ -217,17 +266,33 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.r),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.receipt_long_rounded, color: AppColor.primaryColor, size: 18.sp),
+              Icon(
+                Icons.receipt_long_rounded,
+                color: AppColor.primaryColor,
+                size: 18.sp,
+              ),
               SizedBox(width: 6.w),
-              Text("Order ID: ${_order.orderId ?? 'N/A'}",
-                  style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700, color: AppColor.primaryColor)),
+              Text(
+                "Order ID: ${_order.orderId ?? 'N/A'}",
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppColor.primaryColor,
+                ),
+              ),
             ],
           ),
           SizedBox(height: 14.h),
@@ -246,10 +311,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_orderStatusTitle(_order.status),
-                        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w800, color: statusColor)),
-                    Text(_orderStatusSubtitle(_order.status),
-                        style: TextStyle(fontSize: 12.sp, color: Colors.grey[500])),
+                    Text(
+                      _orderStatusTitle(_order.status),
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w800,
+                        color: statusColor,
+                      ),
+                    ),
+                    Text(
+                      _orderStatusSubtitle(_order.status),
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.grey[500],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -273,38 +349,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.local_shipping_rounded, color: Colors.indigo, size: 20.sp),
+              Icon(
+                Icons.local_shipping_rounded,
+                color: Colors.indigo,
+                size: 20.sp,
+              ),
               SizedBox(width: 8.w),
-              Text("Tracking Info",
-                  style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700, color: Colors.indigo)),
+              Text(
+                "Tracking Info",
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.indigo,
+                ),
+              ),
             ],
           ),
           SizedBox(height: 10.h),
           _infoRow(Icons.tag, "Track #", _order.trackNumber ?? "N/A"),
-
-          // ✅ Download slip button
-          if (_order.slipLink?.isNotEmpty == true) ...[
-            SizedBox(height: 10.h),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () async {
-                  final uri = Uri.parse(_order.slipLink!);
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  }
-                },
-                icon: Icon(Icons.download_rounded, size: 16.sp),
-                label: const Text("Download Shipping Slip"),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.indigo,
-                  side: const BorderSide(color: Colors.indigo),
-                  padding: EdgeInsets.symmetric(vertical: 10.h),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -318,7 +380,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(color: info.color.withOpacity(0.2)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -336,8 +404,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               children: [
                 Icon(Icons.swap_horiz_rounded, color: info.color, size: 20.sp),
                 SizedBox(width: 8.w),
-                Text("Exchange Request",
-                    style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w700, color: Colors.black87)),
+                Text(
+                  "Exchange Request",
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                  ),
+                ),
                 const Spacer(),
                 _statusChip(info.title, info.color, info.icon),
               ],
@@ -352,34 +426,62 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 SizedBox(height: 16.h),
 
                 if (exReq.reason?.isNotEmpty == true)
-                  _detailTile(Icons.description_outlined, "Reason", exReq.reason!, Colors.grey[700]!),
+                  _detailTile(
+                    Icons.description_outlined,
+                    "Reason",
+                    exReq.reason!,
+                    Colors.grey[700]!,
+                  ),
                 if (exReq.companyNote?.isNotEmpty == true)
-                  _detailTile(Icons.comment_outlined, "Seller Note", exReq.companyNote!, Colors.orange[700]!),
+                  _detailTile(
+                    Icons.comment_outlined,
+                    "Seller Note",
+                    exReq.companyNote!,
+                    Colors.orange[700]!,
+                  ),
                 if (exReq.resolutionType != null)
                   _detailTile(
                     exReq.resolutionType == "refund"
                         ? Icons.account_balance_wallet_outlined
                         : Icons.inventory_2_outlined,
                     "Resolution",
-                    exReq.resolutionType == "refund" ? "💳 Wallet Refund" : "📦 Replacement",
+                    exReq.resolutionType == "refund"
+                        ? "💳 Wallet Refund"
+                        : "📦 Replacement",
                     Colors.indigo,
                   ),
                 if (exReq.courierPaidBy != null)
                   _detailTile(
                     Icons.local_shipping_outlined,
                     "Courier Cost",
-                    exReq.courierPaidBy == "seller" ? "✅ Seller Pays" : "⚠️ You Pay Return",
-                    exReq.courierPaidBy == "buyer" ? Colors.orange[700]! : Colors.green[700]!,
+                    exReq.courierPaidBy == "seller"
+                        ? "✅ Seller Pays"
+                        : "⚠️ You Pay Return",
+                    exReq.courierPaidBy == "buyer"
+                        ? Colors.orange[700]!
+                        : Colors.green[700]!,
                   ),
                 if (exReq.returnTrackingNumber?.isNotEmpty == true)
-                  _detailTile(Icons.track_changes_outlined, "Return Tracking",
-                      exReq.returnTrackingNumber!, Colors.blue),
+                  _detailTile(
+                    Icons.track_changes_outlined,
+                    "Return Tracking",
+                    exReq.returnTrackingNumber!,
+                    Colors.blue,
+                  ),
                 if (exReq.replacementTrackingNumber?.isNotEmpty == true)
-                  _detailTile(Icons.local_shipping_rounded, "Replacement Tracking",
-                      exReq.replacementTrackingNumber!, Colors.green),
+                  _detailTile(
+                    Icons.local_shipping_rounded,
+                    "Replacement Tracking",
+                    exReq.replacementTrackingNumber!,
+                    Colors.green,
+                  ),
                 if (exReq.refundAmount != null && exReq.refundAmount! > 0)
-                  _detailTile(Icons.currency_rupee_rounded, "Refunded",
-                      "Rs ${exReq.refundAmount!.toStringAsFixed(0)} → Your Wallet ✅", Colors.green[700]!),
+                  _detailTile(
+                    Icons.currency_rupee_rounded,
+                    "Refunded",
+                    "Rs ${exReq.refundAmount!.toStringAsFixed(0)} → Your Wallet ✅",
+                    Colors.green[700]!,
+                  ),
 
                 // ✅ View Detail Button
                 SizedBox(height: 12.h),
@@ -389,7 +491,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ExchangeDetailScreen(exchangeId: exReq.id ?? ""),
+                        builder: (_) =>
+                            ExchangeDetailScreen(exchangeId: exReq.id ?? ""),
                       ),
                     ).then((_) => _refreshExchangeStatus()),
                     icon: Icon(Icons.arrow_forward_rounded, size: 16.sp),
@@ -398,7 +501,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       foregroundColor: AppColor.primaryColor,
                       side: BorderSide(color: AppColor.primaryColor),
                       padding: EdgeInsets.symmetric(vertical: 10.h),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
                     ),
                   ),
                 ),
@@ -418,7 +523,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(color: info.color.withOpacity(0.2)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -433,10 +544,20 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.assignment_return_rounded, color: info.color, size: 20.sp),
+                Icon(
+                  Icons.assignment_return_rounded,
+                  color: info.color,
+                  size: 20.sp,
+                ),
                 SizedBox(width: 8.w),
-                Text("Refund Request",
-                    style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w700, color: Colors.black87)),
+                Text(
+                  "Refund Request",
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                  ),
+                ),
                 const Spacer(),
                 _statusChip(info.title, info.color, info.icon),
               ],
@@ -451,15 +572,33 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 SizedBox(height: 16.h),
 
                 if (refReq.reason?.isNotEmpty == true)
-                  _detailTile(Icons.description_outlined, "Reason", refReq.reason!, Colors.grey[700]!),
+                  _detailTile(
+                    Icons.description_outlined,
+                    "Reason",
+                    refReq.reason!,
+                    Colors.grey[700]!,
+                  ),
                 if (refReq.companyNote?.isNotEmpty == true)
-                  _detailTile(Icons.comment_outlined, "Seller Note", refReq.companyNote!, Colors.orange[700]!),
+                  _detailTile(
+                    Icons.comment_outlined,
+                    "Seller Note",
+                    refReq.companyNote!,
+                    Colors.orange[700]!,
+                  ),
                 if (refReq.returnTrackingNumber?.isNotEmpty == true)
-                  _detailTile(Icons.track_changes_outlined, "Return Tracking",
-                      refReq.returnTrackingNumber!, Colors.blue),
+                  _detailTile(
+                    Icons.track_changes_outlined,
+                    "Return Tracking",
+                    refReq.returnTrackingNumber!,
+                    Colors.blue,
+                  ),
                 if (refReq.refundAmount != null && refReq.refundAmount! > 0)
-                  _detailTile(Icons.currency_rupee_rounded, "Refunded",
-                      "Rs ${refReq.refundAmount!.toStringAsFixed(0)} → Your Wallet ✅", Colors.green[700]!),
+                  _detailTile(
+                    Icons.currency_rupee_rounded,
+                    "Refunded",
+                    "Rs ${refReq.refundAmount!.toStringAsFixed(0)} → Your Wallet ✅",
+                    Colors.green[700]!,
+                  ),
 
                 // ✅ View Detail Button
                 SizedBox(height: 12.h),
@@ -469,7 +608,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => RefundDetailScreen(refundId: refReq.id ?? ""),
+                        builder: (_) =>
+                            RefundDetailScreen(refundId: refReq.id ?? ""),
                       ),
                     ).then((_) => _refreshExchangeStatus()),
                     icon: Icon(Icons.arrow_forward_rounded, size: 16.sp),
@@ -478,7 +618,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       foregroundColor: Colors.blue,
                       side: const BorderSide(color: Colors.blue),
                       padding: EdgeInsets.symmetric(vertical: 10.h),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
                     ),
                   ),
                 ),
@@ -502,17 +644,33 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.r),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.shopping_bag_outlined, color: AppColor.primaryColor, size: 20.sp),
+              Icon(
+                Icons.shopping_bag_outlined,
+                color: AppColor.primaryColor,
+                size: 20.sp,
+              ),
               SizedBox(width: 8.w),
-              Text("Products",
-                  style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w700, color: Colors.black87)),
+              Text(
+                "Products",
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+              ),
             ],
           ),
           Divider(height: 20.h, color: Colors.grey[100]),
@@ -528,7 +686,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       child: (p.images?.isNotEmpty == true)
                           ? Image.network(
                               Global.getImageUrl(p.images!.first),
-                              height: 80.h, width: 80.w, fit: BoxFit.cover,
+                              height: 80.h,
+                              width: 80.w,
+                              fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => _fallbackImg(),
                             )
                           : _fallbackImg(),
@@ -538,15 +698,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(p.name ?? "N/A",
-                              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700),
-                              maxLines: 2, overflow: TextOverflow.ellipsis),
+                          Text(
+                            p.name ?? "N/A",
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           SizedBox(height: 6.h),
                           _productChip("Qty: ${p.quantity ?? 0}", Colors.blue),
                           SizedBox(height: 4.h),
-                          _productChip("Price: Rs ${p.price ?? 0}", Colors.green),
+                          _productChip(
+                            "Price: Rs ${p.price ?? 0}",
+                            Colors.green,
+                          ),
                           SizedBox(height: 4.h),
-                          _productChip("Total: Rs ${p.totalPrice ?? 0}", AppColor.primaryColor),
+                          _productChip(
+                            "Total: Rs ${p.totalPrice ?? 0}",
+                            AppColor.primaryColor,
+                          ),
                         ],
                       ),
                     ),
@@ -567,7 +739,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             context: context,
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
-                            builder: (_) => ExchangeRequestSheet(order: _order, products: products),
+                            builder: (_) => ExchangeRequestSheet(
+                              order: _order,
+                              products: products,
+                            ),
                           );
                           if (mounted) _refreshExchangeStatus();
                         },
@@ -582,21 +757,35 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             context: context,
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
-                            builder: (_) => RefundRequestSheet(order: _order, products: products),
+                            builder: (_) => RefundRequestSheet(
+                              order: _order,
+                              products: products,
+                            ),
                           );
                           if (mounted) _refreshExchangeStatus();
                         },
                       ),
                     ],
                   ),
-                ] else if (_order.status == "Delivered" && exReq == null && refReq == null) ...[
+                ] else if (_order.status == "Delivered" &&
+                    exReq == null &&
+                    refReq == null) ...[
                   SizedBox(height: 10.h),
                   Row(
                     children: [
-                      Icon(Icons.info_outline, size: 14.sp, color: Colors.grey[400]),
+                      Icon(
+                        Icons.info_outline,
+                        size: 14.sp,
+                        color: Colors.grey[400],
+                      ),
                       SizedBox(width: 6.w),
-                      Text("Return window expired (10 days after delivery)",
-                          style: TextStyle(fontSize: 11.sp, color: Colors.grey[400])),
+                      Text(
+                        "Return window expired (10 days after delivery)",
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: Colors.grey[400],
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -613,12 +802,20 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.cancel_outlined, color: Colors.red, size: 18.sp),
+                        Icon(
+                          Icons.cancel_outlined,
+                          color: Colors.red,
+                          size: 18.sp,
+                        ),
                         SizedBox(width: 8.w),
                         Expanded(
                           child: Text(
                             "This order has been cancelled.",
-                            style: TextStyle(fontSize: 12.sp, color: Colors.red[700], fontWeight: FontWeight.w500),
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: Colors.red[700],
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ],
@@ -639,21 +836,39 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColor.primaryColor.withOpacity(0.9), AppColor.primaryColor],
+          colors: [
+            AppColor.primaryColor.withOpacity(0.9),
+            AppColor.primaryColor,
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20.r),
-        boxShadow: [BoxShadow(color: AppColor.primaryColor.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.primaryColor.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Shipment Charges", style: TextStyle(fontSize: 13.sp, color: Colors.white70)),
-              Text("Rs ${_order.shipmentCharges ?? 0}",
-                  style: TextStyle(fontSize: 13.sp, color: Colors.white70, fontWeight: FontWeight.w600)),
+              Text(
+                "Shipment Charges",
+                style: TextStyle(fontSize: 13.sp, color: Colors.white70),
+              ),
+              Text(
+                "Rs ${_order.shipmentCharges ?? 0}",
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
           SizedBox(height: 8.h),
@@ -662,10 +877,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Grand Total",
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w800, color: Colors.white)),
-              Text("Rs ${_order.grandTotal ?? 0}",
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w800, color: Colors.white)),
+              Text(
+                "Grand Total",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                "Rs ${_order.grandTotal ?? 0}",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
             ],
           ),
         ],
@@ -686,7 +913,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.r),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -702,16 +935,33 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 child: imagePath != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8.r),
-                        child: Image.network(imagePath,
-                            width: 36.sp, height: 36.sp, fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                Icon(icon ?? Icons.store_outlined, color: iconColor, size: 22.sp)),
+                        child: Image.network(
+                          imagePath,
+                          width: 36.sp,
+                          height: 36.sp,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(
+                            icon ?? Icons.store_outlined,
+                            color: iconColor,
+                            size: 22.sp,
+                          ),
+                        ),
                       )
-                    : Icon(icon ?? Icons.store_outlined, color: iconColor, size: 22.sp),
+                    : Icon(
+                        icon ?? Icons.store_outlined,
+                        color: iconColor,
+                        size: 22.sp,
+                      ),
               ),
               SizedBox(width: 10.w),
-              Text(title,
-                  style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w700, color: Colors.black87)),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+              ),
             ],
           ),
           Divider(height: 20.h, color: Colors.grey[100]),
@@ -728,7 +978,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     _StatusStep("Ship Item", "ReturnShipped", Icons.local_shipping_rounded),
     _StatusStep("Received", "ReturnReceived", Icons.inventory_2_rounded),
     _StatusStep("Inspection", "Inspecting", Icons.search_rounded),
-    _StatusStep("Resolved", "ReplacementShipped", Icons.replay_circle_filled_rounded),
+    _StatusStep(
+      "Resolved",
+      "ReplacementShipped",
+      Icons.replay_circle_filled_rounded,
+    ),
     _StatusStep("Done", "Completed", Icons.check_circle_rounded),
   ];
 
@@ -756,8 +1010,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           children: [
             Icon(Icons.cancel, color: Colors.red[700], size: 20.sp),
             SizedBox(width: 8.w),
-            Text("Request Denied",
-                style: TextStyle(fontSize: 13.sp, color: Colors.red[700], fontWeight: FontWeight.bold)),
+            Text(
+              "Request Denied",
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: Colors.red[700],
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       );
@@ -788,33 +1048,49 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       color: isDone ? AppColor.primaryColor : Colors.grey[200],
                       shape: BoxShape.circle,
                       boxShadow: isCurrent
-                          ? [BoxShadow(color: AppColor.primaryColor.withOpacity(0.4), blurRadius: 8)]
+                          ? [
+                              BoxShadow(
+                                color: AppColor.primaryColor.withOpacity(0.4),
+                                blurRadius: 8,
+                              ),
+                            ]
                           : null,
                     ),
-                    child: Icon(step.icon,
-                        size: isCurrent ? 17.sp : 14.sp,
-                        color: isDone ? Colors.white : Colors.grey[400]),
+                    child: Icon(
+                      step.icon,
+                      size: isCurrent ? 17.sp : 14.sp,
+                      color: isDone ? Colors.white : Colors.grey[400],
+                    ),
                   ),
                   SizedBox(height: 5.h),
                   SizedBox(
                     width: 52.w,
-                    child: Text(step.label,
-                        style: TextStyle(
-                          fontSize: 9.sp,
-                          color: isDone ? AppColor.primaryColor : Colors.grey[400],
-                          fontWeight: isCurrent ? FontWeight.w700 : FontWeight.normal,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis),
+                    child: Text(
+                      step.label,
+                      style: TextStyle(
+                        fontSize: 9.sp,
+                        color: isDone
+                            ? AppColor.primaryColor
+                            : Colors.grey[400],
+                        fontWeight: isCurrent
+                            ? FontWeight.w700
+                            : FontWeight.normal,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
               if (!isLast)
                 Container(
-                  width: 18.w, height: 2,
+                  width: 18.w,
+                  height: 2,
                   margin: EdgeInsets.only(bottom: 22.h),
-                  color: i < currentIndex ? AppColor.primaryColor : Colors.grey[200],
+                  color: i < currentIndex
+                      ? AppColor.primaryColor
+                      : Colors.grey[200],
                 ),
             ],
           );
@@ -834,12 +1110,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           SizedBox(width: 8.w),
           SizedBox(
             width: 70.w,
-            child: Text(label,
-                style: TextStyle(fontSize: 12.sp, color: Colors.grey[500], fontWeight: FontWeight.w500)),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: Colors.grey[500],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
           Expanded(
-            child: Text(value,
-                style: TextStyle(fontSize: 12.sp, color: Colors.black87, fontWeight: FontWeight.w600)),
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: Colors.black87,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -864,11 +1152,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style: TextStyle(fontSize: 11.sp, color: Colors.grey[500], fontWeight: FontWeight.w500)),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: Colors.grey[500],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 SizedBox(height: 3.h),
-                Text(value,
-                    style: TextStyle(fontSize: 13.sp, color: color, fontWeight: FontWeight.w700)),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ],
             ),
           ),
@@ -890,8 +1190,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           Icon(icon, size: 11.sp, color: color),
           SizedBox(width: 4.w),
-          Text(label,
-              style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w700, color: color)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
         ],
       ),
     );
@@ -904,7 +1210,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(8.r),
       ),
-      child: Text(label, style: TextStyle(fontSize: 11.sp, color: color, fontWeight: FontWeight.w600)),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11.sp,
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 
@@ -930,8 +1243,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             children: [
               Icon(icon, size: 16.sp, color: color),
               SizedBox(width: 6.w),
-              Text(label,
-                  style: TextStyle(fontSize: 13.sp, color: color, fontWeight: FontWeight.w700)),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
         ),
@@ -940,86 +1259,221 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Widget _fallbackImg() => Container(
-    height: 80.h, width: 80.w,
-    decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(12.r)),
+    height: 80.h,
+    width: 80.w,
+    decoration: BoxDecoration(
+      color: Colors.grey[100],
+      borderRadius: BorderRadius.circular(12.r),
+    ),
     child: Icon(Icons.image_outlined, size: 28.sp, color: Colors.grey[400]),
   );
 
   // ── Status Data ───────────────────────────────────────────────
   _StatusInfo _exchangeStatusInfo(String? status) {
     switch (status) {
-      case "Pending": return _StatusInfo("Awaiting Review", Colors.orange, Icons.pending_rounded);
-      case "Accepted": return _StatusInfo("Accepted ✓", Colors.blue, Icons.check_circle_outline);
-      case "Denied": return _StatusInfo("Declined", Colors.red, Icons.cancel_rounded);
-      case "ReturnShipped": return _StatusInfo("Return In Transit", Colors.indigo, Icons.local_shipping_rounded);
-      case "ReturnReceived": return _StatusInfo("Parcel Received", Colors.teal, Icons.inventory_2_rounded);
-      case "Inspecting": return _StatusInfo("Under Inspection", Colors.purple, Icons.search_rounded);
-      case "ApprovedInspection": return _StatusInfo("Inspection Passed ✓", Colors.green, Icons.verified_rounded);
-      case "Disputed": return _StatusInfo("Under Dispute", Colors.red, Icons.warning_amber_rounded);
-      case "ReplacementShipped": return _StatusInfo("Replacement Shipped 🚀", Colors.indigo, Icons.local_shipping_rounded);
-      case "Refunded": return _StatusInfo("Refund Credited 💳", Colors.green, Icons.account_balance_wallet_rounded);
-      case "Completed": return _StatusInfo("Complete ✅", Colors.green, Icons.check_circle_rounded);
-      default: return _StatusInfo(status ?? "Unknown", Colors.grey, Icons.help_outline);
+      case "Pending":
+        return _StatusInfo(
+          "Awaiting Review",
+          Colors.orange,
+          Icons.pending_rounded,
+        );
+      case "Accepted":
+        return _StatusInfo(
+          "Accepted ✓",
+          Colors.blue,
+          Icons.check_circle_outline,
+        );
+      case "Denied":
+        return _StatusInfo("Declined", Colors.red, Icons.cancel_rounded);
+      case "ReturnShipped":
+        return _StatusInfo(
+          "Return In Transit",
+          Colors.indigo,
+          Icons.local_shipping_rounded,
+        );
+      case "ReturnReceived":
+        return _StatusInfo(
+          "Parcel Received",
+          Colors.teal,
+          Icons.inventory_2_rounded,
+        );
+      case "Inspecting":
+        return _StatusInfo(
+          "Under Inspection",
+          Colors.purple,
+          Icons.search_rounded,
+        );
+      case "ApprovedInspection":
+        return _StatusInfo(
+          "Inspection Passed ✓",
+          Colors.green,
+          Icons.verified_rounded,
+        );
+      case "Disputed":
+        return _StatusInfo(
+          "Under Dispute",
+          Colors.red,
+          Icons.warning_amber_rounded,
+        );
+      case "ReplacementShipped":
+        return _StatusInfo(
+          "Replacement Shipped 🚀",
+          Colors.indigo,
+          Icons.local_shipping_rounded,
+        );
+      case "Refunded":
+        return _StatusInfo(
+          "Refund Credited 💳",
+          Colors.green,
+          Icons.account_balance_wallet_rounded,
+        );
+      case "Completed":
+        return _StatusInfo(
+          "Complete ✅",
+          Colors.green,
+          Icons.check_circle_rounded,
+        );
+      default:
+        return _StatusInfo(
+          status ?? "Unknown",
+          Colors.grey,
+          Icons.help_outline,
+        );
     }
   }
 
   _StatusInfo _refundStatusInfo(String? status) {
     switch (status) {
-      case "Pending": return _StatusInfo("Refund Requested", Colors.orange, Icons.pending_rounded);
-      case "Accepted": return _StatusInfo("Accepted ✓", Colors.blue, Icons.check_circle_outline);
-      case "Rejected": return _StatusInfo("Declined", Colors.red, Icons.cancel_rounded);
-      case "ReturnShipped": return _StatusInfo("Return In Transit", Colors.indigo, Icons.local_shipping_rounded);
-      case "ReturnReceived": return _StatusInfo("Parcel Received", Colors.teal, Icons.inventory_2_rounded);
-      case "Inspecting": return _StatusInfo("Under Inspection", Colors.purple, Icons.search_rounded);
-      case "ApprovedInspection": return _StatusInfo("Inspection Passed ✓", Colors.green, Icons.verified_rounded);
-      case "Disputed": return _StatusInfo("Under Dispute", Colors.red, Icons.warning_amber_rounded);
-      case "Refunded": return _StatusInfo("Refund Credited 💳", Colors.green, Icons.account_balance_wallet_rounded);
-      case "Completed": return _StatusInfo("Complete ✅", Colors.green, Icons.check_circle_rounded);
-      default: return _StatusInfo(status ?? "Unknown", Colors.grey, Icons.help_outline);
+      case "Pending":
+        return _StatusInfo(
+          "Refund Requested",
+          Colors.orange,
+          Icons.pending_rounded,
+        );
+      case "Accepted":
+        return _StatusInfo(
+          "Accepted ✓",
+          Colors.blue,
+          Icons.check_circle_outline,
+        );
+      case "Rejected":
+        return _StatusInfo("Declined", Colors.red, Icons.cancel_rounded);
+      case "ReturnShipped":
+        return _StatusInfo(
+          "Return In Transit",
+          Colors.indigo,
+          Icons.local_shipping_rounded,
+        );
+      case "ReturnReceived":
+        return _StatusInfo(
+          "Parcel Received",
+          Colors.teal,
+          Icons.inventory_2_rounded,
+        );
+      case "Inspecting":
+        return _StatusInfo(
+          "Under Inspection",
+          Colors.purple,
+          Icons.search_rounded,
+        );
+      case "ApprovedInspection":
+        return _StatusInfo(
+          "Inspection Passed ✓",
+          Colors.green,
+          Icons.verified_rounded,
+        );
+      case "Disputed":
+        return _StatusInfo(
+          "Under Dispute",
+          Colors.red,
+          Icons.warning_amber_rounded,
+        );
+      case "Refunded":
+        return _StatusInfo(
+          "Refund Credited 💳",
+          Colors.green,
+          Icons.account_balance_wallet_rounded,
+        );
+      case "Completed":
+        return _StatusInfo(
+          "Complete ✅",
+          Colors.green,
+          Icons.check_circle_rounded,
+        );
+      default:
+        return _StatusInfo(
+          status ?? "Unknown",
+          Colors.grey,
+          Icons.help_outline,
+        );
     }
   }
 
   IconData _orderStatusIcon(String? s) {
     switch (s) {
-      case "Pending": return Icons.hourglass_empty_rounded;
-      case "Dispatched": return Icons.local_shipping_rounded;
-      case "Delivered": return Icons.check_circle_rounded;
-      case "Returned": return Icons.assignment_return_rounded;
-      case "Cancelled": return Icons.cancel_rounded; // ✅ NEW
-      default: return Icons.receipt_long_rounded;
+      case "Pending":
+        return Icons.hourglass_empty_rounded;
+      case "Dispatched":
+        return Icons.local_shipping_rounded;
+      case "Delivered":
+        return Icons.check_circle_rounded;
+      case "Returned":
+        return Icons.assignment_return_rounded;
+      case "Cancelled":
+        return Icons.cancel_rounded; // ✅ NEW
+      default:
+        return Icons.receipt_long_rounded;
     }
   }
 
   String _orderStatusTitle(String? s) {
     switch (s) {
-      case "Pending": return "Order Placed ⏳";
-      case "Dispatched": return "On The Way 🚀";
-      case "Delivered": return "Delivered ✅";
-      case "Returned": return "Returned 📦";
-      case "Cancelled": return "Cancelled ❌"; // ✅ NEW
-      default: return s ?? "Unknown";
+      case "Pending":
+        return "Order Placed ⏳";
+      case "Dispatched":
+        return "On The Way 🚀";
+      case "Delivered":
+        return "Delivered ✅";
+      case "Returned":
+        return "Returned 📦";
+      case "Cancelled":
+        return "Cancelled ❌"; // ✅ NEW
+      default:
+        return s ?? "Unknown";
     }
   }
 
   String _orderStatusSubtitle(String? s) {
     switch (s) {
-      case "Pending": return "Being prepared for dispatch";
-      case "Dispatched": return "Estimated delivery: 3-5 days";
-      case "Delivered": return "Exchange available within 10 days";
-      case "Returned": return "Return has been processed";
-      case "Cancelled": return "This order has been cancelled"; // ✅ NEW
-      default: return "";
+      case "Pending":
+        return "Being prepared for dispatch";
+      case "Dispatched":
+        return "Estimated delivery: 3-5 days";
+      case "Delivered":
+        return "Exchange available within 10 days";
+      case "Returned":
+        return "Return has been processed";
+      case "Cancelled":
+        return "This order has been cancelled"; // ✅ NEW
+      default:
+        return "";
     }
   }
 
   Color _orderStatusColor(String? s) {
     switch (s) {
-      case "Pending": return Colors.orange;
-      case "Dispatched": return Colors.blue;
-      case "Delivered": return Colors.green;
-      case "Returned": return Colors.indigo;
-      case "Cancelled": return Colors.red; // ✅ NEW
-      default: return Colors.grey;
+      case "Pending":
+        return Colors.orange;
+      case "Dispatched":
+        return Colors.blue;
+      case "Delivered":
+        return Colors.green;
+      case "Returned":
+        return Colors.indigo;
+      case "Cancelled":
+        return Colors.red; // ✅ NEW
+      default:
+        return Colors.grey;
     }
   }
 }
