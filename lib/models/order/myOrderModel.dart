@@ -58,6 +58,14 @@ class Orders {
   Product? product;
   ExchangeRequestData? exchangeRequest;
   RefundRequestData? refundRequest;
+
+  // ✅ NEW — Leopards tracking
+  bool? leopardsBooked;
+  String? trackNumber;
+  String? slipLink;
+  String? leopardsStatus;
+  String? cnNumber;
+
   Orders({
     this.id,
     this.orderId,
@@ -71,56 +79,61 @@ class Orders {
     this.product,
     this.exchangeRequest,
     this.refundRequest,
+    this.leopardsBooked,
+    this.trackNumber,
+    this.slipLink,
+    this.leopardsStatus,
+    this.cnNumber,
   });
 
   Orders.fromJson(Map<String, dynamic> json) {
     id = json['id'] ?? json['_id'];
     orderId = json['orderId'];
     buyerId = json['buyerId'];
-    seller = json['seller'] != null
-        ? new Seller.fromJson(json['seller'])
-        : null;
+    seller = json['seller'] != null ? Seller.fromJson(json['seller']) : null;
     shipmentCharges = json['shipmentCharges'];
     grandTotal = json['grandTotal'];
     status = json['status'];
     createdAt = json['createdAt'];
     buyerDetails = json['buyerDetails'] != null
-        ? new BuyerDetails.fromJson(json['buyerDetails'])
+        ? BuyerDetails.fromJson(json['buyerDetails'])
         : null;
-    product = json['product'] != null
-        ? new Product.fromJson(json['product'])
+    product = json['product'] != null ? Product.fromJson(json['product']) : null;
+    exchangeRequest = json['exchangeRequest'] != null
+        ? ExchangeRequestData.fromJson(json['exchangeRequest'])
         : null;
-     exchangeRequest = json['exchangeRequest'] != null
-      ? ExchangeRequestData.fromJson(json['exchangeRequest'])
-      : null;
-  refundRequest = json['refundRequest'] != null
-      ? RefundRequestData.fromJson(json['refundRequest'])
-      : null;
+    refundRequest = json['refundRequest'] != null
+        ? RefundRequestData.fromJson(json['refundRequest'])
+        : null;
+
+    // ✅ Leopards fields
+    leopardsBooked = json['leopardsBooked'] ?? false;
+    trackNumber = json['trackNumber'];
+    slipLink = json['slipLink'];
+    leopardsStatus = json['leopardsStatus'];
+    cnNumber = json['cnNumber'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['orderId'] = this.orderId;
-    data['buyerId'] = this.buyerId;
-    if (this.seller != null) {
-      data['seller'] = this.seller!.toJson();
-    }
-    data['shipmentCharges'] = this.shipmentCharges;
-    data['grandTotal'] = this.grandTotal;
-    data['status'] = this.status;
-    data['createdAt'] = this.createdAt;
-    if (this.buyerDetails != null) {
-      data['buyerDetails'] = this.buyerDetails!.toJson();
-    }
-    if (this.product != null) {
-      data['product'] = this.product!.toJson();
-      
-    }
+    final Map<String, dynamic> data = {};
+    data['id'] = id;
+    data['orderId'] = orderId;
+    data['buyerId'] = buyerId;
+    if (seller != null) data['seller'] = seller!.toJson();
+    data['shipmentCharges'] = shipmentCharges;
+    data['grandTotal'] = grandTotal;
+    data['status'] = status;
+    data['createdAt'] = createdAt;
+    if (buyerDetails != null) data['buyerDetails'] = buyerDetails!.toJson();
+    if (product != null) data['product'] = product!.toJson();
+    data['leopardsBooked'] = leopardsBooked;
+    data['trackNumber'] = trackNumber;
+    data['slipLink'] = slipLink;
+    data['leopardsStatus'] = leopardsStatus;
+    data['cnNumber'] = cnNumber;
     return data;
   }
 }
-
 
 class ExchangeRequestData {
   final String? id;
@@ -132,8 +145,10 @@ class ExchangeRequestData {
   final String? courierPaidBy;
   final String? returnTrackingNumber;
   final String? replacementTrackingNumber;
+  final String? replacementSlipLink; // ✅ NEW
   final double? refundAmount;
   final String? createdAt;
+  final String? pdfPath; // ✅ NEW
 
   const ExchangeRequestData({
     this.id,
@@ -145,25 +160,30 @@ class ExchangeRequestData {
     this.courierPaidBy,
     this.returnTrackingNumber,
     this.replacementTrackingNumber,
+    this.replacementSlipLink,
     this.refundAmount,
     this.createdAt,
+    this.pdfPath,
   });
 
   factory ExchangeRequestData.fromJson(Map<String, dynamic> json) =>
       ExchangeRequestData(
-        id: json['_id'],
-        status: json['status'],
-        reason: json['reason'],
-        reasonCategory: json['reasonCategory'],
-        companyNote: json['companyNote'],
-        resolutionType: json['resolutionType'],
-        courierPaidBy: json['courierPaidBy'],
-        returnTrackingNumber: json['returnTrackingNumber'],
-        replacementTrackingNumber: json['replacementTrackingNumber'],
+        id: json['_id']?.toString(),
+        status: json['status']?.toString(),
+        reason: json['reason']?.toString(),
+        reasonCategory: json['reasonCategory']?.toString(),
+        companyNote: json['companyNote']?.toString(),
+        resolutionType: json['resolutionType']?.toString(),
+        courierPaidBy: json['courierPaidBy']?.toString(),
+        returnTrackingNumber: json['returnTrackingNumber']?.toString(),
+        replacementTrackingNumber: json['replacementTrackingNumber']?.toString(),
+        replacementSlipLink: json['replacementSlipLink']?.toString(), // ✅
         refundAmount: (json['refundAmount'] as num?)?.toDouble(),
-        createdAt: json['createdAt'],
+        createdAt: json['createdAt']?.toString(),
+        pdfPath: json['pdfPath']?.toString(),
       );
 }
+
 
 // ── Refund Request Data ────────────────────────────────────────────────────
 class RefundRequestData {
@@ -175,6 +195,7 @@ class RefundRequestData {
   final double? refundAmount;
   final String? returnTrackingNumber;
   final String? createdAt;
+  final String? pdfPath; // ✅ NEW
 
   const RefundRequestData({
     this.id,
@@ -185,21 +206,22 @@ class RefundRequestData {
     this.refundAmount,
     this.returnTrackingNumber,
     this.createdAt,
+    this.pdfPath,
   });
 
   factory RefundRequestData.fromJson(Map<String, dynamic> json) =>
       RefundRequestData(
-        id: json['_id'],
-        status: json['status'],
-        reason: json['reason'],
-        reasonCategory: json['reasonCategory'],
-        companyNote: json['companyNote'],
+        id: json['_id']?.toString(),
+        status: json['status']?.toString(),
+        reason: json['reason']?.toString(),
+        reasonCategory: json['reasonCategory']?.toString(),
+        companyNote: json['companyNote']?.toString(),
         refundAmount: (json['refundAmount'] as num?)?.toDouble(),
-        returnTrackingNumber: json['returnTrackingNumber'],
-        createdAt: json['createdAt'],
+        returnTrackingNumber: json['returnTrackingNumber']?.toString(),
+        createdAt: json['createdAt']?.toString(),
+        pdfPath: json['pdfPath']?.toString(),
       );
 }
-
 
 class Seller {
   String? sId;

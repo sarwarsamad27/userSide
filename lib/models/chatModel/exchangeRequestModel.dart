@@ -69,14 +69,13 @@ class ExchangeRequest {
   final String? buyerId;
   final String? sellerProfileId;
   final String? reason;
-  final String?
-  reasonCategory; // seller_fault | defective | buyer_preference | size_color
-  final String? resolutionType; // replacement | refund
+  final String? reasonCategory;
+  final String? resolutionType;
   final String? status;
-  final String? courierPaidBy; // seller | buyer | platform
+  final String? courierPaidBy;
   final List<String> images;
 
-  // Return shipping (user → company)
+  // Return shipping
   final String? returnTrackingNumber;
   final String? returnCourierName;
   final String? returnShippedAt;
@@ -93,6 +92,9 @@ class ExchangeRequest {
   final String? replacementTrackingNumber;
   final String? replacementCourierName;
   final String? replacementShippedAt;
+  final String? replacementSlipLink; // ✅ NEW — Leopards slip
+
+  // Refund
   final double? refundAmount;
   final String? refundedAt;
 
@@ -131,6 +133,7 @@ class ExchangeRequest {
     this.replacementTrackingNumber,
     this.replacementCourierName,
     this.replacementShippedAt,
+    this.replacementSlipLink, // ✅
     this.refundAmount,
     this.refundedAt,
     this.pdfPath,
@@ -154,19 +157,20 @@ class ExchangeRequest {
       resolutionType: json["resolutionType"]?.toString(),
       status: json["status"]?.toString(),
       courierPaidBy: json["courierPaidBy"]?.toString(),
-      images: _toStringList(json["images"]),
+      images: _toList(json["images"]),
       returnTrackingNumber: json["returnTrackingNumber"]?.toString(),
       returnCourierName: json["returnCourierName"]?.toString(),
       returnShippedAt: json["returnShippedAt"]?.toString(),
-      returnProofImages: _toStringList(json["returnProofImages"]),
+      returnProofImages: _toList(json["returnProofImages"]),
       receivedAt: json["receivedAt"]?.toString(),
-      inspectionImages: _toStringList(json["inspectionImages"]),
+      inspectionImages: _toList(json["inspectionImages"]),
       inspectionNote: json["inspectionNote"]?.toString(),
       disputeNote: json["disputeNote"]?.toString(),
       inspectedAt: json["inspectedAt"]?.toString(),
       replacementTrackingNumber: json["replacementTrackingNumber"]?.toString(),
       replacementCourierName: json["replacementCourierName"]?.toString(),
       replacementShippedAt: json["replacementShippedAt"]?.toString(),
+      replacementSlipLink: json["replacementSlipLink"]?.toString(), // ✅
       refundAmount: (json["refundAmount"] as num?)?.toDouble(),
       refundedAt: json["refundedAt"]?.toString(),
       pdfPath: json["pdfPath"]?.toString(),
@@ -179,7 +183,7 @@ class ExchangeRequest {
     );
   }
 
-  static List<String> _toStringList(dynamic val) {
+  static List<String> _toList(dynamic val) {
     if (val is List) return val.map((e) => e.toString()).toList();
     return const [];
   }
@@ -196,50 +200,42 @@ class ExchangeRequest {
   bool get isReplacementShipped => status == "ReplacementShipped";
   bool get isRefunded => status == "Refunded";
   bool get isCompleted => status == "Completed";
-
   bool get isActive => !isDenied && !isCompleted;
 
-  // ── Courier cost label ────────────────────────────────────────
   String get courierCostLabel {
     switch (courierPaidBy) {
-      case "seller":
-        return "Courier cost: Seller's responsibility";
-      case "buyer":
-        return "Return courier cost: Your responsibility";
-      case "platform":
-        return "Courier cost: Platform will handle";
-      default:
-        return "";
+      case "seller": return "Courier cost: Seller's responsibility";
+      case "buyer": return "Return courier cost: Your responsibility";
+      case "platform": return "Courier cost: Platform will handle";
+      default: return "";
     }
   }
 
-  // ── Status display label ──────────────────────────────────────
   String get statusLabel {
     switch (status) {
-      case "Pending":
-        return "Pending Review";
-      case "Accepted":
-        return "Accepted — Ship Product";
-      case "Denied":
-        return "Rejected";
-      case "ReturnShipped":
-        return "Return Shipped";
-      case "ReturnReceived":
-        return "Package Received";
-      case "Inspecting":
-        return "Under Inspection";
-      case "ApprovedInspection":
-        return "Inspection Passed";
-      case "Disputed":
-        return "Disputed";
-      case "ReplacementShipped":
-        return "Replacement Shipped";
-      case "Refunded":
-        return "Refund Processed";
-      case "Completed":
-        return "Completed";
-      default:
-        return status ?? "Unknown";
+      case "Pending": return "Pending Review";
+      case "Accepted": return "Accepted — Ship Product";
+      case "Denied": return "Rejected";
+      case "ReturnShipped": return "Return In Transit";
+      case "ReturnReceived": return "Parcel Received";
+      case "Inspecting": return "Under Inspection";
+      case "ApprovedInspection": return "Inspection Passed";
+      case "Disputed": return "Disputed";
+      case "ReplacementShipped": return "Replacement Shipped";
+      case "Refunded": return "Refund Processed";
+      case "Completed": return "Completed";
+      default: return status ?? "Unknown";
+    }
+  }
+
+  String get reasonCategoryLabel {
+    switch (reasonCategory) {
+      case "seller_fault": return "Wrong Item Received";
+      case "defective": return "Defective / Damaged";
+      case "size_color": return "Wrong Size / Color";
+      case "size_issue": return "Size Issue";
+      case "buyer_preference": return "Changed My Mind";
+      default: return reasonCategory ?? "N/A";
     }
   }
 }

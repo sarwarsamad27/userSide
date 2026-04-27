@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:user_side/models/chatModel/exchangeRequestModel.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
@@ -357,22 +358,47 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
   }
 
   // ── Replacement Tracking Card ─────────────────────────────────
-  Widget _buildReplacementTrackingCard() {
-    return _buildCard(
-      title: "Replacement Shipping",
-      icon: Icons.replay_circle_filled_outlined,
-      iconColor: Colors.green,
-      children: [
-        if (_exchange!.replacementTrackingNumber?.isNotEmpty == true)
-          _infoRow("Tracking #", _exchange!.replacementTrackingNumber!),
-        if (_exchange!.replacementCourierName?.isNotEmpty == true)
-          _infoRow("Courier", _exchange!.replacementCourierName!),
-        if (_exchange!.replacementShippedAt != null)
-          _infoRow(
-              "Shipped At", _formatDate(_exchange!.replacementShippedAt)),
+ Widget _buildReplacementTrackingCard() {
+  return _buildCard(
+    title: "Replacement Shipping 🚀",
+    icon: Icons.replay_circle_filled_outlined,
+    iconColor: Colors.green,
+    children: [
+      if (_exchange!.replacementTrackingNumber?.isNotEmpty == true)
+        _infoRow("Tracking #", _exchange!.replacementTrackingNumber!),
+      if (_exchange!.replacementCourierName?.isNotEmpty == true)
+        _infoRow("Courier", _exchange!.replacementCourierName!),
+      if (_exchange!.replacementShippedAt != null)
+        _infoRow("Shipped At", _formatDate(_exchange!.replacementShippedAt)),
+
+      // ✅ Leopards replacement slip download
+      if (_exchange!.replacementSlipLink?.isNotEmpty == true) ...[
+        SizedBox(height: 12.h),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              final uri = Uri.parse(_exchange!.replacementSlipLink!);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+            },
+            icon: Icon(Icons.download_rounded, size: 16.sp),
+            label: const Text("Download Replacement Slip"),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.green,
+              side: const BorderSide(color: Colors.green),
+              padding: EdgeInsets.symmetric(vertical: 10.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+            ),
+          ),
+        ),
       ],
-    );
-  }
+    ],
+  );
+}
 
   // ── Completion Card ───────────────────────────────────────────
   Widget _buildCompletionCard() {

@@ -4,10 +4,10 @@ import 'dart:developer';
 class Global {
   // static var imageUrl = "http://192.168.88.59:5000";
   // static var BaseUrl = "http://192.168.88.59:5000/api/auth";
-  // static var imageUrl = "http://10.0.2.2:5000";
-  // static var BaseUrl = "http://10.0.2.2:5000/api/auth";
-  static var BaseUrl = "https://seller-and-buyer-backend.onrender.com/api/auth";
-  static var imageUrl = "https://seller-and-buyer-backend.onrender.com";
+  static var imageUrl = "http://10.0.2.2:5000";
+  static var BaseUrl = "http://10.0.2.2:5000/api/auth";
+  // static var BaseUrl = "https://seller-and-buyer-backend.onrender.com/api/auth";
+  // static var imageUrl = "https://seller-and-buyer-backend.onrender.com";
   static var SignUp = "${BaseUrl}/buyer/signup";
   static var Login = "${BaseUrl}/buyer/login";
   static var GoogleLogin = "${BaseUrl}/buyer/google/login";
@@ -92,7 +92,8 @@ class Global {
   // JazzCash Direct Payment (buyer JazzCash → your merchant bank account)
   static String JazzcashPayInitiate = '${BaseUrl}/buyer/jazzcash/pay/initiate';
   static String JazzcashPayConfirm = '${BaseUrl}/buyer/jazzcash/pay/confirm';
-
+static String uploadRefundReturnProof(String refundId) =>
+    "${BaseUrl}/buyer/refund/$refundId/return-proof";
   // Global.dart mein add karo
   static String getImageUrl(String? imagePath) {
     if (imagePath == null) return '';

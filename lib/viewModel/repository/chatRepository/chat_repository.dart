@@ -151,4 +151,27 @@ class ExchangeRepository {
       return RefundRequestListModel(message: "Error: $e");
     }
   }
+  Future<RefundRequestModel> uploadRefundReturnProof({
+  required String refundId,
+  required String buyerId,
+  required String trackingNumber,
+  required String courierName,
+  List<String> proofImages = const [],
+}) async {
+  try {
+    final body = {
+      "buyerId": buyerId,
+      "trackingNumber": trackingNumber,
+      "courierName": courierName,
+      "proofImages": proofImages.take(5).toList(),
+    };
+    final response = await _api.postApi(
+      Global.uploadRefundReturnProof(refundId),
+      body,
+    );
+    return RefundRequestModel.fromJson(response);
+  } catch (e) {
+    return RefundRequestModel(message: "Error: $e");
+  }
+}
 }

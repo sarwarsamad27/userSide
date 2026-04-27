@@ -48,7 +48,48 @@ class ExchangeProvider extends ChangeNotifier {
     loading = false;
     notifyListeners();
   }
+Future<bool> uploadRefundReturnProof({
+  required String refundId,
+  required String buyerId,
+  required String trackingNumber,
+  required String courierName,
+  List<String> proofImages = const [],
+}) async {
+  uploadingProof = true;
+  errorMessage = null;
+  notifyListeners();
 
+  bool ok = false;
+  try {
+    final result = await _repo.uploadRefundReturnProof(
+      refundId: refundId,
+      buyerId: buyerId,
+      trackingNumber: trackingNumber,
+      courierName: courierName,
+      proofImages: proofImages,
+    );
+    ok = result.refundRequest != null;
+    if (!ok) errorMessage = result.message;
+
+    // ✅ Local list update
+    if (ok && refundListModel != null) {
+      final updated = refundListModel!.requests.map((r) {
+        if (r.id == refundId) return result.refundRequest!;
+        return r;
+      }).toList();
+      refundListModel = RefundRequestListModel(
+        message: refundListModel!.message,
+        requests: updated,
+      );
+    }
+  } catch (e) {
+    errorMessage = "Error: $e";
+  }
+
+  uploadingProof = false;
+  notifyListeners();
+  return ok;
+}
   // ── Create request ────────────────────────────────────────────
   Future<bool> createRequest({
     required String buyerId,
