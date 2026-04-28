@@ -92,8 +92,12 @@ class Global {
   // JazzCash Direct Payment (buyer JazzCash → your merchant bank account)
   static String JazzcashPayInitiate = '${BaseUrl}/buyer/jazzcash/pay/initiate';
   static String JazzcashPayConfirm = '${BaseUrl}/buyer/jazzcash/pay/confirm';
-static String uploadRefundReturnProof(String refundId) =>
-    "${BaseUrl}/buyer/refund/$refundId/return-proof";
+  static String uploadRefundReturnProof(String refundId) =>
+      "${BaseUrl}/buyer/refund/$refundId/return-proof";
+
+  static String leopardsTrack(String trackNumber) =>
+      "${BaseUrl}/leopards/track/$trackNumber";
+
   // Global.dart mein add karo
   static String getImageUrl(String? imagePath) {
     if (imagePath == null) return '';

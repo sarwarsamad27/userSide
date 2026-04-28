@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:user_side/models/order/myOrderModel.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
+import 'package:user_side/view/dashboard/profile/order/leopards_tracking_screen.dart';
 import 'package:user_side/view/dashboard/profile/order/refundDetailScreen.dart';
 import 'package:user_side/view/dashboard/userChat/exchangeDetailScreen.dart';
 import 'package:user_side/view/dashboard/userChat/exchangeRequestSheet.dart';
@@ -366,7 +367,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ],
           ),
           SizedBox(height: 10.h),
-          _infoRow(Icons.tag, "Track #", _order.trackNumber ?? "N/A"),
+          _infoRow(
+            Icons.tag,
+            "Track #",
+            _order.trackNumber ?? "N/A",
+            onTap: _order.trackNumber != null
+                ? () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => LeopardsTrackingScreen(
+                        trackNumber: _order.trackNumber!,
+                      ),
+                    ),
+                  )
+                : null,
+          ),
         ],
       ),
     );
@@ -467,6 +482,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     "Return Tracking",
                     exReq.returnTrackingNumber!,
                     Colors.blue,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => LeopardsTrackingScreen(
+                          trackNumber: exReq.returnTrackingNumber!,
+                        ),
+                      ),
+                    ),
                   ),
                 if (exReq.replacementTrackingNumber?.isNotEmpty == true)
                   _detailTile(
@@ -474,6 +497,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     "Replacement Tracking",
                     exReq.replacementTrackingNumber!,
                     Colors.green,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => LeopardsTrackingScreen(
+                          trackNumber: exReq.replacementTrackingNumber!,
+                        ),
+                      ),
+                    ),
                   ),
                 if (exReq.refundAmount != null && exReq.refundAmount! > 0)
                   _detailTile(
@@ -591,6 +622,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     "Return Tracking",
                     refReq.returnTrackingNumber!,
                     Colors.blue,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => LeopardsTrackingScreen(
+                          trackNumber: refReq.returnTrackingNumber!,
+                        ),
+                      ),
+                    ),
                   ),
                 if (refReq.refundAmount != null && refReq.refundAmount! > 0)
                   _detailTile(
@@ -1100,79 +1139,106 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   // ── Helpers ───────────────────────────────────────────────────
-  Widget _infoRow(IconData icon, String label, String value) {
+  Widget _infoRow(
+    IconData icon,
+    String label,
+    String value, {
+    VoidCallback? onTap,
+  }) {
     return Padding(
       padding: EdgeInsets.only(bottom: 10.h),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 15.sp, color: Colors.grey[400]),
-          SizedBox(width: 8.w),
-          SizedBox(
-            width: 70.w,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: Colors.grey[500],
-                fontWeight: FontWeight.w500,
+      child: InkWell(
+        onTap: onTap,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              size: 15.sp,
+              color: onTap != null ? AppColor.primaryColor : Colors.grey[400],
+            ),
+            SizedBox(width: 8.w),
+            SizedBox(
+              width: 70.w,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: Colors.black87,
-                fontWeight: FontWeight.w600,
+            Expanded(
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: onTap != null ? AppColor.primaryColor : Colors.black87,
+                  fontWeight: FontWeight.w600,
+                  decoration: onTap != null ? TextDecoration.underline : null,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _detailTile(IconData icon, String label, String value, Color color) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 10.h),
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: color.withOpacity(0.15)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 16.sp, color: color),
-          SizedBox(width: 10.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 11.sp,
-                    color: Colors.grey[500],
-                    fontWeight: FontWeight.w500,
+  Widget _detailTile(
+    IconData icon,
+    String label,
+    String value,
+    Color color, {
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        margin: EdgeInsets.only(bottom: 10.h),
+        padding: EdgeInsets.all(12.w),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: color.withOpacity(0.15)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 16.sp, color: color),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: Colors.grey[500],
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                SizedBox(height: 3.h),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: color,
-                    fontWeight: FontWeight.w700,
+                  SizedBox(height: 3.h),
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: color,
+                      fontWeight: FontWeight.w700,
+                      decoration: onTap != null
+                          ? TextDecoration.underline
+                          : null,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+            if (onTap != null)
+              Icon(Icons.arrow_forward_ios_rounded, size: 12.sp, color: color),
+          ],
+        ),
       ),
     );
   }

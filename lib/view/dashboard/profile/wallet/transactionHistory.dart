@@ -238,6 +238,19 @@ class _TxnList extends StatelessWidget {
     return '${dt.day} ${months[dt.month - 1]}, ${dt.year}';
   }
 
+  String _formatSubtitle(String subtitle) {
+    if (subtitle.isEmpty) return subtitle;
+    // Match # followed by exactly 24 hex characters
+    final reg = RegExp(r'#([0-9a-fA-F]{24})');
+    if (reg.hasMatch(subtitle)) {
+      return subtitle.replaceAllMapped(reg, (m) {
+        final hex = m.group(1)!;
+        return '#ORD-${hex.substring(0, 8).toUpperCase()}';
+      });
+    }
+    return subtitle;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isJazzcash =
@@ -273,8 +286,7 @@ class _TxnList extends StatelessWidget {
         final tx = transactions[index];
         final String methodLower = tx.method.toLowerCase().trim();
         final bool isJazzCash =
-            methodLower ==
-            'send'; // or add more: || methodLower.contains('jazzcash')
+            methodLower.contains('jazzcash') || methodLower == 'send';
 
         final String logoPath = isJazzCash
             ? 'assets/images/JazzCashLogo.jpg'
@@ -332,7 +344,7 @@ class _TxnList extends StatelessWidget {
                               ),
                               SizedBox(height: 2.h),
                               Text(
-                                tx.subtitle,
+                                _formatSubtitle(tx.subtitle),
                                 style: TextStyle(
                                   fontSize: 12.sp,
                                   color: Colors.grey.shade500,

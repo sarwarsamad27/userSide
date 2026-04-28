@@ -9,6 +9,7 @@ import 'package:user_side/viewModel/provider/authProvider/verifyCode_provider.da
 import 'package:provider/provider.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/chatThread_provider.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/exchange_provider.dart';
+import 'package:user_side/viewModel/provider/courierProvider/leopards_tracking_provider.dart';
 import 'package:user_side/viewModel/provider/favouriteProvider/addToFavourite_provider.dart';
 import 'package:user_side/viewModel/provider/favouriteProvider/getFavourite_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/followUnFollow_provider.dart';
@@ -76,8 +77,9 @@ class AppMultiProvider extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FollowProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ExchangeProvider()),
-          ChangeNotifierProvider(create: (_) => WalletProvider()),
+        ChangeNotifierProvider(create: (_) => WalletProvider()),
         ChangeNotifierProvider(create: (_) => ChatThreadProvider()),
+        ChangeNotifierProvider(create: (_) => LeopardsTrackingProvider()),
         ChangeNotifierProvider<AuthSession>.value(value: AuthSession.instance),
       ],
       child: child,

@@ -11,6 +11,7 @@ import 'package:user_side/resources/global.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/resources/premium_toast.dart';
 import 'package:user_side/resources/utiles.dart';
+import 'package:user_side/view/dashboard/profile/order/leopards_tracking_screen.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/exchange_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -318,100 +319,11 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Leopard pre-booked return label card ──────────────────
-        Container(
-          padding: EdgeInsets.all(16.w),
-          decoration: BoxDecoration(
-            color: Colors.indigo[50],
-            borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: Colors.indigo[200]!),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.local_shipping,
-                    color: Colors.indigo[700],
-                    size: 22.sp,
-                  ),
-                  SizedBox(width: 8.w),
-                  Text(
-                    "📦 Return Booked via Leopards",
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.indigo[800],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 10.h),
-              Text(
-                "A Leopards courier will collect the parcel from your address. Use the return label below.",
-                style: TextStyle(fontSize: 12.sp, color: Colors.indigo[600]),
-              ),
-              if (refund.returnTrackingNumber?.isNotEmpty == true) ...[
-                SizedBox(height: 10.h),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.confirmation_number_outlined,
-                      size: 14.sp,
-                      color: Colors.indigo[400],
-                    ),
-                    SizedBox(width: 6.w),
-                    Text(
-                      "Track #",
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    SizedBox(width: 4.w),
-                    Text(
-                      refund.returnTrackingNumber!,
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.indigo[800],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-              if (refund.returnSlipLink?.isNotEmpty == true) ...[
-                SizedBox(height: 12.h),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      final uri = Uri.parse(refund.returnSlipLink!);
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(
-                          uri,
-                          mode: LaunchMode.externalApplication,
-                        );
-                      }
-                    },
-                    icon: Icon(Icons.download_rounded, size: 16.sp),
-                    label: const Text("Download Return Label"),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.indigo[700],
-                      side: BorderSide(color: Colors.indigo[400]!),
-                      padding: EdgeInsets.symmetric(vertical: 10.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.r),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-        SizedBox(height: 12.h),
+        if (refund.returnTrackingNumber?.isNotEmpty == true ||
+            refund.returnSlipLink?.isNotEmpty == true) ...[
+          _buildLeopardsCard(refund),
+          SizedBox(height: 12.h),
+        ],
 
         // ── Proof photos upload ─────────────────────────────────
         _RefundReturnProofWidget(refund: refund, onSuccess: _loadRefund),
@@ -426,7 +338,18 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
       icon: Icons.local_shipping_rounded,
       children: [
         if (_refund!.returnTrackingNumber?.isNotEmpty == true)
-          _infoRow("Tracking #", _refund!.returnTrackingNumber!),
+          _infoRow(
+            "Tracking #",
+            _refund!.returnTrackingNumber!,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => LeopardsTrackingScreen(
+                  trackNumber: _refund!.returnTrackingNumber!,
+                ),
+              ),
+            ),
+          ),
         if (_refund!.returnCourierName?.isNotEmpty == true)
           _infoRow("Courier", _refund!.returnCourierName!),
         if (_refund!.receivedAt != null)
@@ -644,34 +567,45 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
     );
   }
 
-  Widget _infoRow(String label, String value, {Color? valueColor}) {
+  Widget _infoRow(
+    String label,
+    String value, {
+    Color? valueColor,
+    VoidCallback? onTap,
+  }) {
     return Padding(
       padding: EdgeInsets.only(bottom: 8.h),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 110.w,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 13.sp,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+      child: InkWell(
+        onTap: onTap,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 110.w,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 13.sp,
-                color: valueColor ?? Colors.black87,
-                fontWeight: FontWeight.w600,
+            Expanded(
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: onTap != null
+                      ? AppColor.primaryColor
+                      : (valueColor ?? Colors.black87),
+                  fontWeight: FontWeight.w600,
+                  decoration: onTap != null ? TextDecoration.underline : null,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -720,6 +654,97 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
         return cat ?? "N/A";
     }
   }
+
+  Widget _buildLeopardsCard(ExchangeRequest rf) {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.indigo[50],
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: Colors.indigo[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.local_shipping,
+                color: Colors.indigo[700],
+                size: 22.sp,
+              ),
+              SizedBox(width: 8.w),
+              Text(
+                "📦 Return Booked via Leopards",
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.indigo[800],
+                ),
+              ),
+            ],
+          ),
+          if (rf.returnSlipLink?.isNotEmpty == true) ...[
+            SizedBox(height: 10.h),
+            Text(
+              "Please submit this product to your nearest Leopards drop-off point. Use the return label below.",
+              style: TextStyle(fontSize: 12.sp, color: Colors.indigo[600]),
+            ),
+          ],
+          if (rf.returnTrackingNumber?.isNotEmpty == true) ...[
+            SizedBox(height: 10.h),
+            Row(
+              children: [
+                Icon(
+                  Icons.confirmation_number_outlined,
+                  size: 14.sp,
+                  color: Colors.indigo[400],
+                ),
+                SizedBox(width: 6.w),
+                Text(
+                  "Track #",
+                  style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
+                ),
+                SizedBox(width: 4.w),
+                Text(
+                  rf.returnTrackingNumber!,
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.indigo[800],
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (rf.returnSlipLink?.isNotEmpty == true) ...[
+            SizedBox(height: 12.h),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  final uri = Uri.parse(rf.returnSlipLink!);
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                },
+                icon: Icon(Icons.download_rounded, size: 16.sp),
+                label: const Text("Download Return Label"),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.indigo[700],
+                  side: BorderSide(color: Colors.indigo[400]!),
+                  padding: EdgeInsets.symmetric(vertical: 10.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -742,9 +767,24 @@ class _RefundReturnProofWidget extends StatefulWidget {
 class _RefundReturnProofWidgetState extends State<_RefundReturnProofWidget> {
   final _picker = ImagePicker();
   List<XFile> _images = [];
+  final _trackingController = TextEditingController();
+  final _courierController = TextEditingController(text: "Leopards");
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.refund.returnTrackingNumber?.isNotEmpty == true) {
+      _trackingController.text = widget.refund.returnTrackingNumber!;
+    }
+    if (widget.refund.returnCourierName?.isNotEmpty == true) {
+      _courierController.text = widget.refund.returnCourierName!;
+    }
+  }
 
   @override
   void dispose() {
+    _trackingController.dispose();
+    _courierController.dispose();
     super.dispose();
   }
 
@@ -773,11 +813,11 @@ class _RefundReturnProofWidgetState extends State<_RefundReturnProofWidget> {
     if (buyerId.isEmpty) return;
 
     final images = await _toBase64();
+
     final ok = await context.read<ExchangeProvider>().uploadRefundReturnProof(
       refundId: widget.refund.id ?? "",
       buyerId: buyerId,
-      // Tracking auto-set on acceptance
-      trackingNumber: widget.refund.returnTrackingNumber ?? "Leopards",
+      trackingNumber: widget.refund.returnTrackingNumber ?? "",
       courierName: widget.refund.returnCourierName ?? "Leopards",
       proofImages: images,
     );
@@ -830,7 +870,7 @@ class _RefundReturnProofWidgetState extends State<_RefundReturnProofWidget> {
           ),
           SizedBox(height: 8.h),
           Text(
-            "Take photos of the packed parcel before handing it to the Leopards courier.",
+            "Take photos of the packed parcel before handing it to the courier.",
             style: TextStyle(fontSize: 12.sp, color: Colors.blue[600]),
           ),
           SizedBox(height: 16.h),
@@ -921,6 +961,34 @@ class _RefundReturnProofWidgetState extends State<_RefundReturnProofWidget> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _field(String label, TextEditingController ctrl, IconData icon) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 6.h),
+        TextField(
+          controller: ctrl,
+          style: TextStyle(fontSize: 14.sp),
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, size: 18.sp),
+            hintText: "Enter $label",
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 12.w,
+              vertical: 12.h,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
