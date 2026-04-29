@@ -65,6 +65,12 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
   void initState() {
     super.initState();
     _loadPersistedData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final buyerId = context.read<AuthSession>().userId;
+      if (buyerId != null) {
+        context.read<WalletProvider>().fetchBalance(buyerId);
+      }
+    });
   }
 
   Future<void> _loadPersistedData() async {

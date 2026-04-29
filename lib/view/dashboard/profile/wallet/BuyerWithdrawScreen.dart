@@ -18,16 +18,16 @@ class BuyerWithdrawScreen extends StatefulWidget {
 }
 
 class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
-  final _nameController   = TextEditingController();
-  final _phoneController  = TextEditingController();
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _amountController = TextEditingController();
-  final _otpController    = TextEditingController();
-  final _formKey          = GlobalKey<FormState>();
+  final _otpController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   bool _otpSent = false;
   String _method = 'JazzCash';
 
   static const Color _primary = Color(0xFFCC0000);
-  static const Color _jcBg    = Color(0xFFFFF0F0);
+  static const Color _jcBg = Color(0xFFFFF0F0);
 
   @override
   void dispose() {
@@ -95,12 +95,16 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg),
-      backgroundColor: Colors.red.shade600,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: Colors.red.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+      ),
+    );
   }
 
   @override
@@ -128,7 +132,11 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
               ),
               title: Text(
                 _otpSent ? 'Verify OTP' : 'Withdraw Funds',
-                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700),
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
             ),
             body: _otpSent ? _buildOtpScreen(wallet) : _buildFormScreen(wallet),
@@ -147,21 +155,26 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // ── Balance Banner ─────────────────────────────────────────────
             Container(
               width: double.infinity,
               padding: EdgeInsets.all(18.r),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColor.primaryColor.withOpacity(0.9), AppColor.primaryColor],
+                  colors: [
+                    AppColor.primaryColor.withOpacity(0.9),
+                    AppColor.primaryColor,
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(18.r),
                 boxShadow: [
-                  BoxShadow(color: AppColor.primaryColor.withOpacity(0.3),
-                      blurRadius: 16, offset: const Offset(0, 6)),
+                  BoxShadow(
+                    color: AppColor.primaryColor.withOpacity(0.3),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
                 ],
               ),
               child: Row(
@@ -172,16 +185,23 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
                       color: Colors.white.withOpacity(0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.account_balance_wallet_rounded,
-                        color: Colors.white, size: 22.r),
+                    child: Icon(
+                      Icons.account_balance_wallet_rounded,
+                      color: Colors.white,
+                      size: 22.r,
+                    ),
                   ),
                   SizedBox(width: 14.w),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Available Balance',
-                          style: TextStyle(
-                              fontSize: 12.sp, color: Colors.white70)),
+                      Text(
+                        'Available Balance',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: Colors.white70,
+                        ),
+                      ),
                       Text(
                         'Rs ${widget.balance.toStringAsFixed(0)}',
                         style: TextStyle(
@@ -202,15 +222,14 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
             _SectionLabel('Withdraw Via'),
             SizedBox(height: 10.h),
             Row(
-              children: ['JazzCash', 'EasyPaisa', 'Bank'].map((m) {
+              children: ['JazzCash', 'EasyPaisa'].map((m) {
                 final isSelected = _method == m;
                 return Expanded(
                   child: GestureDetector(
                     onTap: () => setState(() => _method = m),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      margin: EdgeInsets.only(
-                          right: m != 'Bank' ? 8.w : 0),
+                      margin: EdgeInsets.only(right: m != 'Bank' ? 8.w : 0),
                       padding: EdgeInsets.symmetric(vertical: 14.h),
                       decoration: BoxDecoration(
                         color: isSelected
@@ -223,13 +242,19 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
                               : Colors.grey.shade200,
                         ),
                         boxShadow: isSelected
-                            ? [BoxShadow(
-                                color: AppColor.primaryColor.withOpacity(0.3),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4))]
-                            : [BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
-                                blurRadius: 8)],
+                            ? [
+                                BoxShadow(
+                                  color: AppColor.primaryColor.withOpacity(0.3),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ]
+                            : [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.04),
+                                  blurRadius: 8,
+                                ),
+                              ],
                       ),
                       child: Text(
                         m,
@@ -257,18 +282,23 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 style: TextStyle(
-                    fontSize: 24.sp,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF1A1A2E)),
+                  fontSize: 24.sp,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF1A1A2E),
+                ),
                 decoration: InputDecoration(
                   hintText: '0',
                   hintStyle: TextStyle(
-                      fontSize: 24.sp, color: Colors.grey.shade300,
-                      fontWeight: FontWeight.w300),
+                    fontSize: 24.sp,
+                    color: Colors.grey.shade300,
+                    fontWeight: FontWeight.w300,
+                  ),
                   prefixText: 'Rs  ',
                   prefixStyle: TextStyle(
-                      fontSize: 18.sp, fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade500),
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade500,
+                  ),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.all(18.r),
                 ),
@@ -291,17 +321,26 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
               child: TextFormField(
                 controller: _nameController,
                 style: TextStyle(
-                    fontSize: 15.sp, color: const Color(0xFF1A1A2E),
-                    fontWeight: FontWeight.w600),
+                  fontSize: 15.sp,
+                  color: const Color(0xFF1A1A2E),
+                  fontWeight: FontWeight.w600,
+                ),
                 decoration: InputDecoration(
                   hintText: 'Full name as per account',
                   hintStyle: TextStyle(
-                      fontSize: 14.sp, color: Colors.grey.shade300),
-                  prefixIcon: Icon(Icons.person_outline_rounded,
-                      color: Colors.grey.shade400, size: 20.r),
+                    fontSize: 14.sp,
+                    color: Colors.grey.shade300,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.person_outline_rounded,
+                    color: Colors.grey.shade400,
+                    size: 20.r,
+                  ),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16.w, vertical: 18.h),
+                    horizontal: 16.w,
+                    vertical: 18.h,
+                  ),
                 ),
                 validator: (val) =>
                     val == null || val.trim().isEmpty ? 'Enter name' : null,
@@ -322,30 +361,43 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
                   LengthLimitingTextInputFormatter(11),
                 ],
                 style: TextStyle(
-                    fontSize: 16.sp, fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1A1A2E), letterSpacing: 1),
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1A1A2E),
+                  letterSpacing: 1,
+                ),
                 decoration: InputDecoration(
                   hintText: '03XXXXXXXXX',
                   hintStyle: TextStyle(
-                      fontSize: 15.sp, color: Colors.grey.shade300),
+                    fontSize: 15.sp,
+                    color: Colors.grey.shade300,
+                  ),
                   prefixIcon: Padding(
                     padding: EdgeInsets.all(12.r),
                     child: Container(
                       padding: EdgeInsets.symmetric(
-                          horizontal: 10.w, vertical: 6.h),
+                        horizontal: 10.w,
+                        vertical: 6.h,
+                      ),
                       decoration: BoxDecoration(
                         color: _jcBg,
                         borderRadius: BorderRadius.circular(8.r),
                       ),
-                      child: Text('+92',
-                          style: TextStyle(
-                              fontSize: 13.sp, fontWeight: FontWeight.w700,
-                              color: _primary)),
+                      child: Text(
+                        '+92',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w700,
+                          color: _primary,
+                        ),
+                      ),
                     ),
                   ),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16.w, vertical: 18.h),
+                    horizontal: 16.w,
+                    vertical: 18.h,
+                  ),
                 ),
                 validator: (val) {
                   if (val == null || val.isEmpty) return 'Enter number';
@@ -366,7 +418,8 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColor.primaryColor,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16.r)),
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
                   elevation: 0,
                 ),
                 child: wallet.otpLoading
@@ -374,13 +427,20 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.verified_outlined,
-                              color: Colors.white, size: 18.r),
+                          Icon(
+                            Icons.verified_outlined,
+                            color: Colors.white,
+                            size: 18.r,
+                          ),
                           SizedBox(width: 8.w),
-                          Text('Send Verification Code',
-                              style: TextStyle(
-                                  fontSize: 15.sp, fontWeight: FontWeight.w700,
-                                  color: Colors.white)),
+                          Text(
+                            'Send Verification Code',
+                            style: TextStyle(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
                         ],
                       ),
               ),
@@ -410,26 +470,38 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
 
           // Icon
           Container(
-            width: 90.r, height: 90.r,
+            width: 90.r,
+            height: 90.r,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColor.primaryColor.withOpacity(0.8),
-                    AppColor.primaryColor],
+                colors: [
+                  AppColor.primaryColor.withOpacity(0.8),
+                  AppColor.primaryColor,
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               shape: BoxShape.circle,
-              boxShadow: [BoxShadow(
+              boxShadow: [
+                BoxShadow(
                   color: AppColor.primaryColor.withOpacity(0.3),
-                  blurRadius: 20, offset: const Offset(0, 8))],
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Icon(Icons.lock_outlined, color: Colors.white, size: 38.r),
           ).animate().scale(curve: Curves.elasticOut, duration: 600.ms),
 
           SizedBox(height: 20.h),
-          Text('Verify Withdrawal',
-              style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1A1A2E))),
+          Text(
+            'Verify Withdrawal',
+            style: TextStyle(
+              fontSize: 22.sp,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF1A1A2E),
+            ),
+          ),
           SizedBox(height: 8.h),
           Text(
             'Enter the OTP sent to\n${_phoneController.text}',
@@ -449,8 +521,10 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
             child: Text(
               'Rs ${_amountController.text} via $_method',
               style: TextStyle(
-                  fontSize: 15.sp, fontWeight: FontWeight.w700,
-                  color: AppColor.primaryColor),
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w700,
+                color: AppColor.primaryColor,
+              ),
             ),
           ),
 
@@ -461,9 +535,13 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(14.r),
-              boxShadow: [BoxShadow(
+              boxShadow: [
+                BoxShadow(
                   color: Colors.black.withOpacity(0.05),
-                  blurRadius: 12, offset: const Offset(0, 3))],
+                  blurRadius: 12,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
             child: TextField(
               controller: _otpController,
@@ -474,12 +552,18 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
                 LengthLimitingTextInputFormatter(6),
               ],
               style: TextStyle(
-                  fontSize: 28.sp, fontWeight: FontWeight.w800,
-                  letterSpacing: 8, color: const Color(0xFF1A1A2E)),
+                fontSize: 28.sp,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 8,
+                color: const Color(0xFF1A1A2E),
+              ),
               decoration: InputDecoration(
                 hintText: '------',
                 hintStyle: TextStyle(
-                    fontSize: 22.sp, color: Colors.grey.shade300, letterSpacing: 6),
+                  fontSize: 22.sp,
+                  color: Colors.grey.shade300,
+                  letterSpacing: 6,
+                ),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.all(20.r),
               ),
@@ -497,14 +581,20 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
                 backgroundColor: AppColor.primaryColor,
                 disabledBackgroundColor: AppColor.primaryColor.withOpacity(0.5),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16.r)),
+                  borderRadius: BorderRadius.circular(16.r),
+                ),
                 elevation: 0,
               ),
               child: wallet.verifyLoading
                   ? Utils.loadingLottie(size: 40)
-                  : Text('Confirm Withdrawal',
-                      style: TextStyle(fontSize: 16.sp,
-                          fontWeight: FontWeight.w700, color: Colors.white)),
+                  : Text(
+                      'Confirm Withdrawal',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ),
 
@@ -513,8 +603,11 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
             onPressed: wallet.otpLoading ? null : _sendOtp,
             child: Text(
               wallet.otpLoading ? 'Sending...' : 'Resend OTP',
-              style: TextStyle(fontSize: 14.sp, color: AppColor.primaryColor,
-                  fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: AppColor.primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -527,9 +620,13 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14.r),
-        boxShadow: [BoxShadow(
+        boxShadow: [
+          BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 12, offset: const Offset(0, 3))],
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: child,
     );
@@ -541,9 +638,14 @@ class _SectionLabel extends StatelessWidget {
   final String text;
   const _SectionLabel(this.text);
   @override
-  Widget build(BuildContext context) => Text(text,
-      style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700,
-          color: const Color(0xFF1A1A2E)));
+  Widget build(BuildContext context) => Text(
+    text,
+    style: TextStyle(
+      fontSize: 14.sp,
+      fontWeight: FontWeight.w700,
+      color: const Color(0xFF1A1A2E),
+    ),
+  );
 }
 
 // ── Success Sheet ─────────────────────────────────────────────────────────────
@@ -552,8 +654,11 @@ class _WithdrawSuccessSheet extends StatelessWidget {
   final String method, name, phone, txnId;
 
   const _WithdrawSuccessSheet({
-    required this.amount, required this.method,
-    required this.name, required this.phone, required this.txnId,
+    required this.amount,
+    required this.method,
+    required this.name,
+    required this.phone,
+    required this.txnId,
   });
 
   @override
@@ -572,32 +677,46 @@ class _WithdrawSuccessSheet extends StatelessWidget {
         children: [
           // Handle
           Container(
-            width: 40.w, height: 4.h,
+            width: 40.w,
+            height: 4.h,
             decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(2.r)),
+              color: Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(2.r),
+            ),
           ),
           SizedBox(height: 24.h),
 
           // Success icon
           Container(
-            width: 80.r, height: 80.r,
+            width: 80.r,
+            height: 80.r,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                  colors: [Colors.green.shade400, Colors.green.shade600],
-                  begin: Alignment.topLeft, end: Alignment.bottomRight),
+                colors: [Colors.green.shade400, Colors.green.shade600],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               shape: BoxShape.circle,
-              boxShadow: [BoxShadow(
+              boxShadow: [
+                BoxShadow(
                   color: Colors.green.withOpacity(0.3),
-                  blurRadius: 20, offset: const Offset(0, 8))],
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Icon(Icons.check_rounded, color: Colors.white, size: 40.r),
           ).animate().scale(curve: Curves.elasticOut, duration: 600.ms),
 
           SizedBox(height: 16.h),
-          Text('Request Submitted!',
-              style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1A1A2E))),
+          Text(
+            'Request Submitted!',
+            style: TextStyle(
+              fontSize: 22.sp,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF1A1A2E),
+            ),
+          ),
           SizedBox(height: 6.h),
           Text(
             'Your withdrawal is pending admin approval',
@@ -616,8 +735,11 @@ class _WithdrawSuccessSheet extends StatelessWidget {
             ),
             child: Column(
               children: [
-                _DetailRow('Amount', 'Rs ${amount.toStringAsFixed(0)}',
-                    valueColor: AppColor.primaryColor),
+                _DetailRow(
+                  'Amount',
+                  'Rs ${amount.toStringAsFixed(0)}',
+                  valueColor: AppColor.primaryColor,
+                ),
                 SizedBox(height: 10.h),
                 _DetailRow('Method', method),
                 SizedBox(height: 10.h),
@@ -625,8 +747,11 @@ class _WithdrawSuccessSheet extends StatelessWidget {
                 SizedBox(height: 10.h),
                 _DetailRow('Account', phone),
                 SizedBox(height: 10.h),
-                _DetailRow('Status', '⏳ Pending Approval',
-                    valueColor: Colors.orange),
+                _DetailRow(
+                  'Status',
+                  '⏳ Pending Approval',
+                  valueColor: Colors.orange,
+                ),
                 SizedBox(height: 10.h),
                 _DetailRow('Ref ID', txnId),
               ],
@@ -650,8 +775,11 @@ class _WithdrawSuccessSheet extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'You will be notified once your withdrawal is approved. Funds will be transferred within 1-2 business days.',
-                    style: TextStyle(fontSize: 11.sp, color: Colors.blue[700],
-                        height: 1.5),
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: Colors.blue[700],
+                      height: 1.5,
+                    ),
                   ),
                 ),
               ],
@@ -668,12 +796,18 @@ class _WithdrawSuccessSheet extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1A1A2E),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14.r)),
+                  borderRadius: BorderRadius.circular(14.r),
+                ),
                 elevation: 0,
               ),
-              child: Text('Done',
-                  style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w700,
-                      color: Colors.white)),
+              child: Text(
+                'Done',
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
           SizedBox(height: MediaQuery.of(context).padding.bottom + 8.h),
@@ -692,11 +826,18 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      Text(label,
-          style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade500)),
-      Text(value,
-          style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w700,
-              color: valueColor ?? const Color(0xFF1A1A2E))),
+      Text(
+        label,
+        style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade500),
+      ),
+      Text(
+        value,
+        style: TextStyle(
+          fontSize: 13.sp,
+          fontWeight: FontWeight.w700,
+          color: valueColor ?? const Color(0xFF1A1A2E),
+        ),
+      ),
     ],
   );
 }

@@ -583,36 +583,46 @@ class _TransactionTile extends StatelessWidget {
               ),
               SizedBox(height: 3.h),
 
-              // ✅ Pending badge ya time
-              transaction.status == 'pending'
-                  ? Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 6.w,
-                        vertical: 2.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(6.r),
-                        border: Border.all(
-                          color: Colors.orange.withOpacity(0.3),
-                        ),
-                      ),
-                      child: Text(
-                        '⏳ Pending',
-                        style: TextStyle(
-                          fontSize: 10.sp,
-                          color: Colors.orange,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    )
-                  : Text(
-                      _timeAgo(transaction.createdAt),
-                      style: TextStyle(
-                        fontSize: 11.sp,
-                        color: Colors.grey.shade400,
-                      ),
-                    ),
+              // ✅ Status badge (Success, Pending, Failed)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                decoration: BoxDecoration(
+                  color: transaction.status == 'success'
+                      ? const Color(0xFF00C853).withOpacity(0.12)
+                      : transaction.status == 'pending'
+                      ? Colors.orange.withOpacity(0.12)
+                      : Colors.red.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(6.r),
+                  border: Border.all(
+                    color: transaction.status == 'success'
+                        ? const Color(0xFF00C853).withOpacity(0.3)
+                        : transaction.status == 'pending'
+                        ? Colors.orange.withOpacity(0.3)
+                        : Colors.red.withOpacity(0.3),
+                  ),
+                ),
+                child: Text(
+                  transaction.status == 'success'
+                      ? 'Success'
+                      : transaction.status == 'pending'
+                      ? 'Pending'
+                      : 'Failed',
+                  style: TextStyle(
+                    fontSize: 10.sp,
+                    color: transaction.status == 'success'
+                        ? const Color(0xFF00C853)
+                        : transaction.status == 'pending'
+                        ? Colors.orange
+                        : Colors.red,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              SizedBox(height: 3.h),
+              Text(
+                _timeAgo(transaction.createdAt),
+                style: TextStyle(fontSize: 11.sp, color: Colors.grey.shade400),
+              ),
             ],
           ),
         ],
@@ -628,6 +638,15 @@ class _TransactionTile extends StatelessWidget {
       return ClipOval(
         child: Image.asset(
           'assets/images/JazzCashLogo.jpg',
+          fit: BoxFit.cover,
+          width: 36.r,
+          height: 36.r,
+        ),
+      );
+    } else if (m.contains('easy') || m.contains('easypaisa') || m == 'send') {
+      return ClipOval(
+        child: Image.asset(
+          'assets/images/easypaisaLogo.jpg',
           fit: BoxFit.cover,
           width: 36.r,
           height: 36.r,
