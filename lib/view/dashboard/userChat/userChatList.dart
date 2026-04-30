@@ -14,6 +14,7 @@ import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/resources/socketServices.dart';
 import 'package:user_side/view/auth/AuthLoginGate.dart';
+import 'package:user_side/view/dashboard/userChat/admin_messages_screen.dart';
 import 'package:user_side/view/dashboard/userChat/userChatScreen.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/chatThread_provider.dart';
 
@@ -123,45 +124,71 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
       ),
       body: provider.loading
           ? Utils.loadingLottie()
-          : threads.isEmpty
-          ? _buildEmptyState()
           : RefreshIndicator(
               onRefresh: () async {
-                if (buyerId != null) {
-                  await provider.fetchThreads(buyerId!);
-                }
+                if (buyerId != null) await provider.fetchThreads(buyerId!);
               },
               child: ListView.separated(
                 padding: EdgeInsets.zero,
-                itemCount: threads.length,
+                // +1 for pinned admin tile at index 0
+                itemCount: threads.length + 1,
                 separatorBuilder: (_, __) =>
                     Divider(height: 1.h, indent: 80.w, color: Colors.black12),
                 itemBuilder: (context, i) {
-                  final thread = threads[i];
-                  return _buildChatTile(
-                    thread,
-                  ).animate().fadeIn(delay: (i * 30).ms).slideX(begin: 0.1);
+                  if (i == 0) return _buildAdminTile(context);
+                  final thread = threads[i - 1];
+                  return _buildChatTile(thread)
+                      .animate()
+                      .fadeIn(delay: (i * 30).ms)
+                      .slideX(begin: 0.1);
                 },
               ),
             ),
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Utils.messageEmpty(size: 400),
-          Text(
-            "No conversations yet",
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
+  Widget _buildAdminTile(BuildContext context) {
+    return InkWell(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const BuyerAdminMessagesScreen()),
+      ),
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(28.r),
+          child: Image.asset(
+            'assets/images/shookoo_image.png',
+            width: 56.r,
+            height: 56.r,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => CircleAvatar(
+              radius: 28.r,
+              backgroundColor: AppColor.primaryColor.withValues(alpha: 0.15),
+              child: Icon(Icons.shield_outlined, color: AppColor.primaryColor, size: 26.sp),
             ),
           ),
-        ],
+        ),
+        title: Text(
+          'SHOOKOO Admin',
+          style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w700, color: Colors.black87),
+        ),
+        subtitle: Text(
+          'Official support & announcements',
+          style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: Container(
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+          decoration: BoxDecoration(
+            color: AppColor.primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+          child: Text(
+            'Official',
+            style: TextStyle(fontSize: 10.sp, color: AppColor.primaryColor, fontWeight: FontWeight.w600),
+          ),
+        ),
       ),
     );
   }
