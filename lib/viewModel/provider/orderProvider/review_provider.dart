@@ -31,32 +31,34 @@ class ReviewFormProvider extends ChangeNotifier {
 
 
 class ReviewProvider extends ChangeNotifier {
-  final Set<String> _reviewedProductIds = <String>{};
+  final Set<String> _reviewedOrderIds = <String>{};
   bool _isLoaded = false;
 
   bool get isLoaded => _isLoaded;
 
-  bool isReviewed(String productId) => _reviewedProductIds.contains(productId);
+  bool isReviewed(String orderId) => _reviewedOrderIds.contains(orderId);
 
-  Future<void> loadReviewedProducts() async {
-    final ids = await LocalStorage.getReviewedProductIds();
-    _reviewedProductIds
+  Future<void> loadReviewedOrders() async {
+    final ids = await LocalStorage.getReviewedOrderIds();
+    _reviewedOrderIds
       ..clear()
       ..addAll(ids);
     _isLoaded = true;
     notifyListeners();
   }
-Future<void> showSuccessDialog(BuildContext context) async {
-  await showDialog(
-    context: context,
-    barrierDismissible: false,
-    barrierColor: Colors.black.withOpacity(0.6),
-    builder: (_) => const SuccessDialog(),
-  );
-}
-  Future<void> markReviewed(String productId) async {
-    await LocalStorage.markProductReviewed(productId);
-    _reviewedProductIds.add(productId);
+
+  Future<void> showSuccessDialog(BuildContext context) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.6),
+      builder: (_) => const SuccessDialog(),
+    );
+  }
+
+  Future<void> markReviewed(String orderId) async {
+    await LocalStorage.markOrderReviewed(orderId);
+    _reviewedOrderIds.add(orderId);
     notifyListeners();
   }
 }

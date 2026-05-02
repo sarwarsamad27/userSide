@@ -11,7 +11,8 @@ import 'package:user_side/viewModel/provider/productProvider/createReview_provid
 
 class ReviewScreen extends StatelessWidget {
   final String productId;
-  const ReviewScreen({super.key, required this.productId});
+  final String orderId;
+  const ReviewScreen({super.key, required this.productId, required this.orderId});
 
   @override
   Widget build(BuildContext context) {
@@ -315,7 +316,7 @@ class ReviewScreen extends StatelessWidget {
                                 );
 
                                 getProductProvider.addNewReview(newReview);
-                                await reviewedProvider.markReviewed(productId);
+                                await reviewedProvider.markReviewed(orderId);
                                 form.reset();
                                 await reviewedProvider.showSuccessDialog(
                                   context,

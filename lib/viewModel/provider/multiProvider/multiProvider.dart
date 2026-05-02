@@ -70,7 +70,7 @@ class AppMultiProvider extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => GoogleLoginProvider()),
         ChangeNotifierProvider(create: (_) => ReviewFormProvider()),
         ChangeNotifierProvider(
-          create: (_) => ReviewProvider()..loadReviewedProducts(),
+          create: (_) => ReviewProvider()..loadReviewedOrders(),
         ),
 
         ChangeNotifierProvider(create: (_) => ProductShareProvider()),

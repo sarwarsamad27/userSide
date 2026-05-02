@@ -5,8 +5,11 @@ import 'package:uuid/uuid.dart';
 class LocalStorage {
   static const String _deviceKey = "deviceId";
 
-  /// Reviewed products key
+  /// Reviewed products key (legacy - per productId)
   static const String _reviewedProductsKey = "reviewedProductIds";
+
+  /// Reviewed orders key (per orderId — each order reviewed separately)
+  static const String _reviewedOrdersKey = "reviewedOrderIds";
 
   /// -------- DEVICE ID (GUEST + LOGIN BOTH) --------
   static Future<String> getOrCreateDeviceId() async {
@@ -122,6 +125,21 @@ class LocalStorage {
     final list = prefs.getStringList(_reviewedProductsKey) ?? <String>[];
     list.remove(productId);
     await prefs.setStringList(_reviewedProductsKey, list);
+  }
+
+  static Future<Set<String>> getReviewedOrderIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_reviewedOrdersKey) ?? <String>[];
+    return list.toSet();
+  }
+
+  static Future<void> markOrderReviewed(String orderId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_reviewedOrdersKey) ?? <String>[];
+    if (!list.contains(orderId)) {
+      list.add(orderId);
+      await prefs.setStringList(_reviewedOrdersKey, list);
+    }
   }
 
   static Future<void> clearReviewedProducts() async {

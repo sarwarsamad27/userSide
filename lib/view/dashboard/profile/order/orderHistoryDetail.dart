@@ -49,7 +49,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final myExchange = exchanges
         .where((e) => e.orderId == _order.id)
         .firstOrNull;
-    final myRefund = refunds.where((r) => r.orderId == _order.id).firstOrNull;
+    final myRefund = refunds.where((r) => r.orderId == _order.orderId).firstOrNull;
 
     if (myExchange != null || myRefund != null) {
       setState(() {
