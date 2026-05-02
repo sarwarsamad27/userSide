@@ -379,19 +379,37 @@ _Powered by Shookoo 🇵🇰_''';
                     // Stock badge
                     Builder(
                       builder: (_) {
-                        final String stockText = (product.stock ?? "In Stock")
-                            .trim();
-                        final bool isOutOfStock =
-                            stockText.toLowerCase() == "out of stock";
-                        final Color bgColor = isOutOfStock
-                            ? const Color(0xFFFEE2E2)
-                            : const Color(0xFFFFEDD5);
-                        final Color borderColor = isOutOfStock
-                            ? const Color(0xFFFCA5A5)
-                            : const Color(0xFFFDBA74);
-                        final Color textColor = isOutOfStock
-                            ? const Color(0xFFB91C1C)
-                            : const Color(0xFFC2410C);
+                        final int? qty = product.quantity;
+                        final String stockStr = (product.stock ?? '').trim();
+
+                        // Determine state from quantity if available, else fallback to stock string
+                        final String label;
+                        final Color bgColor, borderColor, textColor;
+
+                        if (qty != null) {
+                          if (qty <= 0) {
+                            label = 'Out of Stock';
+                            bgColor     = const Color(0xFFFEE2E2);
+                            borderColor = const Color(0xFFFCA5A5);
+                            textColor   = const Color(0xFFB91C1C);
+                          } else if (qty <= 5) {
+                            label = 'Only $qty left!';
+                            bgColor     = const Color(0xFFFEF3C7);
+                            borderColor = const Color(0xFFFCD34D);
+                            textColor   = const Color(0xFFB45309);
+                          } else {
+                            label = 'In Stock';
+                            bgColor     = const Color(0xFFDCFCE7);
+                            borderColor = const Color(0xFF86EFAC);
+                            textColor   = const Color(0xFF166534);
+                          }
+                        } else {
+                          final bool isOut = stockStr.toLowerCase() == 'out of stock';
+                          label       = isOut ? 'Out of Stock' : (stockStr.isEmpty ? 'In Stock' : stockStr);
+                          bgColor     = isOut ? const Color(0xFFFEE2E2) : const Color(0xFFFFEDD5);
+                          borderColor = isOut ? const Color(0xFFFCA5A5) : const Color(0xFFFDBA74);
+                          textColor   = isOut ? const Color(0xFFB91C1C) : const Color(0xFFC2410C);
+                        }
 
                         return Container(
                           padding: EdgeInsets.symmetric(
@@ -404,7 +422,7 @@ _Powered by Shookoo 🇵🇰_''';
                             border: Border.all(color: borderColor),
                           ),
                           child: Text(
-                            stockText.isEmpty ? "In Stock" : stockText,
+                            label,
                             style: TextStyle(
                               fontSize: 12.sp,
                               fontWeight: FontWeight.w700,

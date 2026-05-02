@@ -40,6 +40,7 @@ class Products {
   List<String>? size;
   List<String>? color;
   String? stock;
+  int? quantity;
   String? createdAt;
   String? updatedAt;
   int? iV;
@@ -60,10 +61,11 @@ class Products {
     this.size,
     this.color,
     this.stock,
+    this.quantity,
     this.createdAt,
     this.updatedAt,
     this.iV,
-    this.averageRating, // ✅
+    this.averageRating,
   });
 
   Products.fromJson(Map<String, dynamic> json) {
@@ -79,6 +81,7 @@ class Products {
     size = json['size']?.cast<String>();
     color = json['color']?.cast<String>();
     stock = json['stock'];
+    quantity = json['quantity'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     iV = json['__v'];
@@ -103,6 +106,7 @@ class Products {
     data['size'] = size;
     data['color'] = color;
     data['stock'] = stock;
+    data['quantity'] = quantity;
     data['createdAt'] = createdAt;
     data['updatedAt'] = updatedAt;
     data['__v'] = iV;

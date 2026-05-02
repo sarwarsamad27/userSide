@@ -1,6 +1,8 @@
 // view/dashboard/userChat/userChatListScreen.dart
 
+import 'dart:convert';
 import 'dart:developer';
+import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -28,6 +30,11 @@ class UserChatListScreen extends StatefulWidget {
 class _UserChatListScreenState extends State<UserChatListScreen> {
   String? buyerId;
 
+  // ── Admin message state ─────────────────────────────────────────────────
+  int _adminUnread = 0;
+  String _adminLastMsg = 'Official support & announcements';
+  DateTime? _adminLastTime;
+
   @override
   void initState() {
     super.initState();
@@ -35,42 +42,81 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
   }
 
   Future<void> _loadData() async {
-    // ✅ USERID based (AuthSession already init in main)
     buyerId = AuthSession.instance.userId ?? await LocalStorage.getUserId();
 
     if (buyerId != null && buyerId!.trim().isNotEmpty) {
-      print("📩 Loading chat threads for buyer: $buyerId");
+      log('📩 Loading chat threads for buyer: $buyerId');
       await context.read<ChatThreadProvider>().fetchThreads(buyerId!);
-
-      // ✅ Setup socket listeners for real-time updates
       _setupSocketListeners();
-    } else {
-      print("❌ No buyerId found");
+      _fetchAdminMessageState();
     }
+  }
+
+  // Fetch admin messages to populate last-message + unread count
+  Future<void> _fetchAdminMessageState() async {
+    try {
+      final token = await LocalStorage.getToken();
+      final uid   = buyerId ?? '';
+      final res   = await http.get(
+        Uri.parse('${Global.BuyerGetAdminMessages}?buyerId=$uid'),
+        headers: {'Authorization': 'Bearer ${token ?? ''}'},
+      );
+      if (res.statusCode == 200 && mounted) {
+        final msgs = (jsonDecode(res.body)['messages'] as List? ?? []);
+        final fromAdmin = msgs.where((m) => m['fromType'] == 'admin').toList();
+        if (fromAdmin.isNotEmpty) {
+          final last = fromAdmin.last;
+          setState(() {
+            _adminLastMsg  = last['message']?.toString() ?? _adminLastMsg;
+            _adminLastTime = DateTime.tryParse(last['createdAt']?.toString() ?? '');
+            _adminUnread   = fromAdmin.length;
+          });
+        }
+      }
+    } catch (_) {}
   }
 
   void _setupSocketListeners() {
     final socket = SocketService().socket;
-    if (socket == null || !socket.connected) {
-      print("⚠️ Socket not connected in chat list");
-      return;
-    }
+    if (socket == null || !socket.connected) return;
 
-    // ✅ Listen for new messages to update thread list
     socket.off("chat:message");
     socket.off("exchange:new");
+    socket.off("admin:message");
+    socket.off("admin:broadcast");
 
-    socket.on("chat:message", (data) {
-      print("📩 Chat list received message");
-      if (buyerId != null) {
+    socket.on("chat:message", (_) {
+      if (mounted && buyerId != null) {
         context.read<ChatThreadProvider>().fetchThreads(buyerId!);
       }
     });
 
-    socket.on("exchange:new", (data) {
-      print("📩 Chat list received exchange request");
-      if (buyerId != null) {
+    socket.on("exchange:new", (_) {
+      if (mounted && buyerId != null) {
         context.read<ChatThreadProvider>().fetchThreads(buyerId!);
+      }
+    });
+
+    // Admin message / announcement → highlight SHOOKOO tile
+    socket.on("admin:message", (data) {
+      if (!mounted) return;
+      final msg = (data is Map) ? data : {};
+      setState(() {
+        _adminUnread++;
+        _adminLastMsg  = msg['message']?.toString() ?? _adminLastMsg;
+        _adminLastTime = DateTime.now();
+      });
+    });
+
+    socket.on("admin:broadcast", (data) {
+      if (!mounted) return;
+      final msg = (data is Map) ? data : {};
+      if (msg['toType'] == 'all_buyers') {
+        setState(() {
+          _adminUnread++;
+          _adminLastMsg  = msg['message']?.toString() ?? _adminLastMsg;
+          _adminLastTime = DateTime.now();
+        });
       }
     });
   }
@@ -148,46 +194,102 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
   }
 
   Widget _buildAdminTile(BuildContext context) {
+    final hasUnread = _adminUnread > 0;
+    final timeStr   = _adminLastTime != null ? _formatTime(_adminLastTime.toString()) : '';
+
     return InkWell(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const BuyerAdminMessagesScreen()),
-      ),
+      onTap: () {
+        setState(() => _adminUnread = 0);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const BuyerAdminMessagesScreen()),
+        );
+      },
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(28.r),
-          child: Image.asset(
-            'assets/images/shookoo_image.png',
-            width: 56.r,
-            height: 56.r,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => CircleAvatar(
-              radius: 28.r,
-              backgroundColor: AppColor.primaryColor.withValues(alpha: 0.15),
-              child: Icon(Icons.shield_outlined, color: AppColor.primaryColor, size: 26.sp),
+        leading: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(28.r),
+              child: Image.asset(
+                'assets/images/shookoo_image.png',
+                width: 56.r,
+                height: 56.r,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => CircleAvatar(
+                  radius: 28.r,
+                  backgroundColor: AppColor.primaryColor.withValues(alpha: 0.15),
+                  child: Icon(Icons.shield_outlined, color: AppColor.primaryColor, size: 26.sp),
+                ),
+              ),
             ),
-          ),
+            if (hasUnread)
+              Positioned(
+                right: 0,
+                top: 0,
+                child: Container(
+                  width: 14.w,
+                  height: 14.w,
+                  decoration: BoxDecoration(
+                    color: AppColor.primaryColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                ),
+              ),
+          ],
         ),
-        title: Text(
-          'SHOOKOO Admin',
-          style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w700, color: Colors.black87),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                'SHOOKOO Admin',
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: hasUnread ? FontWeight.w700 : FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            if (timeStr.isNotEmpty)
+              Text(
+                timeStr,
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: hasUnread ? AppColor.primaryColor : Colors.black45,
+                  fontWeight: hasUnread ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+          ],
         ),
-        subtitle: Text(
-          'Official support & announcements',
-          style: TextStyle(fontSize: 12.sp, color: Colors.grey),
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Container(
-          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-          decoration: BoxDecoration(
-            color: AppColor.primaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8.r),
-          ),
-          child: Text(
-            'Official',
-            style: TextStyle(fontSize: 10.sp, color: AppColor.primaryColor, fontWeight: FontWeight.w600),
-          ),
+        subtitle: Row(
+          children: [
+            Expanded(
+              child: Text(
+                _adminLastMsg,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: hasUnread ? Colors.black87 : Colors.black54,
+                  fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (hasUnread)
+              Container(
+                margin: EdgeInsets.only(left: 8.w),
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: AppColor.primaryColor,
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Text(
+                  '$_adminUnread',
+                  style: TextStyle(fontSize: 11.sp, color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+          ],
         ),
       ),
     );
