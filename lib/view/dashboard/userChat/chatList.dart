@@ -63,7 +63,10 @@ class ChatList extends StatelessWidget {
               );
             }
             // ✅ Regular Message
-            return MessageBubble(message: m);
+            return MessageBubble(
+              message: m,
+              onReply: (msg) => context.read<UserChatProvider>().setReplyTo(msg),
+            );
           },
         );
       },

@@ -12,6 +12,9 @@ class ChatMessage {
   final ExchangeRequestData? exchangeData;
   final RefundRequestData? refundData;
   final ProductCard? productCard;
+  final String? replyToId;
+  final String? replyToText;
+  final String? replyToFromType;
 
   ChatMessage({
     this.id,
@@ -27,6 +30,9 @@ class ChatMessage {
     this.exchangeData,
     this.refundData,
     this.productCard,
+    this.replyToId,
+    this.replyToText,
+    this.replyToFromType,
   });
 
   static String? _extractThreadId(Map<String, dynamic> json) {
@@ -66,6 +72,9 @@ class ChatMessage {
       productCard: json["productCard"] != null && json["productCard"] is Map
           ? ProductCard.fromJson((json["productCard"] as Map).cast<String, dynamic>())
           : null,
+      replyToId: json["replyToId"]?.toString(),
+      replyToText: json["replyToText"]?.toString(),
+      replyToFromType: json["replyToFromType"]?.toString(),
     );
   }
 }

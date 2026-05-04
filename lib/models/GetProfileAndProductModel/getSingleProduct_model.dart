@@ -74,6 +74,7 @@ class Product {
   List<String>? color;
   String? stock;
   int? quantity;
+  String? videoUrl;
   String? createdAt;
   String? updatedAt;
   int? iV;
@@ -91,6 +92,7 @@ class Product {
     this.color,
     this.stock,
     this.quantity,
+    this.videoUrl,
     this.createdAt,
     this.updatedAt,
     this.iV,
@@ -109,6 +111,7 @@ class Product {
     color = json['color'].cast<String>();
     stock = json['stock'];
     quantity = json['quantity'];
+    videoUrl = json['videoUrl'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     iV = json['__v'];
@@ -128,6 +131,7 @@ class Product {
     data['color'] = this.color;
     data['stock'] = this.stock;
     data['quantity'] = this.quantity;
+    data['videoUrl'] = this.videoUrl;
     data['createdAt'] = this.createdAt;
     data['updatedAt'] = this.updatedAt;
     data['__v'] = this.iV;
@@ -141,8 +145,12 @@ class Reviews {
   String? text;
   String? userEmail;
   String? avatar;
+  List<String>? images;
+  String? video;
   String? replyText;
   String? repliedAt;
+  List<String>? replyImages;
+  String? replyVideo;
   String? createdAt;
   String? updatedAt;
 
@@ -152,8 +160,12 @@ class Reviews {
     this.text,
     this.userEmail,
     this.avatar,
+    this.images,
+    this.video,
     this.replyText,
     this.repliedAt,
+    this.replyImages,
+    this.replyVideo,
     this.createdAt,
     this.updatedAt,
   });
@@ -164,23 +176,31 @@ class Reviews {
     text = json['text'];
     userEmail = json['userEmail'];
     avatar = json['avatar'];
+    images = json['images'] != null ? List<String>.from(json['images']) : [];
+    video = json['video'];
     replyText = json['replyText'];
     repliedAt = json['repliedAt'];
+    replyImages = json['replyImages'] != null ? List<String>.from(json['replyImages']) : [];
+    replyVideo = json['replyVideo'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['stars'] = this.stars;
-    data['text'] = this.text;
-    data['userEmail'] = this.userEmail;
-    data['avatar'] = this.avatar;
-    data['replyText'] = this.replyText;
-    data['repliedAt'] = this.repliedAt;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['stars'] = stars;
+    data['text'] = text;
+    data['userEmail'] = userEmail;
+    data['avatar'] = avatar;
+    data['images'] = images;
+    data['video'] = video;
+    data['replyText'] = replyText;
+    data['repliedAt'] = repliedAt;
+    data['replyImages'] = replyImages;
+    data['replyVideo'] = replyVideo;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
     return data;
   }
 }

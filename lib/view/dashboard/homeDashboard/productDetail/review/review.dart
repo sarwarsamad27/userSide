@@ -7,6 +7,7 @@ import 'package:user_side/view/dashboard/homeDashboard/productDetail/review/dele
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/review/editDialogBox.dart';
 import 'package:user_side/models/ProductAndCategoryModel/editReview_model.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getSingleProduct_provider.dart';
+import 'package:video_player/video_player.dart';
 
 class Review extends StatefulWidget {
   final String productId;
@@ -21,11 +22,8 @@ class Review extends StatefulWidget {
 class _ReviewState extends State<Review> {
   final ValueNotifier<int> _versionNotifier = ValueNotifier(0);
   final ValueNotifier<bool> _showAllReviewsNotifier = ValueNotifier(false);
-
-  // Using ValueNotifier with immutable maps for updates
   final ValueNotifier<Map<String, bool>> _showReplyNotifier = ValueNotifier({});
-  final ValueNotifier<Map<String, bool>> _showEditDeleteNotifier =
-      ValueNotifier({});
+  final ValueNotifier<Map<String, bool>> _showEditDeleteNotifier = ValueNotifier({});
 
   @override
   void dispose() {
@@ -37,59 +35,45 @@ class _ReviewState extends State<Review> {
   }
 
   String _monthName(int month) {
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     return months[month - 1];
   }
 
   String _formatTime(DateTime date) {
     int hour = date.hour;
-    String period = hour >= 12 ? "PM" : "AM";
+    final period = hour >= 12 ? "PM" : "AM";
     hour = hour % 12;
     if (hour == 0) hour = 12;
-    String minute = date.minute.toString().padLeft(2, '0');
-    return "$hour:$minute $period";
+    return "$hour:${date.minute.toString().padLeft(2, '0')} $period";
   }
 
   String formatDate(String isoDate) {
     try {
       final date = DateTime.parse(isoDate).toLocal();
-      return "${date.day.toString().padLeft(2, '0')} "
-          "${_monthName(date.month)} "
-          "${date.year} - ${_formatTime(date)}";
-    } catch (e) {
+      return "${date.day.toString().padLeft(2, '0')} ${_monthName(date.month)} ${date.year} - ${_formatTime(date)}";
+    } catch (_) {
       return isoDate;
     }
+  }
+
+  void _openFullscreenImage(BuildContext ctx, List<String> urls, int index) {
+    Navigator.push(ctx, MaterialPageRoute(builder: (_) => _FullscreenImages(urls: urls, initialIndex: index)));
+  }
+
+  void _openFullscreenVideo(BuildContext ctx, String url) {
+    Navigator.push(ctx, MaterialPageRoute(builder: (_) => _FullscreenVideo(url: url)));
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<GetSingleProductProvider>();
     final data = provider.productData!;
-    // widget.reviews is a reference.
-    // We listen to _versionNotifier to know when to rebuild this if contents changed in place.
 
     return ValueListenableBuilder<int>(
       valueListenable: _versionNotifier,
-      builder: (context, version, _) {
+      builder: (context, _, __) {
         final apiReviews = widget.reviews;
-
-        // ✅ If no reviews, hide the whole section
-        if (apiReviews.isEmpty) {
-          return const SizedBox.shrink();
-        }
+        if (apiReviews.isEmpty) return const SizedBox.shrink();
 
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
@@ -97,25 +81,23 @@ class _ReviewState extends State<Review> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Customer Reviews",
-                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700),
-              ),
+              Text("Customer Reviews", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700)),
               SizedBox(height: 12.h),
 
               ValueListenableBuilder<bool>(
                 valueListenable: _showAllReviewsNotifier,
-                builder: (context, showAllReviews, _) {
-                  final int count = showAllReviews
-                      ? apiReviews.length
-                      : (apiReviews.length > 3 ? 3 : apiReviews.length);
-
+                builder: (context, showAll, _) {
+                  final count = showAll ? apiReviews.length : (apiReviews.length > 3 ? 3 : apiReviews.length);
                   return Column(
                     children: [
                       Column(
                         children: List.generate(count, (index) {
                           final r = apiReviews[index];
                           final reviewId = r.sId ?? "";
+                          final hasImages = (r.images?.isNotEmpty ?? false);
+                          final hasVideo = r.video?.isNotEmpty ?? false;
+                          final hasReplyImages = (r.replyImages?.isNotEmpty ?? false);
+                          final hasReplyVideo = r.replyVideo?.isNotEmpty ?? false;
 
                           return Container(
                             margin: EdgeInsets.only(bottom: 12.h),
@@ -123,225 +105,181 @@ class _ReviewState extends State<Review> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(12.r),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 4,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
+                              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // User + Stars
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      (r.userEmail != null &&
-                                              r.userEmail!.contains("@"))
+                                      (r.userEmail != null && r.userEmail!.contains("@"))
                                           ? r.userEmail!.split("@").first
                                           : r.userEmail ?? "User",
-                                      style: TextStyle(
-                                        fontSize: 15.sp,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColor.primaryColor,
-                                      ),
+                                      style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w600, color: AppColor.primaryColor),
                                     ),
                                     Row(
-                                      children: List.generate(5, (i) {
-                                        return Icon(
-                                          i < (r.stars ?? 0)
-                                              ? Icons.star
-                                              : Icons.star_border,
-                                          size: 18.sp,
-                                          color: Colors.amber,
-                                        );
-                                      }),
+                                      children: List.generate(5, (i) => Icon(
+                                        i < (r.stars ?? 0) ? Icons.star : Icons.star_border,
+                                        size: 18.sp, color: Colors.amber,
+                                      )),
                                     ),
                                   ],
                                 ),
                                 SizedBox(height: 6.h),
-                                Text(
-                                  r.text ?? "",
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    color: Colors.black87,
-                                  ),
-                                ),
 
-                                if (r.repliedAt != null)
-                                  Align(
-                                    alignment: Alignment.bottomRight,
-                                    child: Text(
-                                      formatDate(r.createdAt!),
-                                      style: TextStyle(
-                                        fontSize: 11.sp,
-                                        color: Colors.grey,
+                                // Review text
+                                Text(r.text ?? "", style: TextStyle(fontSize: 14.sp, color: Colors.black87)),
+
+                                // Review images
+                                if (hasImages) ...[
+                                  SizedBox(height: 10.h),
+                                  SizedBox(
+                                    height: 80.h,
+                                    child: ListView.separated(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: r.images!.length,
+                                      separatorBuilder: (_, __) => SizedBox(width: 8.w),
+                                      itemBuilder: (_, i) => GestureDetector(
+                                        onTap: () => _openFullscreenImage(context, r.images!, i),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(8.r),
+                                          child: Image.network(r.images![i], width: 80.w, height: 80.h, fit: BoxFit.cover),
+                                        ),
                                       ),
                                     ),
                                   ),
+                                ],
 
-                                // Edit/Delete Buttons
+                                // Review video
+                                if (hasVideo) ...[
+                                  SizedBox(height: 10.h),
+                                  GestureDetector(
+                                    onTap: () => _openFullscreenVideo(context, r.video!),
+                                    child: _NetworkVideoThumb(url: r.video!),
+                                  ),
+                                ],
+
+                                // Date
+                                if (r.createdAt != null)
+                                  Align(
+                                    alignment: Alignment.bottomRight,
+                                    child: Text(formatDate(r.createdAt!), style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
+                                  ),
+
+                                // Edit/Delete
                                 ValueListenableBuilder<Map<String, bool>>(
                                   valueListenable: _showEditDeleteNotifier,
-                                  builder: (context, editDeleteMap, _) {
-                                    bool canEditDelete =
-                                        editDeleteMap[reviewId] ?? false;
-
-                                    if (canEditDelete ||
-                                        r.userEmail == "StaticUser") {
-                                      return Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        children: [
-                                          TextButton(
-                                            onPressed: () {
-                                              openEditReviewDialog(
-                                                context,
-                                                EditReview(
-                                                  sId: r.sId,
-                                                  stars: r.stars,
-                                                  text: r.text,
-                                                ),
-                                                (updatedStars, updatedText) {
-                                                  // Update locally and notify
-                                                  r.stars = updatedStars;
-                                                  r.text = updatedText;
-                                                  _versionNotifier.value++;
-                                                },
-                                              );
-                                            },
-                                            child: const Text("Edit"),
+                                  builder: (context, editMap, _) {
+                                    if (!(editMap[reviewId] ?? false)) return const SizedBox.shrink();
+                                    return Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        TextButton(
+                                          onPressed: () => openEditReviewDialog(
+                                            context,
+                                            EditReview(sId: r.sId, stars: r.stars, text: r.text),
+                                            (stars, text) { r.stars = stars; r.text = text; _versionNotifier.value++; },
                                           ),
-                                          TextButton(
-                                            onPressed: () {
-                                              openDeleteReviewDialog(
-                                                context,
-                                                r,
-                                                () {
-                                                  widget.reviews.removeWhere(
-                                                    (rev) => rev.sId == r.sId,
-                                                  );
-                                                  _versionNotifier.value++;
-                                                },
-                                              );
-                                            },
-                                            child: const Text("Delete"),
-                                          ),
-                                        ],
-                                      );
-                                    }
-                                    return const SizedBox.shrink();
+                                          child: const Text("Edit"),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => openDeleteReviewDialog(context, r, () {
+                                            widget.reviews.removeWhere((rev) => rev.sId == r.sId);
+                                            _versionNotifier.value++;
+                                          }),
+                                          child: const Text("Delete"),
+                                        ),
+                                      ],
+                                    );
                                   },
                                 ),
 
-                                // Reply Button
-                                if (r.replyText != null &&
-                                    r.replyText!.isNotEmpty)
+                                // Reply section
+                                if (r.replyText != null && r.replyText!.isNotEmpty)
                                   ValueListenableBuilder<Map<String, bool>>(
                                     valueListenable: _showReplyNotifier,
                                     builder: (context, replyMap, _) {
-                                      final isReplyVisible =
-                                          replyMap[reviewId] ?? false;
-
+                                      final isVisible = replyMap[reviewId] ?? false;
                                       return Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
+                                        crossAxisAlignment: CrossAxisAlignment.end,
                                         children: [
                                           Align(
                                             alignment: Alignment.centerRight,
                                             child: TextButton(
                                               onPressed: () {
-                                                final newMap =
-                                                    Map<String, bool>.from(
-                                                      replyMap,
-                                                    );
-                                                newMap[reviewId] =
-                                                    !isReplyVisible;
-                                                _showReplyNotifier.value =
-                                                    newMap;
+                                                final newMap = Map<String, bool>.from(replyMap);
+                                                newMap[reviewId] = !isVisible;
+                                                _showReplyNotifier.value = newMap;
                                               },
                                               child: Text(
-                                                isReplyVisible
-                                                    ? "Hide Reply"
-                                                    : "View Reply",
-                                                style: TextStyle(
-                                                  color: AppColor.primaryColor,
-                                                  fontWeight: FontWeight.w700,
-                                                  fontSize: 13.sp,
-                                                ),
+                                                isVisible ? "Hide Reply" : "View Reply",
+                                                style: TextStyle(color: AppColor.primaryColor, fontWeight: FontWeight.w700, fontSize: 13.sp),
                                               ),
                                             ),
                                           ),
-                                          if (isReplyVisible)
+                                          if (isVisible)
                                             Container(
-                                              margin: EdgeInsets.only(
-                                                top: 10.h,
-                                              ),
+                                              margin: EdgeInsets.only(top: 10.h),
                                               padding: EdgeInsets.all(10.w),
                                               decoration: BoxDecoration(
-                                                color: AppColor.primaryColor
-                                                    .withOpacity(0.05),
-                                                borderRadius:
-                                                    BorderRadius.circular(10.r),
+                                                color: AppColor.primaryColor.withOpacity(0.05),
+                                                borderRadius: BorderRadius.circular(10.r),
                                               ),
-                                              child: Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  Icon(
-                                                    Icons.reply,
-                                                    color:
-                                                        AppColor.primaryColor,
-                                                    size: 18.sp,
+                                                  Row(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Icon(Icons.reply, color: AppColor.primaryColor, size: 18.sp),
+                                                      SizedBox(width: 8.w),
+                                                      Expanded(
+                                                        child: Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            Text(data.profileName ?? "Seller", style: TextStyle(color: AppColor.primaryColor, fontWeight: FontWeight.w600, fontSize: 13.sp)),
+                                                            SizedBox(height: 4.h),
+                                                            Text(r.replyText ?? "", style: TextStyle(fontSize: 13.sp, color: Colors.grey[800])),
+                                                            if (r.repliedAt != null)
+                                                              Align(
+                                                                alignment: Alignment.bottomRight,
+                                                                child: Text(formatDate(r.repliedAt!), style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
+                                                              ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                  SizedBox(width: 8.w),
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          data.profileName ??
-                                                              "Seller",
-                                                          style: TextStyle(
-                                                            color: AppColor
-                                                                .primaryColor,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            fontSize: 13.sp,
+                                                  // Reply images
+                                                  if (hasReplyImages) ...[
+                                                    SizedBox(height: 8.h),
+                                                    SizedBox(
+                                                      height: 70.h,
+                                                      child: ListView.separated(
+                                                        scrollDirection: Axis.horizontal,
+                                                        itemCount: r.replyImages!.length,
+                                                        separatorBuilder: (_, __) => SizedBox(width: 6.w),
+                                                        itemBuilder: (_, i) => GestureDetector(
+                                                          onTap: () => _openFullscreenImage(context, r.replyImages!, i),
+                                                          child: ClipRRect(
+                                                            borderRadius: BorderRadius.circular(6.r),
+                                                            child: Image.network(r.replyImages![i], width: 70.w, height: 70.h, fit: BoxFit.cover),
                                                           ),
                                                         ),
-                                                        SizedBox(height: 4.h),
-                                                        Text(
-                                                          r.replyText ?? "",
-                                                          style: TextStyle(
-                                                            fontSize: 13.sp,
-                                                            color: Colors
-                                                                .grey[800],
-                                                          ),
-                                                        ),
-                                                        if (r.repliedAt != null)
-                                                          Align(
-                                                            alignment: Alignment
-                                                                .bottomRight,
-                                                            child: Text(
-                                                              formatDate(
-                                                                r.repliedAt!,
-                                                              ),
-                                                              style: TextStyle(
-                                                                fontSize: 11.sp,
-                                                                color:
-                                                                    Colors.grey,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                      ],
+                                                      ),
                                                     ),
-                                                  ),
+                                                  ],
+                                                  // Reply video
+                                                  if (hasReplyVideo) ...[
+                                                    SizedBox(height: 8.h),
+                                                    GestureDetector(
+                                                      onTap: () => _openFullscreenVideo(context, r.replyVideo!),
+                                                      child: _NetworkVideoThumb(url: r.replyVideo!),
+                                                    ),
+                                                  ],
                                                 ],
                                               ),
                                             ),
@@ -357,17 +295,12 @@ class _ReviewState extends State<Review> {
 
                       if (apiReviews.length > 3)
                         GestureDetector(
-                          onTap: () =>
-                              _showAllReviewsNotifier.value = !showAllReviews,
+                          onTap: () => _showAllReviewsNotifier.value = !showAll,
                           child: Padding(
                             padding: EdgeInsets.symmetric(vertical: 6.h),
                             child: Text(
-                              showAllReviews ? "See Less" : "See More",
-                              style: TextStyle(
-                                color: AppColor.primaryColor,
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              showAll ? "See Less" : "See More",
+                              style: TextStyle(color: AppColor.primaryColor, fontSize: 15.sp, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -382,19 +315,164 @@ class _ReviewState extends State<Review> {
     );
   }
 
-  /// Show edit/delete temporarily for 5 minutes
   void showTemporaryEditDelete(String reviewId) {
-    final currentMap = _showEditDeleteNotifier.value;
-    final newMap = Map<String, bool>.from(currentMap);
+    final newMap = Map<String, bool>.from(_showEditDeleteNotifier.value);
     newMap[reviewId] = true;
     _showEditDeleteNotifier.value = newMap;
-
     Future.delayed(const Duration(minutes: 5), () {
       if (!mounted) return;
-      final current = _showEditDeleteNotifier.value;
-      final nextMap = Map<String, bool>.from(current);
-      nextMap[reviewId] = false;
-      _showEditDeleteNotifier.value = nextMap;
+      final next = Map<String, bool>.from(_showEditDeleteNotifier.value);
+      next[reviewId] = false;
+      _showEditDeleteNotifier.value = next;
     });
+  }
+}
+
+// ── Network video thumbnail with play overlay ────────────────────────────────
+class _NetworkVideoThumb extends StatefulWidget {
+  final String url;
+  const _NetworkVideoThumb({required this.url});
+
+  @override
+  State<_NetworkVideoThumb> createState() => _NetworkVideoThumbState();
+}
+
+class _NetworkVideoThumbState extends State<_NetworkVideoThumb> {
+  late VideoPlayerController _ctrl;
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = VideoPlayerController.networkUrl(Uri.parse(widget.url))
+      ..initialize().then((_) { if (mounted) setState(() => _ready = true); });
+  }
+
+  @override
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 120.h,
+      width: double.infinity,
+      decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(10.r)),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (_ready)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10.r),
+              child: AspectRatio(aspectRatio: _ctrl.value.aspectRatio, child: VideoPlayer(_ctrl)),
+            )
+          else
+            const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+          Container(
+            decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(10.r)),
+          ),
+          const Icon(Icons.play_circle_fill, color: Colors.white, size: 44),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Fullscreen image viewer ──────────────────────────────────────────────────
+class _FullscreenImages extends StatefulWidget {
+  final List<String> urls;
+  final int initialIndex;
+  const _FullscreenImages({required this.urls, required this.initialIndex});
+
+  @override
+  State<_FullscreenImages> createState() => _FullscreenImagesState();
+}
+
+class _FullscreenImagesState extends State<_FullscreenImages> {
+  late PageController _page;
+  late int _current;
+
+  @override
+  void initState() {
+    super.initState();
+    _current = widget.initialIndex;
+    _page = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() { _page.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: Text("${_current + 1} / ${widget.urls.length}"),
+      ),
+      body: PageView.builder(
+        controller: _page,
+        itemCount: widget.urls.length,
+        onPageChanged: (i) => setState(() => _current = i),
+        itemBuilder: (_, i) => InteractiveViewer(
+          child: Center(
+            child: Image.network(widget.urls[i], fit: BoxFit.contain,
+              loadingBuilder: (_, child, progress) => progress == null ? child
+                : const Center(child: CircularProgressIndicator(color: Colors.white)),
+              errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, color: Colors.white54, size: 60),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Fullscreen video player ──────────────────────────────────────────────────
+class _FullscreenVideo extends StatefulWidget {
+  final String url;
+  const _FullscreenVideo({required this.url});
+
+  @override
+  State<_FullscreenVideo> createState() => _FullscreenVideoState();
+}
+
+class _FullscreenVideoState extends State<_FullscreenVideo> {
+  late VideoPlayerController _ctrl;
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = VideoPlayerController.networkUrl(Uri.parse(widget.url))
+      ..initialize().then((_) {
+        if (mounted) { setState(() => _ready = true); _ctrl.play(); }
+      });
+  }
+
+  @override
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(backgroundColor: Colors.black, foregroundColor: Colors.white),
+      body: Center(
+        child: _ready
+            ? GestureDetector(
+                onTap: () { _ctrl.value.isPlaying ? _ctrl.pause() : _ctrl.play(); setState(() {}); },
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    AspectRatio(aspectRatio: _ctrl.value.aspectRatio, child: VideoPlayer(_ctrl)),
+                    if (!_ctrl.value.isPlaying)
+                      const Icon(Icons.play_circle_fill, color: Colors.white70, size: 64),
+                  ],
+                ),
+              )
+            : const CircularProgressIndicator(color: Colors.white),
+      ),
+    );
   }
 }

@@ -19,8 +19,10 @@ class BuyerAdminMessagesScreen extends StatefulWidget {
 
 class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
   final ScrollController _scrollCtrl = ScrollController();
+  final TextEditingController _inputCtrl = TextEditingController();
   final List<Map<String, dynamic>> _messages = [];
   bool _loading = true;
+  bool _sending = false;
 
   @override
   void initState() {
@@ -32,6 +34,7 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
   @override
   void dispose() {
     _scrollCtrl.dispose();
+    _inputCtrl.dispose();
     super.dispose();
   }
 
@@ -42,10 +45,7 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
       final buyerId = AuthSession.instance.userId ?? '';
       final res = await http.get(
         Uri.parse('${Global.BuyerGetAdminMessages}?buyerId=$buyerId'),
-        headers: {
-          'Authorization': 'Bearer ${token ?? ''}',
-          'Content-Type': 'application/json',
-        },
+        headers: {'Authorization': 'Bearer ${token ?? ''}', 'Content-Type': 'application/json'},
       );
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -82,6 +82,32 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
     });
   }
 
+  Future<void> _sendMessage() async {
+    final text = _inputCtrl.text.trim();
+    if (text.isEmpty || _sending) return;
+    _inputCtrl.clear();
+    setState(() => _sending = true);
+
+    try {
+      final token = await LocalStorage.getToken();
+      final res = await http.post(
+        Uri.parse(Global.BuyerContactAdmin),
+        headers: {'Authorization': 'Bearer ${token ?? ''}', 'Content-Type': 'application/json'},
+        body: jsonEncode({'message': text}),
+      );
+      if (res.statusCode == 201) {
+        final data = jsonDecode(res.body);
+        final msg = data['data'] as Map<String, dynamic>? ?? {};
+        setState(() => _messages.add(msg));
+        _scrollToBottom();
+      }
+    } catch (e) {
+      debugPrint('sendAdminMessage error: $e');
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollCtrl.hasClients) {
@@ -108,9 +134,7 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
               borderRadius: BorderRadius.circular(8.r),
               child: Image.asset(
                 'assets/images/shookoo_image.png',
-                width: 32.w,
-                height: 32.w,
-                fit: BoxFit.cover,
+                width: 32.w, height: 32.w, fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Icon(LucideIcons.shieldCheck, color: Colors.white, size: 22.sp),
               ),
             ),
@@ -125,30 +149,122 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
           ],
         ),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _messages.isEmpty
-              ? _emptyState()
-              : RefreshIndicator(
-                  color: AppColor.primaryColor,
-                  onRefresh: _fetchMessages,
-                  child: ListView.builder(
-                    controller: _scrollCtrl,
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                    itemCount: _messages.length,
-                    itemBuilder: (_, i) => _bubble(_messages[i]),
-                  ),
+      body: Column(
+        children: [
+          // Messages list
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _messages.isEmpty
+                    ? _emptyState()
+                    : RefreshIndicator(
+                        color: AppColor.primaryColor,
+                        onRefresh: _fetchMessages,
+                        child: ListView.builder(
+                          controller: _scrollCtrl,
+                          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                          itemCount: _messages.length,
+                          itemBuilder: (_, i) => _bubble(_messages[i]),
+                        ),
+                      ),
+          ),
+
+          // Input bar
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, -2))],
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 14.w),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0F0F0),
+                          borderRadius: BorderRadius.circular(25.r),
+                        ),
+                        child: TextField(
+                          controller: _inputCtrl,
+                          decoration: InputDecoration(
+                            hintText: "Message SHOOKOO Admin...",
+                            hintStyle: TextStyle(fontSize: 14.sp, color: Colors.black38),
+                            border: InputBorder.none,
+                          ),
+                          maxLines: 3,
+                          minLines: 1,
+                          textCapitalization: TextCapitalization.sentences,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    GestureDetector(
+                      onTap: _sending ? null : _sendMessage,
+                      child: Container(
+                        padding: EdgeInsets.all(12.w),
+                        decoration: BoxDecoration(
+                          color: _sending ? Colors.grey : AppColor.primaryColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: _sending
+                            ? SizedBox(width: 18.w, height: 18.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : Icon(Icons.send, color: Colors.white, size: 20.sp),
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _bubble(Map<String, dynamic> msg) {
     final text = msg['message']?.toString() ?? '';
+    final fromType = msg['fromType']?.toString() ?? 'admin';
+    final isMe = fromType == 'buyer';
     final isBroadcast = msg['toType'] == 'all_buyers';
     final time = msg['createdAt'] != null
-        ? DateFormat('hh:mm a, dd MMM').format(DateTime.tryParse(msg['createdAt'].toString()) ?? DateTime.now())
+        ? DateFormat('hh:mm a').format(DateTime.tryParse(msg['createdAt'].toString()) ?? DateTime.now())
         : '';
 
+    if (isMe) {
+      // Buyer's own message — right aligned, green
+      return Padding(
+        padding: EdgeInsets.only(bottom: 12.h),
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
+                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCF8C6),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(14.r),
+                    topRight: Radius.circular(0),
+                    bottomLeft: Radius.circular(14.r),
+                    bottomRight: Radius.circular(14.r),
+                  ),
+                ),
+                child: Text(text, style: TextStyle(fontSize: 13.sp, color: Colors.black87)),
+              ),
+              SizedBox(height: 3.h),
+              Text(time, style: TextStyle(fontSize: 10.sp, color: Colors.grey[400])),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Admin message — left aligned
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
       child: Row(
@@ -158,12 +274,9 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
             borderRadius: BorderRadius.circular(10.r),
             child: Image.asset(
               'assets/images/shookoo_image.png',
-              width: 36.w,
-              height: 36.w,
-              fit: BoxFit.cover,
+              width: 36.w, height: 36.w, fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
-                width: 36.w,
-                height: 36.w,
+                width: 36.w, height: 36.w,
                 decoration: BoxDecoration(
                   color: AppColor.primaryColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10.r),
@@ -179,10 +292,7 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
               children: [
                 Row(
                   children: [
-                    Text(
-                      'SHOOKOO Admin',
-                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700, color: AppColor.primaryColor),
-                    ),
+                    Text('SHOOKOO Admin', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700, color: AppColor.primaryColor)),
                     if (isBroadcast) ...[
                       SizedBox(width: 6.w),
                       Container(
@@ -198,6 +308,7 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
                 ),
                 SizedBox(height: 4.h),
                 Container(
+                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
                   padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -206,13 +317,7 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
                       bottomLeft: Radius.circular(14.r),
                       bottomRight: Radius.circular(14.r),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2))],
                   ),
                   child: Text(text, style: TextStyle(fontSize: 13.sp, color: Colors.black87)),
                 ),
@@ -234,16 +339,14 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
               borderRadius: BorderRadius.circular(16.r),
               child: Image.asset(
                 'assets/images/shookoo_image.png',
-                width: 80.w,
-                height: 80.w,
-                fit: BoxFit.cover,
+                width: 80.w, height: 80.w, fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Icon(LucideIcons.shieldCheck, size: 64.sp, color: Colors.grey[300]),
               ),
             ),
             SizedBox(height: 16.h),
-            Text('No messages from Admin yet', style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w600, color: Colors.black87)),
+            Text('Chat with Admin', style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w600, color: Colors.black87)),
             SizedBox(height: 6.h),
-            Text('Announcements & replies will appear here', style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
+            Text('Ask questions or report issues below', style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
           ],
         ),
       );

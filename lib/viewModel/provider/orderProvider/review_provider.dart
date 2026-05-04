@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/view/dashboard/profile/order/successDialog.dart';
@@ -5,9 +6,29 @@ import 'package:user_side/view/dashboard/profile/order/successDialog.dart';
 class ReviewFormProvider extends ChangeNotifier {
   int selectedRating = 0;
   final TextEditingController reviewController = TextEditingController();
+  final List<File> images = [];
+  File? video;
 
   void setRating(int value) {
     selectedRating = value;
+    notifyListeners();
+  }
+
+  void addImages(List<File> newImages) {
+    final remaining = 5 - images.length;
+    if (remaining > 0) {
+      images.addAll(newImages.take(remaining));
+      notifyListeners();
+    }
+  }
+
+  void removeImage(int index) {
+    images.removeAt(index);
+    notifyListeners();
+  }
+
+  void setVideo(File? file) {
+    video = file;
     notifyListeners();
   }
 
@@ -17,6 +38,8 @@ class ReviewFormProvider extends ChangeNotifier {
   void reset() {
     selectedRating = 0;
     reviewController.clear();
+    images.clear();
+    video = null;
     notifyListeners();
   }
 

@@ -41,6 +41,11 @@ class UserChatProvider extends ChangeNotifier {
   bool isTyping = false;
   bool isLoadingHistory = true;
 
+  // ===== Reply-to state =====
+  ChatMessage? replyTo;
+  void setReplyTo(ChatMessage msg) { replyTo = msg; notifyListeners(); }
+  void clearReplyTo() { replyTo = null; notifyListeners(); }
+
   // ===== Typing =====
   Timer? _typingTimer;
   String? _lastTypingValue;
@@ -616,6 +621,11 @@ class UserChatProvider extends ChangeNotifier {
 
     onTyping("");
 
+    final replyPayload = replyTo != null
+        ? {"replyToId": replyTo!.id, "replyToText": replyTo!.text, "replyToFromType": replyTo!.fromType}
+        : <String, dynamic>{};
+    clearReplyTo();
+
     socket.emitWithAck(
       "chat:send",
       {
@@ -624,6 +634,7 @@ class UserChatProvider extends ChangeNotifier {
         "toId": toId,
         "text": msg,
         "clientId": clientId,
+        ...replyPayload,
       },
       ack: (resp) {
         if (resp is! Map || resp["ok"] != true || resp["data"] == null) return;

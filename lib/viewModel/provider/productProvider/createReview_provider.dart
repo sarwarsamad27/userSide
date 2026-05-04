@@ -13,11 +13,19 @@ class CreateReviewProvider extends ChangeNotifier {
     required String userId,
     required String stars,
     required String text,
+    List<String> images = const [],
+    String? video,
   }) async {
     loading = true;
     notifyListeners();
-    reviewResponse = await _repo.createReview(productId, userId, stars, text);
-
+    reviewResponse = await _repo.createReview(
+      productId: productId,
+      userId: userId,
+      stars: stars,
+      text: text,
+      images: images,
+      video: video,
+    );
     loading = false;
     notifyListeners();
   }

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/resources/toast.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productBuyForm.dart';
-import 'package:user_side/widgets/customButton.dart';
 
 class BuyNowButton extends StatelessWidget {
   final String productId;
@@ -12,7 +13,6 @@ class BuyNowButton extends StatelessWidget {
   final String stockStatus;
   final List<String> selectedColors;
   final List<String> selectedSizes;
-
   final bool productHasColors;
   final bool productHasSizes;
 
@@ -31,35 +31,59 @@ class BuyNowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String s = stockStatus.trim().toLowerCase();
-    final bool isOutOfStock = s == "out of stock";
-    return CustomButton(
-      text: "Buy Now",
-      onTap: () {
-        if (isOutOfStock) {
-          null;
-        } else {
-          if ((productHasColors && selectedColors.isEmpty) ||
-              (productHasSizes && selectedSizes.isEmpty)) {
-            AppToast.warning("Please select required options");
-            return;
-          }
-    
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ProductBuyForm(
-                imageUrl: Global.getImageUrl(selectedImage),
-                name: name,
-                price: price,
-                colors: selectedColors,
-                sizes: selectedSizes,
-                productId: [productId],
-              ),
+    final bool isOutOfStock =
+        stockStatus.trim().toLowerCase() == "out of stock";
+
+    return GestureDetector(
+      onTap: isOutOfStock
+          ? () => AppToast.warning("This product is out of stock")
+          : () {
+              if ((productHasColors && selectedColors.isEmpty) ||
+                  (productHasSizes && selectedSizes.isEmpty)) {
+                AppToast.warning("Please select required options");
+                return;
+              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ProductBuyForm(
+                    imageUrl: Global.getImageUrl(selectedImage),
+                    name: name,
+                    price: price,
+                    colors: selectedColors,
+                    sizes: selectedSizes,
+                    productId: [productId],
+                  ),
+                ),
+              );
+            },
+      child: Container(
+        height: 50.h,
+        decoration: BoxDecoration(
+          color: isOutOfStock ? Colors.grey.shade300 : AppColor.primaryColor,
+          borderRadius: BorderRadius.circular(14.r),
+          boxShadow: isOutOfStock
+              ? null
+              : [
+                  BoxShadow(
+                    color: AppColor.primaryColor.withOpacity(0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+        ),
+        child: Center(
+          child: Text(
+            isOutOfStock ? "Out of Stock" : "Buy Now",
+            style: TextStyle(
+              color: isOutOfStock ? Colors.grey.shade600 : Colors.white,
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
             ),
-          );
-        }
-      },
+          ),
+        ),
+      ),
     );
   }
 }

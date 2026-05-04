@@ -29,6 +29,8 @@ class Review {
   UserId? userId;
   int? stars;
   String? text;
+  List<String>? images;
+  String? video;
   String? sId;
   String? createdAt;
   String? updatedAt;
@@ -39,6 +41,8 @@ class Review {
     this.userId,
     this.stars,
     this.text,
+    this.images,
+    this.video,
     this.sId,
     this.createdAt,
     this.updatedAt,
@@ -47,11 +51,11 @@ class Review {
 
   Review.fromJson(Map<String, dynamic> json) {
     productId = json['productId'];
-    userId = json['userId'] != null
-        ? new UserId.fromJson(json['userId'])
-        : null;
+    userId = json['userId'] != null ? UserId.fromJson(json['userId']) : null;
     stars = json['stars'];
     text = json['text'];
+    images = json['images'] != null ? List<String>.from(json['images']) : [];
+    video = json['video'];
     sId = json['_id'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
@@ -59,17 +63,17 @@ class Review {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['productId'] = this.productId;
-    if (this.userId != null) {
-      data['userId'] = this.userId!.toJson();
-    }
-    data['stars'] = this.stars;
-    data['text'] = this.text;
-    data['_id'] = this.sId;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['productId'] = productId;
+    if (userId != null) data['userId'] = userId!.toJson();
+    data['stars'] = stars;
+    data['text'] = text;
+    data['images'] = images;
+    data['video'] = video;
+    data['_id'] = sId;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
     return data;
   }
 }
