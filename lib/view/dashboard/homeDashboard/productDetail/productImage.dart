@@ -3,12 +3,19 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/full_imageScreen.dart';
+import 'package:video_player/video_player.dart';
 
 class ProductImage extends StatefulWidget {
   final List<String> imageUrls;
+  final String? videoUrl;
   final Function(int)? onImageChange;
 
-  const ProductImage({super.key, required this.imageUrls, this.onImageChange});
+  const ProductImage({
+    super.key,
+    required this.imageUrls,
+    this.videoUrl,
+    this.onImageChange,
+  });
 
   @override
   State<ProductImage> createState() => _ProductImageState();
@@ -16,15 +23,37 @@ class ProductImage extends StatefulWidget {
 
 class _ProductImageState extends State<ProductImage> {
   final PageController _pageController = PageController();
-  int currentIndex = 0;
+  int _currentIndex = 0;
+
+  // ── Video controller initialised once in initState ──────────────────────────
+  VideoPlayerController? _videoCtrl;
+  bool _videoReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initVideo();
+  }
+
+  Future<void> _initVideo() async {
+    final url = widget.videoUrl?.trim();
+    if (url == null || url.isEmpty) return;
+    _videoCtrl = VideoPlayerController.networkUrl(Uri.parse(url));
+    try {
+      await _videoCtrl!.initialize();
+      _videoCtrl!.setLooping(true);
+      if (mounted) setState(() => _videoReady = true);
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _videoCtrl?.dispose();
     super.dispose();
   }
 
-  String getValidImageUrl(String url) {
+  String _validUrl(String url) {
     if (url.startsWith('http')) return url;
     if (!url.startsWith('/')) url = '/$url';
     return Global.getImageUrl(url);
@@ -32,7 +61,11 @@ class _ProductImageState extends State<ProductImage> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.imageUrls.isEmpty) {
+    final images = widget.imageUrls.where((u) => u.trim().isNotEmpty).toList();
+    final hasVideo = (widget.videoUrl?.trim().isNotEmpty ?? false);
+    final totalItems = images.length + (hasVideo ? 1 : 0);
+
+    if (totalItems == 0) {
       return ClipRRect(
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(24.r),
@@ -47,66 +80,195 @@ class _ProductImageState extends State<ProductImage> {
       );
     }
 
-    final processedUrls = widget.imageUrls.map(getValidImageUrl).toList();
-    int imageCount = processedUrls.length;
+    final processedUrls = images.map(_validUrl).toList();
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => FullScreenImageGallery(
-              images: processedUrls,
-              initialIndex: currentIndex,
+    return SizedBox(
+      height: 0.45.sh,
+      width: double.infinity,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(24.r),
+              bottomRight: Radius.circular(24.r),
+            ),
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: totalItems,
+              onPageChanged: (i) {
+                setState(() => _currentIndex = i);
+                // Pause video when swiping away
+                if (i < images.length) _videoCtrl?.pause();
+                if (widget.onImageChange != null && i < images.length) {
+                  widget.onImageChange!(i);
+                }
+              },
+              itemBuilder: (_, index) {
+                if (index < images.length) {
+                  return GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => FullScreenImageGallery(
+                          images: processedUrls,
+                          initialIndex: index,
+                        ),
+                      ),
+                    ),
+                    child: Image.network(
+                      processedUrls[index],
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      errorBuilder: (_, __, ___) => const _NoImagePlaceholder(),
+                    ),
+                  );
+                } else {
+                  // Pass pre-initialised controller — no re-fetch on every swipe
+                  return _NetworkVideoPlayer(
+                    controller: _videoCtrl,
+                    isReady: _videoReady,
+                  );
+                }
+              },
             ),
           ),
-        );
-      },
-      child: SizedBox(
-        height: 0.45.sh,
-        width: double.infinity,
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          children: [
-            PageView.builder(
-              controller: _pageController,
-              itemCount: imageCount,
-              onPageChanged: (index) {
-                currentIndex =
-                    index; // ✅ No setState needed as we only read it on Tap
-                if (widget.onImageChange != null) widget.onImageChange!(index);
-              },
-              itemBuilder: (context, index) {
-                return ClipRRect(
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(24.r),
-                    bottomRight: Radius.circular(24.r),
-                  ),
-                  child: Image.network(
-                    processedUrls[index],
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                  ),
-                );
-              },
-            ),
-            if (imageCount > 1)
-              Positioned(
-                bottom: 16.h,
-                child: SmoothPageIndicator(
-                  controller: _pageController,
-                  count: processedUrls.length,
-                  effect: ExpandingDotsEffect(
-                    activeDotColor: Colors.black,
-                    dotColor: Colors.grey[400]!,
-                    dotHeight: 8.h,
-                    dotWidth: 8.w,
-                    spacing: 6.w,
-                  ),
+
+          if (totalItems > 1)
+            Positioned(
+              bottom: 16.h,
+              child: SmoothPageIndicator(
+                controller: _pageController,
+                count: totalItems,
+                effect: ExpandingDotsEffect(
+                  activeDotColor: Colors.white,
+                  dotColor: Colors.white54,
+                  dotHeight: 7.h,
+                  dotWidth: 7.w,
+                  spacing: 5.w,
                 ),
               ),
-          ],
+            ),
+
+          if (hasVideo && _currentIndex == totalItems - 1)
+            Positioned(
+              top: 12.h,
+              left: 12.w,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.videocam, color: Colors.white, size: 14.sp),
+                    SizedBox(width: 4.w),
+                    Text("Video", style: TextStyle(color: Colors.white, fontSize: 11.sp)),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Video player — receives pre-initialised controller, no re-init on rebuild ──
+class _NetworkVideoPlayer extends StatefulWidget {
+  final VideoPlayerController? controller;
+  final bool isReady;
+
+  const _NetworkVideoPlayer({required this.controller, required this.isReady});
+
+  @override
+  State<_NetworkVideoPlayer> createState() => _NetworkVideoPlayerState();
+}
+
+class _NetworkVideoPlayerState extends State<_NetworkVideoPlayer> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller?.addListener(_onUpdate);
+  }
+
+  @override
+  void didUpdateWidget(_NetworkVideoPlayer old) {
+    super.didUpdateWidget(old);
+    if (old.controller != widget.controller) {
+      old.controller?.removeListener(_onUpdate);
+      widget.controller?.addListener(_onUpdate);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller?.removeListener(_onUpdate);
+    super.dispose();
+  }
+
+  void _onUpdate() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ctrl = widget.controller;
+
+    if (!widget.isReady || ctrl == null) {
+      return Container(
+        color: Colors.black,
+        child: const Center(
+          child: CircularProgressIndicator(color: Colors.white),
         ),
+      );
+    }
+
+    final isPlaying = ctrl.value.isPlaying;
+
+    return GestureDetector(
+      onTap: () => isPlaying ? ctrl.pause() : ctrl.play(),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          SizedBox.expand(
+            child: FittedBox(
+              fit: BoxFit.cover,
+              child: SizedBox(
+                width: ctrl.value.size.width,
+                height: ctrl.value.size.height,
+                child: VideoPlayer(ctrl),
+              ),
+            ),
+          ),
+          if (!isPlaying)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: const BoxDecoration(
+                color: Colors.black38,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.play_arrow, color: Colors.white, size: 36),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NoImagePlaceholder extends StatelessWidget {
+  const _NoImagePlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.grey.shade200,
+      child: Icon(
+        Icons.image_not_supported_outlined,
+        size: 60,
+        color: Colors.grey.shade500,
       ),
     );
   }

@@ -55,6 +55,7 @@ class ProductMainCard extends StatelessWidget {
           builder: (_, ui, __) {
             return ProductImage(
               imageUrls: product.images ?? [],
+              videoUrl: product.videoUrl,
               onImageChange: (index) => ui.onImageChange(index),
             );
           },
