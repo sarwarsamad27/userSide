@@ -56,8 +56,8 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
   Future<void> _fetchAdminMessageState() async {
     try {
       final token = await LocalStorage.getToken();
-      final uid   = buyerId ?? '';
-      final res   = await http.get(
+      final uid = buyerId ?? '';
+      final res = await http.get(
         Uri.parse('${Global.BuyerGetAdminMessages}?buyerId=$uid'),
         headers: {'Authorization': 'Bearer ${token ?? ''}'},
       );
@@ -66,10 +66,22 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
         final fromAdmin = msgs.where((m) => m['fromType'] == 'admin').toList();
         if (fromAdmin.isNotEmpty) {
           final last = fromAdmin.last;
+          // Count only unread messages (same logic as seller side)
+          final unreadCount = fromAdmin.where((m) {
+            if (m['toType'] == 'buyer') return m['isRead'] == false;
+            if (m['toType'] == 'all_buyers') {
+              final readBy = (m['readBy'] as List? ?? []);
+              return uid.isNotEmpty &&
+                  !readBy.any((r) => r.toString() == uid.toString());
+            }
+            return false;
+          }).length;
           setState(() {
-            _adminLastMsg  = last['message']?.toString() ?? _adminLastMsg;
-            _adminLastTime = DateTime.tryParse(last['createdAt']?.toString() ?? '');
-            _adminUnread   = fromAdmin.length;
+            _adminLastMsg = last['message']?.toString() ?? _adminLastMsg;
+            _adminLastTime = DateTime.tryParse(
+              last['createdAt']?.toString() ?? '',
+            );
+            _adminUnread = unreadCount;
           });
         }
       }
@@ -103,7 +115,7 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
       final msg = (data is Map) ? data : {};
       setState(() {
         _adminUnread++;
-        _adminLastMsg  = msg['message']?.toString() ?? _adminLastMsg;
+        _adminLastMsg = msg['message']?.toString() ?? _adminLastMsg;
         _adminLastTime = DateTime.now();
       });
     });
@@ -114,7 +126,7 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
       if (msg['toType'] == 'all_buyers') {
         setState(() {
           _adminUnread++;
-          _adminLastMsg  = msg['message']?.toString() ?? _adminLastMsg;
+          _adminLastMsg = msg['message']?.toString() ?? _adminLastMsg;
           _adminLastTime = DateTime.now();
         });
       }
@@ -163,10 +175,9 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
         elevation: 1,
         title: const Text(
           "Messages",
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
         ),
         centerTitle: true,
-        actions: [IconButton(icon: const Icon(Icons.search), onPressed: () {})],
       ),
       body: provider.loading
           ? Utils.loadingLottie()
@@ -183,10 +194,9 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
                 itemBuilder: (context, i) {
                   if (i == 0) return _buildAdminTile(context);
                   final thread = threads[i - 1];
-                  return _buildChatTile(thread)
-                      .animate()
-                      .fadeIn(delay: (i * 30).ms)
-                      .slideX(begin: 0.1);
+                  return _buildChatTile(
+                    thread,
+                  ).animate().fadeIn(delay: (i * 30).ms).slideX(begin: 0.1);
                 },
               ),
             ),
@@ -195,7 +205,9 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
 
   Widget _buildAdminTile(BuildContext context) {
     final hasUnread = _adminUnread > 0;
-    final timeStr   = _adminLastTime != null ? _formatTime(_adminLastTime.toString()) : '';
+    final timeStr = _adminLastTime != null
+        ? _formatTime(_adminLastTime.toString())
+        : '';
 
     return InkWell(
       onTap: () {
@@ -218,8 +230,14 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => CircleAvatar(
                   radius: 28.r,
-                  backgroundColor: AppColor.primaryColor.withValues(alpha: 0.15),
-                  child: Icon(Icons.shield_outlined, color: AppColor.primaryColor, size: 26.sp),
+                  backgroundColor: AppColor.primaryColor.withValues(
+                    alpha: 0.15,
+                  ),
+                  child: Icon(
+                    Icons.shield_outlined,
+                    color: AppColor.primaryColor,
+                    size: 26.sp,
+                  ),
                 ),
               ),
             ),
@@ -286,7 +304,11 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
                 ),
                 child: Text(
                   '$_adminUnread',
-                  style: TextStyle(fontSize: 11.sp, color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
           ],

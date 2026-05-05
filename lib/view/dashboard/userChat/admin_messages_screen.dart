@@ -43,8 +43,9 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
     try {
       final token = await LocalStorage.getToken();
       final buyerId = AuthSession.instance.userId ?? '';
+      // markRead=true marks all messages as read so unread badge resets after restart
       final res = await http.get(
-        Uri.parse('${Global.BuyerGetAdminMessages}?buyerId=$buyerId'),
+        Uri.parse('${Global.BuyerGetAdminMessages}?buyerId=$buyerId&markRead=true'),
         headers: {'Authorization': 'Bearer ${token ?? ''}', 'Content-Type': 'application/json'},
       );
       if (res.statusCode == 200) {
