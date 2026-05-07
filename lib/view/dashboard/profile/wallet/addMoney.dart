@@ -1,14 +1,12 @@
-// ─── addMoney.dart ────────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/authSession.dart';
-import 'package:user_side/resources/utiles.dart';
+import 'package:user_side/resources/premium_toast.dart';
 import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
-import 'package:user_side/widgets/customButton.dart';
 
 class AddMoneyScreen extends StatefulWidget {
   const AddMoneyScreen({super.key});
@@ -18,802 +16,337 @@ class AddMoneyScreen extends StatefulWidget {
 }
 
 class _AddMoneyScreenState extends State<AddMoneyScreen> {
-  final _amountController = TextEditingController();
-  final _numberController = TextEditingController();
-  final _otpController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  final _amountCtrl = TextEditingController();
+  final _phoneCtrl  = TextEditingController();
+  final _otpCtrl    = TextEditingController();
 
-  bool _otpSent = false;
+  bool _otpSent   = false;
+  String? _txnRef;
+  String? _error;
 
-  final List<double> _quickAmounts = [500, 1000, 2000, 5000];
-
-  // JazzCash brand colors
   static const Color _jcRed = Color(0xFFCC0000);
-  static const Color _jcBg = Color(0xFFFFF0F0);
+
+  final List<int> _quickAmounts = [500, 1000, 2000, 5000];
+
+  String get _userId => context.read<AuthSession>().userId ?? '';
 
   @override
   void dispose() {
-    _amountController.dispose();
-    _numberController.dispose();
-    _otpController.dispose();
+    _amountCtrl.dispose();
+    _phoneCtrl.dispose();
+    _otpCtrl.dispose();
     super.dispose();
   }
 
-  String get _buyerId => context.read<AuthSession>().userId ?? '';
-  String _txnRefNo = '';
-  // ── Step 1: Send OTP ─────────────────────────────────────────────────────
+  // ── Step 1: send request to backend → backend calls JazzCash → JazzCash sends OTP ──
   Future<void> _sendOtp() async {
-    if (!_formKey.currentState!.validate()) return;
-    FocusScope.of(context).unfocus();
+    setState(() => _error = null);
+    final phone = _phoneCtrl.text.trim();
+    final amt   = double.tryParse(_amountCtrl.text.trim()) ?? 0;
 
-    final success = await context.read<WalletProvider>().sendAddMoneyOtp(
-      buyerId: _buyerId,
-      amount: double.parse(_amountController.text),
-      method: 'jazzcash',
-      phoneNumber: _numberController.text,
-    );
-
-    if (success) {
-      setState(() {
-        _otpSent = true;
-        _txnRefNo = context
-            .read<WalletProvider>()
-            .lastTxnRefNo; // ✅ yahan store karo
-      });
-    } else {
-      _showError(context.read<WalletProvider>().errorMessage);
-    }
-  }
-
-  // ── Step 2: Verify OTP ───────────────────────────────────────────────────
-  Future<void> _verifyOtp() async {
-    if (_otpController.text.trim().length < 6) {
-      _showError('Enter 6-digit OTP');
+    if (!RegExp(r'^03[0-9]{9}$').hasMatch(phone)) {
+      setState(() => _error = 'Valid number enter karein (03XXXXXXXXX)');
       return;
     }
-    FocusScope.of(context).unfocus();
+    if (amt < 100) {
+      setState(() => _error = 'Minimum Rs 100');
+      return;
+    }
 
-    // _sendOtp success ke baad setState mein:
-    setState(() {
-      _otpSent = true;
-      _txnRefNo = context.read<WalletProvider>().lastTxnRefNo;
-    });
-    final result = await context.read<WalletProvider>().verifyAddMoneyOtp(
-      buyerId: _buyerId,
-      phoneNumber: _numberController.text,
-      otp: _otpController.text.trim(),
-      txnRefNo: _txnRefNo,
+    final ok = await context.read<WalletProvider>().sendAddMoneyOtp(
+      buyerId:     _userId,
+      amount:      amt,
+      method:      'jazzcash_mwallet',
+      phoneNumber: phone,
     );
 
-    if (result != null && mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PaymentSuccessScreen(
-            amount: result.amount,
-            phoneNumber: result.phoneNumber,
-            txnId: result.txnId,
-          ),
-        ),
-      );
+    if (!mounted) return;
+    if (ok) {
+      setState(() {
+        _txnRef  = context.read<WalletProvider>().lastTxnRefNo;
+        _otpSent = true;
+      });
     } else {
-      _showError(context.read<WalletProvider>().errorMessage);
+      final err = context.read<WalletProvider>().errorMessage;
+      setState(() => _error = err.isNotEmpty ? err : 'OTP send karne mein error. Dobara try karein.');
     }
   }
 
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: Colors.red.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-      ),
+  // ── Step 2: send OTP to backend → backend confirms with JazzCash → wallet credited ──
+  Future<void> _verify() async {
+    setState(() => _error = null);
+    final otp = _otpCtrl.text.trim();
+    if (otp.length < 4) {
+      setState(() => _error = 'OTP enter karein');
+      return;
+    }
+
+    final provider = context.read<WalletProvider>();
+    final result = await provider.verifyAddMoneyOtp(
+      buyerId:     _userId,
+      phoneNumber: _phoneCtrl.text.trim(),
+      otp:         otp,
+      txnRefNo:    _txnRef ?? '',
     );
+
+    if (!mounted) return;
+    if (result != null) {
+      PremiumToast.success(context, 'Rs ${_amountCtrl.text} wallet mein add ho gaye!');
+      Navigator.pop(context, true);
+    } else {
+      final err = provider.errorMessage;
+      setState(() => _error = err.isNotEmpty ? err : 'OTP galat ya expire ho gaya');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<WalletProvider>(
-      builder: (context, wallet, _) {
-        return Scaffold(
-          backgroundColor: const Color(0xFFF5F6FA),
-          appBar: AppBar(
-            backgroundColor: AppColor.appimagecolor,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(
-                Icons.arrow_back_ios_new,
-                color: Color(0xFF1A1A2E),
-                size: 20,
-              ),
-              onPressed: () {
-                if (_otpSent) {
-                  setState(() => _otpSent = false);
-                } else {
-                  Navigator.pop(context);
-                }
-              },
-            ),
-            title: Text(
-              _otpSent ? 'Enter OTP' : 'Add Money',
-              style: TextStyle(
-                color: const Color(0xFF1A1A2E),
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            centerTitle: true,
-          ),
-          body: _otpSent ? _buildOtpScreen(wallet) : _buildAmountScreen(wallet),
-        );
-      },
-    );
-  }
+    final provider = context.watch<WalletProvider>();
 
-  // ── Amount Screen ────────────────────────────────────────────────────────
-  Widget _buildAmountScreen(WalletProvider wallet) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(16.r),
-      child: Form(
-        key: _formKey,
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      appBar: AppBar(
+        backgroundColor: AppColor.appimagecolor,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new,
+              color: Color(0xFF1A1A2E), size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text('Add Money via JazzCash',
+            style: TextStyle(color: const Color(0xFF1A1A2E),
+                fontSize: 17.sp, fontWeight: FontWeight.w700)),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(20.r),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 8.h),
 
-            // ── Amount Input ───────────────────────────────────────────────
-            _SectionLabel(label: 'Enter Amount'),
-            SizedBox(height: 10.h),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 15,
-                    offset: const Offset(0, 4),
+            // ── JazzCash header ───────────────────────────────────────────
+            Center(
+              child: Column(children: [
+                Container(
+                  width: 72.r, height: 72.r,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF0F0),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                        color: _jcRed.withValues(alpha: 0.3), width: 2),
                   ),
-                ],
-              ),
-              child: TextFormField(
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                style: TextStyle(
-                  fontSize: 28.sp,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1A1A2E),
+                  child: ClipOval(
+                    child: Image.asset('assets/images/JazzCashLogo.jpg',
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Icon(
+                            Icons.account_balance_wallet_rounded,
+                            color: _jcRed, size: 36.sp)),
+                  ),
                 ),
-                decoration: InputDecoration(
-                  hintText: '0',
-                  hintStyle: TextStyle(
-                    fontSize: 28.sp,
-                    fontWeight: FontWeight.w300,
-                    color: Colors.grey.shade300,
-                  ),
-                  prefixText: 'Rs  ',
-                  prefixStyle: TextStyle(
-                    fontSize: 22.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade500,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.all(20.r),
-                ),
-                validator: (val) {
-                  if (val == null || val.isEmpty) return 'Enter amount';
-                  final amt = double.tryParse(val) ?? 0;
-                  if (amt < 100) return 'Minimum amount is Rs 100';
-                  if (amt > 50000) return 'Maximum amount is Rs 50,000';
-                  return null;
-                },
-              ),
-            ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.1),
-
-            SizedBox(height: 12.h),
-
-            // ── Quick Amounts ──────────────────────────────────────────────
-            Wrap(
-              spacing: 8.w,
-              children: _quickAmounts.map((amt) {
-                final selected =
-                    _amountController.text == amt.toStringAsFixed(0);
-                return GestureDetector(
-                  onTap: () => setState(
-                    () => _amountController.text = amt.toStringAsFixed(0),
-                  ),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 8.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: selected ? const Color(0xFF1A1A2E) : Colors.white,
-                      borderRadius: BorderRadius.circular(20.r),
-                      border: Border.all(
-                        color: selected
-                            ? const Color(0xFF1A1A2E)
-                            : Colors.grey.shade200,
-                      ),
-                    ),
-                    child: Text(
-                      'Rs ${amt.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.w600,
-                        color: selected
-                            ? Colors.white
-                            : const Color(0xFF1A1A2E),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ).animate().fadeIn(delay: 100.ms),
-
+                SizedBox(height: 12.h),
+                if (!_otpSent)
+                  Text('JazzCash se payment karein',
+                      style: TextStyle(fontSize: 14.sp,
+                          color: Colors.grey.shade600))
+                else
+                  Text('OTP aapke JazzCash number pe bheja gaya',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14.sp,
+                          color: Colors.grey.shade700)),
+              ]),
+            ),
             SizedBox(height: 28.h),
 
-            // ── JazzCash Banner ────────────────────────────────────────────
-            _SectionLabel(label: 'Payment Method'),
-            SizedBox(height: 12.h),
-
-            Container(
-              padding: EdgeInsets.all(16.r),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16.r),
-                border: Border.all(color: _jcRed, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: _jcRed.withOpacity(0.15),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 50.r,
-                    height: 50.r,
-                    decoration: BoxDecoration(
-                      color: _jcBg,
-                      borderRadius: BorderRadius.circular(14.r),
-                    ),
-                    child: Center(
-                      child: Image.asset(
-                        'assets/images/JazzCashLogo.jpg',
-                        width: 30.r,
-                        height: 30.r,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 14.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'JazzCash',
-                          style: TextStyle(
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF1A1A2E),
-                          ),
-                        ),
-                        SizedBox(height: 2.h),
-                        Text(
-                          'Pay via JazzCash mobile account',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Selected indicator
-                  Container(
-                    width: 22.r,
-                    height: 22.r,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _jcRed,
-                      border: Border.all(color: _jcRed, width: 2),
-                    ),
-                    child: Icon(
-                      Icons.check_rounded,
-                      color: Colors.white,
-                      size: 14.r,
-                    ),
-                  ),
-                ],
-              ),
-            ).animate().fadeIn(delay: 150.ms).slideX(begin: -0.1),
-
-            SizedBox(height: 24.h),
-
-            // ── JazzCash Number Input ──────────────────────────────────────
-            _SectionLabel(label: 'JazzCash Number'),
-            SizedBox(height: 10.h),
-
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: TextFormField(
-                controller: _numberController,
-                keyboardType: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(11),
-                ],
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1A1A2E),
-                  letterSpacing: 1.2,
-                ),
+            if (!_otpSent) ...[
+              // ── Amount ─────────────────────────────────────────────────
+              _label('Amount'),
+              SizedBox(height: 8.h),
+              TextField(
+                controller: _amountCtrl,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.w700),
                 decoration: InputDecoration(
-                  hintText: '03XX-XXXXXXX',
-                  hintStyle: TextStyle(
-                    fontSize: 15.sp,
-                    color: Colors.grey.shade300,
-                  ),
-                  prefixIcon: Padding(
-                    padding: EdgeInsets.all(12.r),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10.w,
-                        vertical: 6.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _jcBg,
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                      child: Text(
-                        '+92',
-                        style: TextStyle(
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w700,
-                          color: _jcRed,
-                        ),
-                      ),
-                    ),
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 18.h,
-                  ),
+                  prefixText: 'Rs  ',
+                  prefixStyle: TextStyle(fontSize: 18.sp,
+                      fontWeight: FontWeight.w500, color: Colors.grey),
+                  hintText: '100',
+                  filled: true, fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14.r),
+                      borderSide: BorderSide.none),
+                  contentPadding: EdgeInsets.all(16.r),
                 ),
-                validator: (val) {
-                  if (val == null || val.isEmpty)
-                    return 'Enter JazzCash number';
-                  if (val.length < 10) return 'Enter valid number';
-                  return null;
-                },
               ),
-            ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
-
-            SizedBox(height: 32.h),
-
-            // ── Send OTP Button ────────────────────────────────────────────
-            SizedBox(
-              width: double.infinity,
-              height: 56.h,
-              child: ElevatedButton(
-                onPressed: wallet.otpLoading ? null : _sendOtp,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColor.appimagecolor,
-                  disabledBackgroundColor: AppColor.appimagecolor.withOpacity(
-                    0.5,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16.r),
-                  ),
-                  elevation: 0,
-                ),
-                child: wallet.otpLoading
-                    ? SizedBox(
-                        width: 44.r,
-                        height: 44.r,
-                        child: Utils.whiteLoadingLottie(size: 200),
-                      )
-                    : Text(
-                        'Send OTP',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-              ),
-            ).animate().fadeIn(delay: 250.ms).slideY(begin: 0.1),
-
-            SizedBox(height: 12.h),
-
-            Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.lock_outline_rounded,
-                    size: 14.r,
-                    color: Colors.grey.shade400,
-                  ),
-                  SizedBox(width: 5.w),
-                  Text(
-                    '256-bit SSL Secured Payment',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: Colors.grey.shade400,
+              SizedBox(height: 10.h),
+              Wrap(
+                spacing: 8.w, runSpacing: 8.h,
+                children: _quickAmounts.map((a) => GestureDetector(
+                  onTap: () => setState(() => _amountCtrl.text = '$a'),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
+                    decoration: BoxDecoration(
+                      color: _amountCtrl.text == '$a'
+                          ? const Color(0xFF1A1A2E)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(color: Colors.grey.shade200),
                     ),
+                    child: Text('Rs $a',
+                        style: TextStyle(fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                            color: _amountCtrl.text == '$a'
+                                ? Colors.white
+                                : const Color(0xFF1A1A2E))),
                   ),
-                ],
+                )).toList(),
               ),
-            ),
-            SizedBox(height: 30.h),
+              SizedBox(height: 20.h),
+
+              // ── Phone ──────────────────────────────────────────────────
+              _label('JazzCash Number'),
+              SizedBox(height: 8.h),
+              TextField(
+                controller: _phoneCtrl,
+                keyboardType: TextInputType.phone,
+                style: TextStyle(fontSize: 16.sp),
+                decoration: InputDecoration(
+                  hintText: '03XXXXXXXXX',
+                  prefixIcon: const Icon(Icons.phone_android_rounded),
+                  filled: true, fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14.r),
+                      borderSide: BorderSide.none),
+                  contentPadding: EdgeInsets.all(16.r),
+                ),
+              ),
+              SizedBox(height: 28.h),
+
+              SizedBox(
+                width: double.infinity, height: 54.h,
+                child: ElevatedButton(
+                  onPressed: provider.otpLoading ? null : _sendOtp,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _jcRed,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14.r)),
+                  ),
+                  child: provider.otpLoading
+                      ? SpinKitThreeBounce(color: Colors.white, size: 22.sp)
+                      : Text('OTP Bhejo',
+                          style: TextStyle(fontSize: 16.sp,
+                              fontWeight: FontWeight.w700, color: Colors.white)),
+                ),
+              ),
+            ] else ...[
+              // ── OTP Step ───────────────────────────────────────────────
+              Container(
+                padding: EdgeInsets.all(16.r),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16.r),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Row(children: [
+                  Icon(Icons.phone_android_rounded,
+                      color: _jcRed, size: 20.sp),
+                  SizedBox(width: 10.w),
+                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('JazzCash Number',
+                        style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
+                    Text(_phoneCtrl.text,
+                        style: TextStyle(fontSize: 15.sp,
+                            fontWeight: FontWeight.w700)),
+                  ]),
+                  const Spacer(),
+                  Text('Rs ${_amountCtrl.text}',
+                      style: TextStyle(fontSize: 15.sp,
+                          fontWeight: FontWeight.w700, color: _jcRed)),
+                ]),
+              ),
+              SizedBox(height: 24.h),
+
+              _label('6-Digit OTP'),
+              SizedBox(height: 8.h),
+              TextField(
+                controller: _otpCtrl,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.w700,
+                    letterSpacing: 8),
+                decoration: InputDecoration(
+                  hintText: '------',
+                  hintStyle: TextStyle(letterSpacing: 8, color: Colors.grey.shade300),
+                  prefixIcon: const Icon(Icons.lock_outline_rounded),
+                  filled: true, fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14.r),
+                      borderSide: BorderSide.none),
+                  contentPadding: EdgeInsets.all(16.r),
+                  counterText: '',
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 28.h),
+
+              SizedBox(
+                width: double.infinity, height: 54.h,
+                child: ElevatedButton(
+                  onPressed: provider.verifyLoading ? null : _verify,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _jcRed,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14.r)),
+                  ),
+                  child: provider.verifyLoading
+                      ? SpinKitThreeBounce(color: Colors.white, size: 22.sp)
+                      : Text('Verify & Add Money',
+                          style: TextStyle(fontSize: 16.sp,
+                              fontWeight: FontWeight.w700, color: Colors.white)),
+                ),
+              ),
+              SizedBox(height: 12.h),
+              Center(
+                child: TextButton(
+                  onPressed: () => setState(() {
+                    _otpSent = false;
+                    _txnRef  = null;
+                    _otpCtrl.clear();
+                    _error   = null;
+                  }),
+                  child: Text('Number change karein',
+                      style: TextStyle(color: Colors.grey, fontSize: 13.sp)),
+                ),
+              ),
+            ],
+
+            // ── Error ───────────────────────────────────────────────────
+            if (_error != null) ...[
+              SizedBox(height: 14.h),
+              Container(
+                padding: EdgeInsets.all(12.r),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Row(children: [
+                  Icon(Icons.error_outline, color: Colors.red, size: 18.sp),
+                  SizedBox(width: 8.w),
+                  Expanded(child: Text(_error!,
+                      style: TextStyle(fontSize: 13.sp, color: Colors.red.shade700))),
+                ]),
+              ),
+            ],
+            SizedBox(height: 20.h),
           ],
         ),
       ),
     );
   }
 
-  // ── OTP Screen ───────────────────────────────────────────────────────────
-  Widget _buildOtpScreen(WalletProvider wallet) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(24.r),
-      child: Column(
-        children: [
-          SizedBox(height: 20.h),
-
-          // JazzCash Logo
-          CircleAvatar(
-            radius: 70.r,
-            backgroundColor: _jcRed.withOpacity(0.1),
-            backgroundImage: const AssetImage('assets/images/JazzCashLogo.jpg'),
-          ).animate().scale(curve: Curves.elasticOut, duration: 600.ms),
-
-          SizedBox(height: 20.h),
-
-          Text(
-            'OTP Sent!',
-            style: TextStyle(
-              fontSize: 22.sp,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF1A1A2E),
-            ),
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            'Enter the 6-digit OTP sent to\n${_numberController.text} via JazzCash',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade500),
-          ),
-
-          SizedBox(height: 36.h),
-
-          // OTP field
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14.r),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 12,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: TextField(
-              controller: _otpController,
-              keyboardType: TextInputType.number,
-              textAlign: TextAlign.center,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(6),
-              ],
-              style: TextStyle(
-                fontSize: 28.sp,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 8,
-                color: const Color(0xFF1A1A2E),
-              ),
-              decoration: InputDecoration(
-                hintText: '------',
-                hintStyle: TextStyle(
-                  fontSize: 22.sp,
-                  color: Colors.grey.shade300,
-                  letterSpacing: 6,
-                ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.all(20.r),
-              ),
-            ),
-          ).animate().fadeIn(duration: 300.ms),
-
-          SizedBox(height: 32.h),
-
-          // Verify Button
-          SizedBox(
-            width: double.infinity,
-            height: 56.h,
-            child: ElevatedButton(
-              onPressed: wallet.verifyLoading ? null : _verifyOtp,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.appimagecolor,
-                disabledBackgroundColor: AppColor.appimagecolor.withOpacity(
-                  0.5,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16.r),
-                ),
-                elevation: 0,
-              ),
-              child: wallet.verifyLoading
-                  ? SizedBox(
-                      width: 34.r,
-                      height: 34.r,
-                      child: Utils.whiteLoadingLottie(size: 200),
-                    )
-                  : Text(
-                      'Verify & Add Money',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-            ),
-          ).animate().fadeIn(delay: 100.ms),
-
-          SizedBox(height: 16.h),
-
-          TextButton(
-            onPressed: wallet.otpLoading ? null : _sendOtp,
-            child: Text(
-              wallet.otpLoading ? 'Sending...' : 'Resend OTP',
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: _jcRed,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Section Label ────────────────────────────────────────────────────────────
-class _SectionLabel extends StatelessWidget {
-  final String label;
-  const _SectionLabel({required this.label});
-  @override
-  Widget build(BuildContext context) => Text(
-    label,
-    style: TextStyle(
-      fontSize: 14.sp,
-      fontWeight: FontWeight.w700,
-      color: const Color(0xFF1A1A2E),
-      letterSpacing: 0.2,
-    ),
-  );
-}
-
-// ─── Payment Success Screen ───────────────────────────────────────────────────
-class PaymentSuccessScreen extends StatelessWidget {
-  final double amount;
-  final String phoneNumber;
-  final String txnId;
-
-  const PaymentSuccessScreen({
-    super.key,
-    required this.amount,
-    required this.phoneNumber,
-    required this.txnId,
-  });
-
-  String _formatDateTime(DateTime dt) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    final hour = dt.hour > 12 ? dt.hour - 12 : dt.hour;
-    final amPm = dt.hour >= 12 ? 'PM' : 'AM';
-    return '${dt.day} ${months[dt.month - 1]} ${dt.year}, '
-        '$hour:${dt.minute.toString().padLeft(2, '0')} $amPm';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(24.r),
-          child: Column(
-            children: [
-              const Spacer(),
-
-              // ✅ Success Icon
-              Container(
-                width: 100.r,
-                height: 100.r,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00C853).withOpacity(0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check_circle_rounded,
-                  color: const Color(0xFF00C853),
-                  size: 60.r,
-                ),
-              ).animate().scale(
-                begin: const Offset(0, 0),
-                end: const Offset(1, 1),
-                curve: Curves.elasticOut,
-                duration: 800.ms,
-              ),
-
-              SizedBox(height: 24.h),
-              Text(
-                'Payment Successful!',
-                style: TextStyle(
-                  fontSize: 24.sp,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1A1A2E),
-                ),
-              ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2),
-
-              SizedBox(height: 8.h),
-              Text(
-                'Rs ${amount.toStringAsFixed(0)} has been added to your wallet',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14.sp, color: Colors.grey.shade500),
-              ).animate().fadeIn(delay: 500.ms),
-
-              SizedBox(height: 32.h),
-
-              // Receipt
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(20.r),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    _ReceiptRow(
-                      label: 'Amount',
-                      value: 'Rs ${amount.toStringAsFixed(0)}',
-                      valueColor: const Color(0xFF00C853),
-                      isBold: true,
-                    ),
-                    Divider(height: 20.h, color: Colors.grey.shade100),
-                    const _ReceiptRow(
-                      label: 'Payment Method',
-                      value: 'JazzCash',
-                    ),
-                    SizedBox(height: 12.h),
-                    _ReceiptRow(label: 'Phone', value: phoneNumber),
-                    SizedBox(height: 12.h),
-                    _ReceiptRow(label: 'Transaction ID', value: txnId),
-                    SizedBox(height: 12.h),
-                    _ReceiptRow(
-                      label: 'Date & Time',
-                      value: _formatDateTime(DateTime.now()),
-                    ),
-                    SizedBox(height: 12.h),
-                    const _ReceiptRow(
-                      label: 'Status',
-                      value: '✅ Completed',
-                      valueColor: Color(0xFF00C853),
-                    ),
-                  ],
-                ),
-              ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.15),
-
-              const Spacer(),
-
-              SizedBox(
-                width: double.infinity,
-                height: 54.h,
-                child: ElevatedButton(
-                  onPressed: () =>
-                      Navigator.of(context).popUntil((route) => route.isFirst),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColor.appimagecolor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16.r),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    'Back to Wallet',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ).animate().fadeIn(delay: 700.ms),
-
-              SizedBox(height: 16.h),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ReceiptRow extends StatelessWidget {
-  final String label, value;
-  final Color? valueColor;
-  final bool isBold;
-
-  const _ReceiptRow({
-    required this.label,
-    required this.value,
-    this.valueColor,
-    this.isBold = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade500),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 13.sp,
-            fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-            color: valueColor ?? const Color(0xFF1A1A2E),
-          ),
-        ),
-      ],
-    );
-  }
+  Widget _label(String t) => Text(t,
+      style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700,
+          color: const Color(0xFF1A1A2E)));
 }

@@ -85,6 +85,15 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
                     _buildInfoCard(),
                     SizedBox(height: 16.h),
                     if (_exchange!.courierPaidBy != null) _buildCourierCard(),
+                    // ── Exchange Slip (PDF) ─────────────────────────────
+                    if (_exchange!.pdfPath?.isNotEmpty == true) ...[
+                      SizedBox(height: 16.h),
+                      _buildSlipDownloadCard(
+                        label: "Download Exchange Slip",
+                        pdfUrl: _exchange!.pdfPath!,
+                        icon: Icons.swap_horiz,
+                      ),
+                    ],
                     if (_exchange!.isAccepted) ...[
                       SizedBox(height: 16.h),
                       _buildReturnProofSection(),
@@ -648,6 +657,55 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
                   fontWeight: FontWeight.w600,
                   decoration: onTap != null ? TextDecoration.underline : null,
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSlipDownloadCard({
+    required String label,
+    required String pdfUrl,
+    required IconData icon,
+  }) {
+    return GestureDetector(
+      onTap: () async {
+        final uri = Uri.parse(pdfUrl);
+        final ok = await canLaunchUrl(uri);
+        if (!mounted) return;
+        if (ok) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          PremiumToast.error(context, "Could not open slip");
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 16.w),
+        decoration: BoxDecoration(
+          color: AppColor.primaryColor,
+          borderRadius: BorderRadius.circular(14.r),
+          boxShadow: [
+            BoxShadow(
+              color: AppColor.primaryColor.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.download_rounded, color: Colors.white, size: 20.sp),
+            SizedBox(width: 8.w),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],

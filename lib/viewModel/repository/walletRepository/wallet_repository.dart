@@ -29,7 +29,7 @@ class WalletRepository {
         'buyerId': buyerId,
         'amount': amount,
         'method': method,
-        'phoneNumber': phoneNumber,
+        'mobileNumber': phoneNumber,
       });
       return OtpResponseModel.fromJson(response);
     } catch (e) {

@@ -155,32 +155,10 @@ class RefundRequestCard extends StatelessWidget {
         );
 
       case 'accepted':
-        return Column(
-          children: [
-            _infoContainer(
-              color: Colors.green,
-              icon: Icons.check_circle_outline,
-              text: "Refund accepted! Please ship the product back.",
-            ),
-            SizedBox(height: 8.h),
-            if (data.pdfPath?.isNotEmpty == true)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => p.downloadRefundSlip(data.refundId ?? ""),
-                  icon: const Icon(Icons.download, size: 16),
-                  label: const Text("Download Refund Slip"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE87A36),
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 10.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                  ),
-                ),
-              ),
-          ],
+        return _infoContainer(
+          color: Colors.green,
+          icon: Icons.check_circle_outline,
+          text: "Refund accepted! Please ship the product back.",
         );
 
       case 'rejected':

@@ -1,5 +1,4 @@
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps
-import 'dart:developer';
 
 class Global {
   // static var imageUrl = "http://192.168.88.59:5000";
@@ -62,6 +61,7 @@ class Global {
       "${BaseUrl}/buyer/wallet/payment-methods/delete";
   static var SafepayCheckout = "${BaseUrl}/buyer/wallet/safepay/checkout";
   static var JazzcashInitiate = "${BaseUrl}/jazzcash-initiate";
+  static var JazzcashBuyerStart = "${BaseUrl}/buyer/jazzcash/start";
 
   // ── Exchange (Buyer) ──────────────────────────────────────────
   static var createExchangeRequest = "${BaseUrl}/buyer/create/exchange/request";
@@ -101,29 +101,10 @@ class Global {
       "${BaseUrl}/leopards/track/$trackNumber";
 
   // Global.dart mein add karo
-  static String getImageUrl(String? imagePath) {
-    if (imagePath == null) return '';
-    String path = imagePath.trim();
-    if (path.isEmpty) return '';
-
-    // Handle full URLs
-    if (path.toLowerCase().startsWith('http')) {
-      return path;
-    }
-
-    // Ensure baseUrl doesn't end with slash
-    String baseUrl = imageUrl.trim();
-    if (baseUrl.endsWith('/')) {
-      baseUrl = baseUrl.substring(0, baseUrl.length - 1);
-    }
-
-    // Ensure path starts with exactly one slash
-    if (!path.startsWith('/')) {
-      path = '/$path';
-    }
-
-    final finalUrl = baseUrl + path;
-    log("🖼️ Generated URL: $finalUrl");
-    return finalUrl;
+static String getImageUrl(String? url) {
+    if (url == null) return "";
+    if (url.startsWith('upload')) return "$imageUrl/$url";
+    if (url.startsWith('http')) return url;
+    return "$imageUrl$url";
   }
 }

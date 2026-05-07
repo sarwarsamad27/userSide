@@ -190,33 +190,10 @@ class ExchangeRequestCard extends StatelessWidget {
         );
 
       case 'accepted':
-        return Column(
-          children: [
-            _infoContainer(
-              color: Colors.green,
-              icon: Icons.check_circle_outline,
-              text: "Request accepted! Please ship the product back to the seller.",
-            ),
-            SizedBox(height: 8.h),
-            // ✅ Download slip button
-            if (data.pdfPath?.isNotEmpty == true)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => p.downloadExchangeSlip(data.exchangeId ?? ""),
-                  icon: const Icon(Icons.download, size: 16),
-                  label: const Text("Download Exchange Slip"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColor.primaryColor,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 10.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                  ),
-                ),
-              ),
-          ],
+        return _infoContainer(
+          color: Colors.green,
+          icon: Icons.check_circle_outline,
+          text: "Request accepted! Please ship the product back to the seller.",
         );
 
       case 'denied':
