@@ -286,6 +286,8 @@ class _RefundRequestSheetState extends State<RefundRequestSheet> {
               }).toList(),
             ),
 
+            SizedBox(height: 10.h),
+            _buildCourierBanner(_reasonCategory),
             SizedBox(height: 15.h),
             TextField(
               controller: _reason,
@@ -369,6 +371,43 @@ class _RefundRequestSheetState extends State<RefundRequestSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCourierBanner(String reasonCategory) {
+    const sellerFault = {"seller_fault", "defective", "wrong_item"};
+    final isBuyerPays = !sellerFault.contains(reasonCategory);
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        color: isBuyerPays ? Colors.orange[50] : Colors.green[50],
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(
+          color: isBuyerPays ? Colors.orange[200]! : Colors.green[200]!,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.local_shipping_outlined,
+            size: 16.sp,
+            color: isBuyerPays ? Colors.orange[700] : Colors.green[700],
+          ),
+          SizedBox(width: 8.w),
+          Expanded(
+            child: Text(
+              isBuyerPays
+                  ? "Return courier cost will be your responsibility"
+                  : "Seller will cover all courier costs",
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: isBuyerPays ? Colors.orange[700] : Colors.green[700],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

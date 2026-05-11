@@ -11,6 +11,7 @@ class BuyNowButton extends StatelessWidget {
   final String price;
   final String selectedImage;
   final String stockStatus;
+  final int? quantity;
   final List<String> selectedColors;
   final List<String> selectedSizes;
   final bool productHasColors;
@@ -27,16 +28,18 @@ class BuyNowButton extends StatelessWidget {
     required this.productHasColors,
     required this.productHasSizes,
     required this.stockStatus,
+    this.quantity,
   });
 
   @override
   Widget build(BuildContext context) {
     final bool isOutOfStock =
-        stockStatus.trim().toLowerCase() == "out of stock";
+        stockStatus.trim().toLowerCase() == "out of stock" ||
+        (quantity != null && quantity! <= 0);
 
     return GestureDetector(
       onTap: isOutOfStock
-          ? () => AppToast.warning("This product is out of stock")
+          ? null
           : () {
               if ((productHasColors && selectedColors.isEmpty) ||
                   (productHasSizes && selectedSizes.isEmpty)) {

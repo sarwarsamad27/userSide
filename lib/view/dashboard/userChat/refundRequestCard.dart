@@ -103,6 +103,12 @@ class RefundRequestCard extends StatelessWidget {
                 "Rs ${data.refundAmount!.toStringAsFixed(0)}"),
           ],
 
+          // ── Courier responsibility ───────────────────────────
+          if (data.courierPaidBy != null) ...[
+            SizedBox(height: 8.h),
+            _buildCourierBanner(data.courierPaidBy!),
+          ],
+
           // ── Images ──────────────────────────────────────────
           if (data.images.isNotEmpty) ...[
             SizedBox(height: 12.h),
@@ -300,6 +306,38 @@ class RefundRequestCard extends StatelessWidget {
           }).toList(),
           initialIndex: initialIndex,
         ),
+      ),
+    );
+  }
+
+  Widget _buildCourierBanner(String courierPaidBy) {
+    final isBuyer = courierPaidBy == "buyer";
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: isBuyer ? Colors.orange[50] : Colors.green[50],
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+            color: isBuyer ? Colors.orange[200]! : Colors.green[200]!),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.local_shipping_outlined,
+              size: 14.sp,
+              color: isBuyer ? Colors.orange[700] : Colors.green[700]),
+          SizedBox(width: 6.w),
+          Expanded(
+            child: Text(
+              isBuyer
+                  ? "Return courier cost: Your responsibility"
+                  : "Seller will cover all courier costs",
+              style: TextStyle(
+                  fontSize: 11.sp,
+                  color: isBuyer ? Colors.orange[700] : Colors.green[700],
+                  fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
       ),
     );
   }

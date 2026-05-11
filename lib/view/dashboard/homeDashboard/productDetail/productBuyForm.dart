@@ -10,6 +10,7 @@ import 'package:user_side/view/auth/AuthLoginGate.dart';
 import 'package:user_side/viewModel/provider/favouriteProvider/getFavourite_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/createOrder_provider.dart';
 import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
+import 'package:user_side/viewModel/provider/deliveryProvider/delivery_settings_provider.dart';
 import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
@@ -70,6 +71,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
       if (buyerId != null) {
         context.read<WalletProvider>().fetchBalance(buyerId);
       }
+      context.read<DeliverySettingsProvider>().fetchSettings();
     });
   }
 
@@ -124,14 +126,21 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
     ];
   }
 
-  // ── Grand total ───────────────────────────────────────────────────────────
-  double _getGrandTotal() {
+  double _getProductsTotal() {
     final isFromFavourite =
         widget.favouriteItems != null && widget.favouriteItems!.isNotEmpty;
-    double productTotal = isFromFavourite
+    return isFromFavourite
         ? _calculateFavouriteTotal()
         : (double.tryParse(widget.price ?? '0') ?? 0) * _quantityNotifier.value;
-    return productTotal + 200;
+  }
+
+  DeliverySettingsProvider get _delivery =>
+      context.read<DeliverySettingsProvider>();
+
+  // ── Grand total ───────────────────────────────────────────────────────────
+  double _getGrandTotal() {
+    final productTotal = _getProductsTotal();
+    return productTotal + _delivery.getShipmentCharges(productTotal);
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -163,6 +172,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
     _loadingNotifier.value = true;
     final provider = context.read<CreateOrderProvider>();
 
+    final productTotal = _getProductsTotal();
     await provider.placeOrder(
       name: _nameController.text.trim(),
       email: _emailController.text.trim(),
@@ -170,7 +180,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
       address: _addressController.text.trim(),
       additionalNote: _additionalNoteController.text.trim(),
       products: _buildProductList(),
-      shipmentCharges: 200,
+      shipmentCharges: _delivery.getShipmentCharges(productTotal).toInt(),
       paymentMethod: 'cod',
     );
 
@@ -211,6 +221,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
 
     // ── Step 3: Place order (wallet debit already done) ───────────────────────
     _loadingNotifier.value = true;
+    final productTotalW = _getProductsTotal();
     await provider.placeOrder(
       name: _nameController.text.trim(),
       email: _emailController.text.trim(),
@@ -218,7 +229,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
       address: _addressController.text.trim(),
       additionalNote: _additionalNoteController.text.trim(),
       products: _buildProductList(),
-      shipmentCharges: 200,
+      shipmentCharges: _delivery.getShipmentCharges(productTotalW).toInt(),
       paymentMethod: 'wallet',
     );
     _loadingNotifier.value = false;
@@ -604,10 +615,13 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                   ValueListenableBuilder<int>(
                                     valueListenable: _quantityNotifier,
                                     builder: (_, quantity, __) {
-                                      double productTotal = isFromFavourite
+                                      final productTotal = isFromFavourite
                                           ? _calculateFavouriteTotal()
                                           : singlePrice * quantity;
-                                      double grandTotal = productTotal + 200;
+                                      final deliveryCfg = context.read<DeliverySettingsProvider>();
+                                      final shipment = deliveryCfg.getShipmentCharges(productTotal);
+                                      final isFree = shipment == 0;
+                                      final grandTotal = productTotal + shipment;
 
                                       return Column(
                                         crossAxisAlignment:
@@ -621,13 +635,62 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                             ),
                                           ),
                                           SizedBox(height: 8.h),
-                                          Text(
-                                            'Shipment Charges: Rs 200',
-                                            style: TextStyle(
-                                              fontSize: 14.sp,
-                                              color: Colors.black87,
-                                            ),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                'Shipment Charges: ',
+                                                style: TextStyle(
+                                                  fontSize: 14.sp,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                              if (isFree) ...[
+                                                Text(
+                                                  'Rs 200',
+                                                  style: TextStyle(
+                                                    fontSize: 13.sp,
+                                                    color: Colors.grey,
+                                                    decoration: TextDecoration.lineThrough,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 6.w),
+                                                Container(
+                                                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.green,
+                                                    borderRadius: BorderRadius.circular(12.r),
+                                                  ),
+                                                  child: Text(
+                                                    'FREE',
+                                                    style: TextStyle(
+                                                      fontSize: 11.sp,
+                                                      color: Colors.white,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ] else
+                                                Text(
+                                                  'Rs 200',
+                                                  style: TextStyle(
+                                                    fontSize: 14.sp,
+                                                    color: Colors.black87,
+                                                  ),
+                                                ),
+                                            ],
                                           ),
+                                          if (!isFree && deliveryCfg.freeDeliveryEnabled)
+                                            Padding(
+                                              padding: EdgeInsets.only(top: 4.h),
+                                              child: Text(
+                                                'Shop for Rs ${(deliveryCfg.freeDeliveryThreshold - productTotal).toStringAsFixed(0)} more for FREE delivery!',
+                                                style: TextStyle(
+                                                  fontSize: 11.sp,
+                                                  color: Colors.green.shade700,
+                                                  fontStyle: FontStyle.italic,
+                                                ),
+                                              ),
+                                            ),
                                           SizedBox(height: 8.h),
                                           Text(
                                             'Grand Total: Rs ${grandTotal.toStringAsFixed(0)}',

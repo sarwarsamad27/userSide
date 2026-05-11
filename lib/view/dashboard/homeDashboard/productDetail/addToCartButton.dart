@@ -13,8 +13,8 @@ class AddToCart extends StatelessWidget {
   final List<String> selectedColors;
   final bool productHasColors;
   final bool productHasSizes;
-
   final String stockStatus;
+  final int? quantity;
 
   const AddToCart({
     super.key,
@@ -24,6 +24,7 @@ class AddToCart extends StatelessWidget {
     required this.productHasColors,
     required this.productHasSizes,
     required this.stockStatus,
+    this.quantity,
   });
 
   @override
@@ -31,7 +32,8 @@ class AddToCart extends StatelessWidget {
     final isLoggedIn = context.watch<AuthSession>().isLoggedIn;
 
     final bool isOutOfStock =
-        stockStatus.trim().toLowerCase() == "out of stock";
+        stockStatus.trim().toLowerCase() == "out of stock" ||
+        (quantity != null && quantity! <= 0);
 
     return Consumer<AddToFavouriteProvider>(
       builder: (context, provider, _) {

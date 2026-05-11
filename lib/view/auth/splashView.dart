@@ -1,11 +1,105 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/models/notification_services/notification_services.dart';
-import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/view/dashboard/DashboardScreen.dart';
 
+class _Particle {
+  double x, y, radius, speed, opacity;
+  _Particle({
+    required this.x,
+    required this.y,
+    required this.radius,
+    required this.speed,
+    required this.opacity,
+  });
+}
+
+// ─────────────────────────────────────────────
+//  Floating particles painter
+// ─────────────────────────────────────────────
+class _ParticlePainter extends CustomPainter {
+  final List<_Particle> particles;
+  final Color color;
+
+  _ParticlePainter(this.particles, this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final p in particles) {
+      final paint = Paint()
+        ..color = color.withOpacity(p.opacity)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(
+        Offset(p.x * size.width, p.y * size.height),
+        p.radius,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ParticlePainter old) => true;
+}
+
+// ─────────────────────────────────────────────
+//  Shimmer painter for the logo ring
+// ─────────────────────────────────────────────
+class _ShimmerRingPainter extends CustomPainter {
+  final double progress; // 0.0 → 1.0
+  final Color primaryColor;
+  final Color accentColor;
+
+  _ShimmerRingPainter(this.progress, this.primaryColor, this.accentColor);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 4;
+
+    // Background ring
+    final bgPaint = Paint()
+      ..color = Colors.white.withOpacity(0.08)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+    canvas.drawCircle(center, radius, bgPaint);
+
+    // Animated arc
+    final arcPaint = Paint()
+      ..shader = SweepGradient(
+        startAngle: 0,
+        endAngle: 2 * pi,
+        colors: [
+          accentColor.withOpacity(0),
+          accentColor,
+          primaryColor,
+          accentColor.withOpacity(0),
+        ],
+        stops: const [0.0, 0.25, 0.5, 1.0],
+        transform: GradientRotation(2 * pi * progress),
+      ).createShader(Rect.fromCircle(center: center, radius: radius))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -pi / 2 + 2 * pi * progress,
+      pi * 1.4,
+      false,
+      arcPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_ShimmerRingPainter old) => old.progress != progress;
+}
+
+// ─────────────────────────────────────────────
+//  SPLASH SCREEN
+// ─────────────────────────────────────────────
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -14,35 +108,159 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+    with TickerProviderStateMixin {
+  // ── Controllers ──────────────────────────────
+  late AnimationController _ringCtrl; // spinning shimmer ring
+  late AnimationController _revealCtrl; // staggered content reveal
+  late AnimationController _particleCtrl; // particle float loop
+  late AnimationController _pulseCtrl; // subtle logo pulse
+
+  // ── Reveal animations ────────────────────────
+  late Animation<double> _logoScale;
+  late Animation<double> _logoFade;
+  late Animation<double> _titleFade;
+  late Animation<Offset> _titleSlide;
+  late Animation<double> _taglineFade;
+  late Animation<Offset> _taglineSlide;
+  late Animation<double> _badgeFade;
+  late Animation<double> _dividerWidth;
+
+  // ── Pulse ────────────────────────────────────
+  late Animation<double> _pulse;
+
+  // ── Particles ────────────────────────────────
+  final List<_Particle> _particles = [];
+  final _rng = Random();
+  late Timer _particleTimer;
+
+  // ── Palette ──────────────────────────────────
+  static const Color _bg = Color(0xFF0A0A0F);
+  static const Color _primary = Color(0xFFD4A853); // warm gold
+  static const Color _accent = Color(0xFFF5C842); // bright gold
+  static const Color _surface = Color(0xFF161622);
 
   @override
   void initState() {
     super.initState();
+
+    // Notification token
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await NotificationService.registerTokenIfLoggedIn();
     });
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat();
 
-    // ⏳ Check token and navigate after 2 seconds
-    Timer(const Duration(seconds: 2), navigateNext);
+    _initParticles();
+    _initAnimations();
+
+    // Navigate after 3.5 s
+    Timer(const Duration(milliseconds: 3500), navigateNext);
   }
 
+  // ── Particle init ─────────────────────────────
+  void _initParticles() {
+    for (int i = 0; i < 28; i++) {
+      _particles.add(
+        _Particle(
+          x: _rng.nextDouble(),
+          y: _rng.nextDouble(),
+          radius: _rng.nextDouble() * 2.2 + 0.6,
+          speed: _rng.nextDouble() * 0.0008 + 0.0003,
+          opacity: _rng.nextDouble() * 0.35 + 0.05,
+        ),
+      );
+    }
+
+    _particleCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 12),
+    )..repeat();
+
+    _particleTimer = Timer.periodic(const Duration(milliseconds: 40), (_) {
+      if (!mounted) return;
+      setState(() {
+        for (final p in _particles) {
+          p.y -= p.speed;
+          if (p.y < -0.02) {
+            p.y = 1.02;
+            p.x = _rng.nextDouble();
+            p.opacity = _rng.nextDouble() * 0.35 + 0.05;
+          }
+        }
+      });
+    });
+  }
+
+  // ── Animation init ───────────────────────────
+  void _initAnimations() {
+    // Spinning ring
+    _ringCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
+
+    // Staggered reveal (0 → 1800 ms)
+    _revealCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..forward();
+
+    _logoFade = _curved(_revealCtrl, 0.00, 0.30);
+    _logoScale = CurvedAnimation(
+      parent: _revealCtrl,
+      curve: const Interval(0.00, 0.40, curve: Curves.elasticOut),
+    );
+
+    _titleFade = _curved(_revealCtrl, 0.30, 0.60);
+    _titleSlide = _slide(_revealCtrl, 0.30, 0.60);
+
+    _taglineFade = _curved(_revealCtrl, 0.50, 0.80);
+    _taglineSlide = _slide(_revealCtrl, 0.50, 0.80);
+
+    _dividerWidth = _curved(_revealCtrl, 0.40, 0.70);
+    _badgeFade = _curved(_revealCtrl, 0.70, 1.00);
+
+    // Pulse loop
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..repeat(reverse: true);
+
+    _pulse = Tween<double>(
+      begin: 1.0,
+      end: 1.06,
+    ).animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
+  }
+
+  Animation<double> _curved(
+    AnimationController ctrl,
+    double start,
+    double end,
+  ) => CurvedAnimation(
+    parent: ctrl,
+    curve: Interval(start, end, curve: Curves.easeOut),
+  );
+
+  Animation<Offset> _slide(
+    AnimationController ctrl,
+    double start,
+    double end,
+  ) => Tween<Offset>(begin: const Offset(0, 0.4), end: Offset.zero).animate(
+    CurvedAnimation(
+      parent: ctrl,
+      curve: Interval(start, end, curve: Curves.easeOut),
+    ),
+  );
+
+  // ── Navigation ───────────────────────────────
   Future<void> navigateNext() async {
     final token = await LocalStorage.getToken();
+    if (!mounted) return;
 
     if (token != null && token.isNotEmpty) {
-      // ✅ User already logged in → go to Home
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomeNavBarScreen()),
       );
     } else {
-      // ❌ User not logged in → go to Login
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomeNavBarScreen()),
@@ -52,103 +270,373 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _ringCtrl.dispose();
+    _revealCtrl.dispose();
+    _particleCtrl.dispose();
+    _pulseCtrl.dispose();
+    _particleTimer.cancel();
     super.dispose();
   }
 
+  // ── BUILD ─────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
       designSize: const Size(390, 844),
       minTextAdapt: true,
-      builder: (context, child) {
+      builder: (context, _) {
         return Scaffold(
+          backgroundColor: _bg,
           body: Stack(
             children: [
-              // 🔹 Background Image
+              // ① Radial glow background
+              _buildBackground(),
+
+              // ② Floating particles
               Positioned.fill(
-                child: Image.asset("assets/images/shookoo_image.png"),
-              ),
-
-              // 🔹 Gradient Overlay
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.black.withOpacity(0.5),
-                      Colors.black.withOpacity(0.3),
-                    ],
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                  ),
+                child: CustomPaint(
+                  painter: _ParticlePainter(_particles, _primary),
                 ),
               ),
 
-              // 🔹 Center Content
-              Center(
-                child: SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 100.h),
+              // ③ Main content
+              _buildContent(),
 
-                      // 🔄 Rotating Icon
-                      RotationTransition(
-                        turns: _controller,
-                        child: Container(
-                          height: 130.h,
-                          width: 130.w,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.8),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 12,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            Icons.shopping_bag_rounded,
-                            color: AppColor.primaryColor,
-                            size: 65.sp,
-                          ),
-                        ),
-                      ),
-
-                      SizedBox(height: 30.h),
-
-                      // App Name
-                      Text(
-                        "Shookoo Store",
-                        style: TextStyle(
-                          fontSize: 30.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 1.3,
-                        ),
-                      ),
-
-                      SizedBox(height: 12.h),
-
-                      // Tagline
-                      Text(
-                        "Everything you need, in one place!",
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          color: Colors.white.withOpacity(0.9),
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              // ④ Bottom badge
+              _buildBottomBadge(),
             ],
           ),
         );
       },
+    );
+  }
+
+  // ── Background ───────────────────────────────
+  Widget _buildBackground() {
+    return Positioned.fill(
+      child: Stack(
+        children: [
+          // Deep radial glow at top-center
+          Positioned(
+            top: -120.h,
+            left: -80.w,
+            right: -80.w,
+            child: Container(
+              height: 520.h,
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  colors: [_primary.withOpacity(0.18), _bg.withOpacity(0.0)],
+                  radius: 0.75,
+                ),
+              ),
+            ),
+          ),
+          // Subtle bottom glow
+          Positioned(
+            bottom: -60.h,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 300.h,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, _primary.withOpacity(0.07)],
+                ),
+              ),
+            ),
+          ),
+          // Subtle grid lines (luxury detail)
+          Opacity(
+            opacity: 0.04,
+            child: CustomPaint(
+              size: Size(390.w, 844.h),
+              painter: _GridPainter(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Main content ─────────────────────────────
+  Widget _buildContent() {
+    return Center(
+      child: SafeArea(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(height: 40.h),
+
+            // Logo container with spinning ring
+            FadeTransition(
+              opacity: _logoFade,
+              child: ScaleTransition(
+                scale: _logoScale,
+                child: ScaleTransition(
+                  scale: _pulse,
+                  child: SizedBox(
+                    width: 148.w,
+                    height: 148.w,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Outer glow ring
+                        Container(
+                          width: 148.w,
+                          height: 148.w,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: _primary.withOpacity(0.35),
+                                blurRadius: 40,
+                                spreadRadius: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Shimmer spinning ring
+                        AnimatedBuilder(
+                          animation: _ringCtrl,
+                          builder: (_, __) => CustomPaint(
+                            size: Size(148.w, 148.w),
+                            painter: _ShimmerRingPainter(
+                              _ringCtrl.value,
+                              _primary,
+                              _accent,
+                            ),
+                          ),
+                        ),
+                        // Glassmorphism logo disc
+                        Container(
+                          width: 118.w,
+                          height: 118.w,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                _surface.withOpacity(0.9),
+                                _bg.withOpacity(0.95),
+                              ],
+                            ),
+                            border: Border.all(
+                              color: _primary.withOpacity(0.25),
+                              width: 1.2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.4),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.shopping_bag_rounded,
+                              color: _primary,
+                              size: 54.sp,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            SizedBox(height: 44.h),
+
+            // App name
+            FadeTransition(
+              opacity: _titleFade,
+              child: SlideTransition(
+                position: _titleSlide,
+                child: Column(
+                  children: [
+                    Text(
+                      "SHOOKOO",
+                      style: TextStyle(
+                        fontSize: 36.sp,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 8,
+                        height: 1.0,
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    // Gold accent word
+                    Text(
+                      "STORE",
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: _primary,
+                        letterSpacing: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            SizedBox(height: 20.h),
+
+            // Animated divider
+            AnimatedBuilder(
+              animation: _dividerWidth,
+              builder: (_, __) => Container(
+                width: _dividerWidth.value * 120.w,
+                height: 1,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.transparent, _primary, Colors.transparent],
+                  ),
+                ),
+              ),
+            ),
+
+            SizedBox(height: 16.h),
+
+            // Tagline
+            FadeTransition(
+              opacity: _taglineFade,
+              child: SlideTransition(
+                position: _taglineSlide,
+                child: Text(
+                  "Everything you need, in one place",
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    color: Colors.white.withOpacity(0.5),
+                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Bottom badge ─────────────────────────────
+  Widget _buildBottomBadge() {
+    return Positioned(
+      bottom: 48.h,
+      left: 0,
+      right: 0,
+      child: FadeTransition(
+        opacity: _badgeFade,
+        child: Column(
+          children: [
+            // Loading dots
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(3, (i) {
+                return _LoadingDot(
+                  delay: Duration(milliseconds: i * 200),
+                  color: _primary,
+                );
+              }),
+            ),
+            SizedBox(height: 16.h),
+            Text(
+              "Crafted with ♥  for you",
+              style: TextStyle(
+                fontSize: 11.sp,
+                color: Colors.white.withOpacity(0.25),
+                letterSpacing: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+//  Grid background painter (luxury texture)
+// ─────────────────────────────────────────────
+class _GridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 0.5;
+
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GridPainter _) => false;
+}
+
+// ─────────────────────────────────────────────
+//  Animated loading dot
+// ─────────────────────────────────────────────
+class _LoadingDot extends StatefulWidget {
+  final Duration delay;
+  final Color color;
+
+  const _LoadingDot({required this.delay, required this.color});
+
+  @override
+  State<_LoadingDot> createState() => _LoadingDotState();
+}
+
+class _LoadingDotState extends State<_LoadingDot>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+    Future.delayed(widget.delay, () {
+      if (mounted) _ctrl.repeat(reverse: true);
+    });
+    _anim = Tween<double>(
+      begin: 0.3,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (_, __) => Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        width: 6,
+        height: 6,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: widget.color.withOpacity(_anim.value),
+        ),
+      ),
     );
   }
 }

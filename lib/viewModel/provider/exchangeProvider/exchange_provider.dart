@@ -2,6 +2,9 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:http/http.dart' as http;
+import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:user_side/models/chatModel/exchangeRequestModel.dart';
 import 'package:user_side/viewModel/repository/chatRepository/chat_repository.dart';
@@ -211,6 +214,30 @@ Future<bool> uploadRefundReturnProof({
     uploadingProof = false;
     notifyListeners();
     return ok;
+  }
+
+  // ── Download Slip directly from Cloudinary URL (no auth needed) ─
+  Future<void> downloadSlipDirect({
+    required String pdfUrl,
+    required String fileName,
+  }) async {
+    Fluttertoast.showToast(msg: "Downloading PDF...");
+    try {
+      final resp = await http.get(Uri.parse(pdfUrl));
+      if (resp.statusCode != 200) {
+        Fluttertoast.showToast(msg: "Download failed (${resp.statusCode})");
+        return;
+      }
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File("${dir.path}/$fileName");
+      await file.writeAsBytes(resp.bodyBytes, flush: true);
+      final result = await OpenFilex.open(file.path);
+      if (result.type != ResultType.done) {
+        Fluttertoast.showToast(msg: "Saved: $fileName");
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Download error: $e");
+    }
   }
 
   // ── Download PDF ──────────────────────────────────────────────

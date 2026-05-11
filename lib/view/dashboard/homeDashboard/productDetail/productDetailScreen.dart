@@ -149,6 +149,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               productHasColors: productHasColors,
               productHasSizes: productHasSizes,
               stockStatus: stockStatus,
+              quantity: product.quantity,
             ),
           ],
         ),

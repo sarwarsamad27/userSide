@@ -245,6 +245,10 @@ class RefundRequestData {
   final String? refundedAt;
   final String? completedAt;
 
+  // ✅ Courier responsibility
+  final String? courierPaidBy; // "seller" | "buyer"
+  final double? courierCost;
+
   RefundRequestData({
     this.refundId,
     this.orderId,
@@ -268,6 +272,8 @@ class RefundRequestData {
     this.disputeNote,
     this.refundedAt,
     this.completedAt,
+    this.courierPaidBy,
+    this.courierCost,
   });
 
   String get reasonCategoryLabel {
@@ -311,6 +317,10 @@ class RefundRequestData {
       disputeNote: json["disputeNote"]?.toString(),
       refundedAt: json["refundedAt"]?.toString(),
       completedAt: json["completedAt"]?.toString(),
+      courierPaidBy: json["courierPaidBy"]?.toString(),
+      courierCost: json["courierCost"] is num
+          ? (json["courierCost"] as num).toDouble()
+          : double.tryParse(json["courierCost"]?.toString() ?? ""),
     );
   }
 

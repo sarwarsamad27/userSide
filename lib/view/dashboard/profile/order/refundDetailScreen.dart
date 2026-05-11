@@ -85,7 +85,8 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
                     SizedBox(height: 16.h),
 
                     // ── Refund Slip (PDF) ─────────────────────────
-                    if (_refund!.pdfPath?.isNotEmpty == true) ...[
+                    if (_refund!.pdfPath?.isNotEmpty == true &&
+                        _refund!.returnSlipLink?.isEmpty == true) ...[
                       _buildSlipDownloadCard(
                         label: "Download Refund Slip",
                         pdfUrl: _refund!.pdfPath!,
@@ -153,7 +154,6 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
       _Step("Received", "ReturnReceived", Icons.inventory_2_rounded),
       _Step("Inspection", "Inspecting", Icons.search_rounded),
       _Step("Refunded", "Refunded", Icons.account_balance_wallet_rounded),
-      _Step("Done", "Completed", Icons.check_circle_rounded),
     ];
 
     final statusOrder = [
@@ -319,7 +319,43 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
           ),
         if (_refund!.companyNote?.isNotEmpty == true)
           _infoRow("Seller Note", _refund!.companyNote!),
+        if (_refund!.courierPaidBy != null) ...[
+          SizedBox(height: 8.h),
+          _buildCourierBanner(_refund!.courierPaidBy!),
+        ],
       ],
+    );
+  }
+
+  Widget _buildCourierBanner(String courierPaidBy) {
+    final isBuyer = courierPaidBy == "buyer";
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        color: isBuyer ? Colors.orange[50] : Colors.green[50],
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(
+            color: isBuyer ? Colors.orange[200]! : Colors.green[200]!),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.local_shipping_outlined,
+              size: 16.sp,
+              color: isBuyer ? Colors.orange[700] : Colors.green[700]),
+          SizedBox(width: 8.w),
+          Expanded(
+            child: Text(
+              isBuyer
+                  ? "Return courier cost: Your responsibility"
+                  : "Seller will cover all courier costs",
+              style: TextStyle(
+                  fontSize: 12.sp,
+                  color: isBuyer ? Colors.orange[700] : Colors.green[700],
+                  fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -627,15 +663,12 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
     required IconData icon,
   }) {
     return GestureDetector(
-      onTap: () async {
-        final uri = Uri.parse(pdfUrl);
-        final ok = await canLaunchUrl(uri);
-        if (!mounted) return;
-        if (ok) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } else {
-          PremiumToast.error(context, "Could not open slip");
-        }
+      onTap: () {
+        final fileName = "refund_${widget.refundId}_slip.pdf";
+        context.read<ExchangeProvider>().downloadSlipDirect(
+          pdfUrl: pdfUrl,
+          fileName: fileName,
+        );
       },
       child: Container(
         width: double.infinity,
@@ -719,86 +752,143 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Colors.indigo[50],
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: Colors.indigo[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.indigo.withOpacity(0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+        border: Border.all(color: Colors.indigo[100]!),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.local_shipping,
-                color: Colors.indigo[700],
-                size: 22.sp,
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: Colors.indigo[50],
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Icon(
+                  Icons.local_shipping_rounded,
+                  color: Colors.indigo[700],
+                  size: 24.sp,
+                ),
               ),
-              SizedBox(width: 8.w),
-              Text(
-                "📦 Return Booked via Leopards",
-                style: TextStyle(
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.indigo[800],
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Leopards Return Label",
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.indigo[900],
+                      ),
+                    ),
+                    Text(
+                      "Ready for download",
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.indigo[600],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          if (rf.returnSlipLink?.isNotEmpty == true) ...[
-            SizedBox(height: 10.h),
-            Text(
-              "Please submit this product to your nearest Leopards drop-off point. Use the return label below.",
-              style: TextStyle(fontSize: 12.sp, color: Colors.indigo[600]),
+          SizedBox(height: 16.h),
+          Text(
+            "Please print this label and attach it firmly to your parcel. You can drop off the parcel at any Leopards Courier center.",
+            style: TextStyle(
+              fontSize: 13.sp,
+              color: Colors.grey[700],
+              height: 1.4,
             ),
-          ],
+          ),
           if (rf.returnTrackingNumber?.isNotEmpty == true) ...[
-            SizedBox(height: 10.h),
-            Row(
-              children: [
-                Icon(
-                  Icons.confirmation_number_outlined,
-                  size: 14.sp,
-                  color: Colors.indigo[400],
-                ),
-                SizedBox(width: 6.w),
-                Text(
-                  "Track #",
-                  style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
-                ),
-                SizedBox(width: 4.w),
-                Text(
-                  rf.returnTrackingNumber!,
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.indigo[800],
+            SizedBox(height: 16.h),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(10.r),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.tag, size: 16.sp, color: Colors.grey[600]),
+                  SizedBox(width: 8.w),
+                  Text(
+                    "Tracking Number:",
+                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
                   ),
-                ),
-              ],
+                  const Spacer(),
+                  Text(
+                    rf.returnTrackingNumber!,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.indigo[900],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
           if (rf.returnSlipLink?.isNotEmpty == true) ...[
-            SizedBox(height: 12.h),
+            SizedBox(height: 16.h),
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
+              child: ElevatedButton.icon(
                 onPressed: () async {
                   final uri = Uri.parse(rf.returnSlipLink!);
                   if (await canLaunchUrl(uri)) {
                     await launchUrl(uri, mode: LaunchMode.externalApplication);
                   }
                 },
-                icon: Icon(Icons.download_rounded, size: 16.sp),
-                label: const Text("Download Return Label"),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.indigo[700],
-                  side: BorderSide(color: Colors.indigo[400]!),
-                  padding: EdgeInsets.symmetric(vertical: 10.h),
+                icon: Icon(Icons.picture_as_pdf_rounded, size: 20.sp),
+                label: Text(
+                  "Download Return Label",
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.indigo[700],
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 14.h),
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.r),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                 ),
               ),
+            ),
+            SizedBox(height: 12.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.info_outline, size: 14.sp, color: Colors.grey),
+                SizedBox(width: 6.w),
+                Text(
+                  "This button will be removed after proof submission",
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: Colors.grey,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
             ),
           ],
         ],
@@ -869,12 +959,13 @@ class _RefundReturnProofWidgetState extends State<_RefundReturnProofWidget> {
   }
 
   Future<void> _submit() async {
+    final provider = context.read<ExchangeProvider>(); // capture before async
     final buyerId = await LocalStorage.getUserId() ?? "";
     if (buyerId.isEmpty) return;
 
     final images = await _toBase64();
 
-    final ok = await context.read<ExchangeProvider>().uploadRefundReturnProof(
+    final ok = await provider.uploadRefundReturnProof(
       refundId: widget.refund.id ?? "",
       buyerId: buyerId,
       trackingNumber: widget.refund.returnTrackingNumber ?? "",
@@ -1021,34 +1112,6 @@ class _RefundReturnProofWidgetState extends State<_RefundReturnProofWidget> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _field(String label, TextEditingController ctrl, IconData icon) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 6.h),
-        TextField(
-          controller: ctrl,
-          style: TextStyle(fontSize: 14.sp),
-          decoration: InputDecoration(
-            prefixIcon: Icon(icon, size: 18.sp),
-            hintText: "Enter $label",
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: 12.w,
-              vertical: 12.h,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

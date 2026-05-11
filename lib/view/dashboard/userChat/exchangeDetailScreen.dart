@@ -86,7 +86,8 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
                     SizedBox(height: 16.h),
                     if (_exchange!.courierPaidBy != null) _buildCourierCard(),
                     // ── Exchange Slip (PDF) ─────────────────────────────
-                    if (_exchange!.pdfPath?.isNotEmpty == true) ...[
+                    if (_exchange!.pdfPath?.isNotEmpty == true &&
+                        _exchange!.returnSlipLink?.isEmpty == true) ...[
                       SizedBox(height: 16.h),
                       _buildSlipDownloadCard(
                         label: "Download Exchange Slip",
@@ -759,82 +760,143 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Colors.blue[50],
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: Colors.blue[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+        border: Border.all(color: Colors.blue[100]!),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.local_shipping, color: Colors.blue[700], size: 22.sp),
-              SizedBox(width: 8.w),
-              Text(
-                "📦 Return Booked via Leopards",
-                style: TextStyle(
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue[800],
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Icon(
+                  Icons.local_shipping_rounded,
+                  color: Colors.blue[700],
+                  size: 24.sp,
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Leopards Return Label",
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[900],
+                      ),
+                    ),
+                    Text(
+                      "Ready for download",
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.blue[600],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          if (ex.returnSlipLink?.isNotEmpty == true) ...[
-            SizedBox(height: 10.h),
-            Text(
-              "Please submit this product to your nearest Leopards drop-off point. Use the return label below.",
-              style: TextStyle(fontSize: 12.sp, color: Colors.blue[600]),
+          SizedBox(height: 16.h),
+          Text(
+            "Please print this label and attach it firmly to your parcel. You can drop off the parcel at any Leopards Courier center.",
+            style: TextStyle(
+              fontSize: 13.sp,
+              color: Colors.grey[700],
+              height: 1.4,
             ),
-          ],
+          ),
           if (ex.returnTrackingNumber?.isNotEmpty == true) ...[
-            SizedBox(height: 10.h),
-            Row(
-              children: [
-                Icon(
-                  Icons.confirmation_number_outlined,
-                  size: 14.sp,
-                  color: Colors.blue[400],
-                ),
-                SizedBox(width: 6.w),
-                Text(
-                  "Track #",
-                  style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
-                ),
-                SizedBox(width: 4.w),
-                Text(
-                  ex.returnTrackingNumber!,
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue[800],
+            SizedBox(height: 16.h),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(10.r),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.tag, size: 16.sp, color: Colors.grey[600]),
+                  SizedBox(width: 8.w),
+                  Text(
+                    "Tracking Number:",
+                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
                   ),
-                ),
-              ],
+                  const Spacer(),
+                  Text(
+                    ex.returnTrackingNumber!,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[900],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
           if (ex.returnSlipLink?.isNotEmpty == true) ...[
-            SizedBox(height: 12.h),
+            SizedBox(height: 16.h),
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
+              child: ElevatedButton.icon(
                 onPressed: () async {
                   final uri = Uri.parse(ex.returnSlipLink!);
                   if (await canLaunchUrl(uri)) {
                     await launchUrl(uri, mode: LaunchMode.externalApplication);
                   }
                 },
-                icon: Icon(Icons.download_rounded, size: 16.sp),
-                label: const Text("Download Return Label"),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.blue[700],
-                  side: BorderSide(color: Colors.blue[400]!),
-                  padding: EdgeInsets.symmetric(vertical: 10.h),
+                icon: Icon(Icons.picture_as_pdf_rounded, size: 20.sp),
+                label: Text(
+                  "Download Return Label",
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue[700],
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 14.h),
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.r),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                 ),
               ),
+            ),
+            SizedBox(height: 12.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.info_outline, size: 14.sp, color: Colors.grey),
+                SizedBox(width: 6.w),
+                Text(
+                  "This button will be removed after proof submission",
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: Colors.grey,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
             ),
           ],
         ],

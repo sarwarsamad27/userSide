@@ -17,15 +17,17 @@ class BottomActionBar extends StatelessWidget {
     required this.productHasColors,
     required this.productHasSizes,
     required this.stockStatus,
+    this.quantity,
   });
 
   final String productId;
-  final List<String> imageUrls; 
+  final List<String> imageUrls;
   final String name;
   final String description;
   final String price;
   final String brandName;
   final String stockStatus;
+  final int? quantity;
   final bool productHasColors;
   final bool productHasSizes;
 
@@ -49,6 +51,7 @@ class BottomActionBar extends StatelessWidget {
                     productHasColors: productHasColors,
                     productHasSizes: productHasSizes,
                     stockStatus: stockStatus,
+                    quantity: quantity,
                   ),
                 ),
                 SizedBox(width: 12.w),
@@ -63,6 +66,7 @@ class BottomActionBar extends StatelessWidget {
                     productHasColors: productHasColors,
                     productHasSizes: productHasSizes,
                     stockStatus: stockStatus,
+                    quantity: quantity,
                   ),
                 ),
               ],

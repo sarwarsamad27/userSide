@@ -49,7 +49,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final myExchange = exchanges
         .where((e) => e.orderId == _order.id)
         .firstOrNull;
-    final myRefund = refunds.where((r) => r.orderId == _order.orderId).firstOrNull;
+    final myRefund = refunds
+        .where((r) => r.orderId == _order.orderId)
+        .firstOrNull;
 
     if (myExchange != null || myRefund != null) {
       setState(() {
@@ -1009,7 +1011,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       ),
     );
   }
-
+  
   // ── Timeline ──────────────────────────────────────────────────
   static const List<_StatusStep> _exchangeStatuses = [
     _StatusStep("Requested", "Pending", Icons.send_rounded),
@@ -1032,7 +1034,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     _StatusStep("Received", "ReturnReceived", Icons.inventory_2_rounded),
     _StatusStep("Inspection", "Inspecting", Icons.search_rounded),
     _StatusStep("Refunded", "Refunded", Icons.account_balance_wallet_rounded),
-    _StatusStep("Done", "Completed", Icons.check_circle_rounded),
+    // _StatusStep("Done", "Completed", Icons.check_circle_rounded),
   ];
 
   Widget _buildTimeline(List<_StatusStep> steps, String? currentStatus) {

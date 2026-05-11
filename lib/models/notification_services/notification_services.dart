@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 
@@ -34,7 +35,7 @@ class NotificationService {
     );
 
     // ✅ local notifications init (v17+)
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidInit = AndroidInitializationSettings('ic_notification');
     const settings = InitializationSettings(android: androidInit);
 
     await _local.initialize(
@@ -79,6 +80,9 @@ class NotificationService {
         channelDescription: _channel.description,
         importance: Importance.max,
         priority: Priority.high,
+        icon: 'ic_notification',
+        color: const Color(0xFFDB9F3A), // Gold color from logo
+        largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
       ),
     );
 
