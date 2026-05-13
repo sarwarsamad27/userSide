@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/models/notification_services/notification_services.dart';
+import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/view/dashboard/DashboardScreen.dart';
 
@@ -61,7 +62,7 @@ class _ShimmerRingPainter extends CustomPainter {
 
     // Background ring
     final bgPaint = Paint()
-      ..color = Colors.white.withOpacity(0.08)
+      ..color = primaryColor.withOpacity(0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
     canvas.drawCircle(center, radius, bgPaint);
@@ -99,7 +100,7 @@ class _ShimmerRingPainter extends CustomPainter {
 
 // ─────────────────────────────────────────────
 //  SPLASH SCREEN
-// ─────────────────────────────────────────────
+// 102: // ─────────────────────────────────────────────
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -133,11 +134,12 @@ class _SplashScreenState extends State<SplashScreen>
   final _rng = Random();
   late Timer _particleTimer;
 
-  // ── Palette ──────────────────────────────────
-  static const Color _bg = Color(0xFF0A0A0F);
-  static const Color _primary = Color(0xFFD4A853); // warm gold
-  static const Color _accent = Color(0xFFF5C842); // bright gold
-  static const Color _surface = Color(0xFF161622);
+  // ── Palette (BRAND THEME) ────────────────────
+  static const Color _bg = AppColor.screenBgColor;
+  static const Color _primary = AppColor.primaryColor;
+  static const Color _accent = AppColor.secondaryColor;
+  static const Color _surface = AppColor.whiteColor;
+  static const Color _text = AppColor.textPrimaryColor;
 
   @override
   void initState() {
@@ -281,33 +283,27 @@ class _SplashScreenState extends State<SplashScreen>
   // ── BUILD ─────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      designSize: const Size(390, 844),
-      minTextAdapt: true,
-      builder: (context, _) {
-        return Scaffold(
-          backgroundColor: _bg,
-          body: Stack(
-            children: [
-              // ① Radial glow background
-              _buildBackground(),
+    return Scaffold(
+      backgroundColor: _bg,
+      body: Stack(
+        children: [
+          // ① Soft glow background
+          _buildBackground(),
 
-              // ② Floating particles
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: _ParticlePainter(_particles, _primary),
-                ),
-              ),
-
-              // ③ Main content
-              _buildContent(),
-
-              // ④ Bottom badge
-              _buildBottomBadge(),
-            ],
+          // ② Floating particles (Subtle brand color)
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _ParticlePainter(_particles, _primary),
+            ),
           ),
-        );
-      },
+
+          // ③ Main content
+          _buildContent(),
+
+          // ④ Bottom badge
+          _buildBottomBadge(),
+        ],
+      ),
     );
   }
 
@@ -316,7 +312,7 @@ class _SplashScreenState extends State<SplashScreen>
     return Positioned.fill(
       child: Stack(
         children: [
-          // Deep radial glow at top-center
+          // Light radial glow at top-center
           Positioned(
             top: -120.h,
             left: -80.w,
@@ -325,7 +321,7 @@ class _SplashScreenState extends State<SplashScreen>
               height: 520.h,
               decoration: BoxDecoration(
                 gradient: RadialGradient(
-                  colors: [_primary.withOpacity(0.18), _bg.withOpacity(0.0)],
+                  colors: [_primary.withOpacity(0.12), _bg.withOpacity(0.0)],
                   radius: 0.75,
                 ),
               ),
@@ -342,17 +338,9 @@ class _SplashScreenState extends State<SplashScreen>
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, _primary.withOpacity(0.07)],
+                  colors: [Colors.transparent, _primary.withOpacity(0.04)],
                 ),
               ),
-            ),
-          ),
-          // Subtle grid lines (luxury detail)
-          Opacity(
-            opacity: 0.04,
-            child: CustomPaint(
-              size: Size(390.w, 844.h),
-              painter: _GridPainter(),
             ),
           ),
         ],
@@ -390,7 +378,7 @@ class _SplashScreenState extends State<SplashScreen>
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: _primary.withOpacity(0.35),
+                                color: _primary.withOpacity(0.2),
                                 blurRadius: 40,
                                 spreadRadius: 4,
                               ),
@@ -405,31 +393,24 @@ class _SplashScreenState extends State<SplashScreen>
                             painter: _ShimmerRingPainter(
                               _ringCtrl.value,
                               _primary,
-                              _accent,
+                              _primary.withOpacity(0.3),
                             ),
                           ),
                         ),
-                        // Glassmorphism logo disc
+                        // Logo disc
                         Container(
                           width: 118.w,
                           height: 118.w,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                _surface.withOpacity(0.9),
-                                _bg.withOpacity(0.95),
-                              ],
-                            ),
+                            color: _surface,
                             border: Border.all(
-                              color: _primary.withOpacity(0.25),
+                              color: _primary.withOpacity(0.1),
                               width: 1.2,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.4),
+                                color: _primary.withOpacity(0.1),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
@@ -464,19 +445,19 @@ class _SplashScreenState extends State<SplashScreen>
                       style: TextStyle(
                         fontSize: 36.sp,
                         fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                        color: _primary,
                         letterSpacing: 8,
                         height: 1.0,
                       ),
                     ),
                     SizedBox(height: 4.h),
-                    // Gold accent word
+                    // Accent word
                     Text(
                       "STORE",
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
-                        color: _primary,
+                        color: _text.withOpacity(0.6),
                         letterSpacing: 10,
                       ),
                     ),
@@ -492,10 +473,10 @@ class _SplashScreenState extends State<SplashScreen>
               animation: _dividerWidth,
               builder: (_, __) => Container(
                 width: _dividerWidth.value * 120.w,
-                height: 1,
+                height: 1.5,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.transparent, _primary, Colors.transparent],
+                    colors: [Colors.transparent, _primary.withOpacity(0.5), Colors.transparent],
                   ),
                 ),
               ),
@@ -512,7 +493,7 @@ class _SplashScreenState extends State<SplashScreen>
                   "Everything you need, in one place",
                   style: TextStyle(
                     fontSize: 13.sp,
-                    color: Colors.white.withOpacity(0.5),
+                    color: _text.withOpacity(0.4),
                     letterSpacing: 1.2,
                     fontWeight: FontWeight.w400,
                   ),
@@ -547,10 +528,10 @@ class _SplashScreenState extends State<SplashScreen>
             ),
             SizedBox(height: 16.h),
             Text(
-              "Crafted with ♥  for you",
+              "Crafted with ♥ for you",
               style: TextStyle(
                 fontSize: 11.sp,
-                color: Colors.white.withOpacity(0.25),
+                color: _text.withOpacity(0.3),
                 letterSpacing: 1.5,
               ),
             ),
@@ -559,29 +540,6 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
   }
-}
-
-// ─────────────────────────────────────────────
-//  Grid background painter (luxury texture)
-// ─────────────────────────────────────────────
-class _GridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 0.5;
-
-    const step = 40.0;
-    for (double x = 0; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_GridPainter _) => false;
 }
 
 // ─────────────────────────────────────────────

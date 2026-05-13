@@ -15,13 +15,14 @@ class CreateOrderRepository {
     required String email,
     required String phone,
     required String address,
+    required String buyerCity,
     String? additionalNote,
     required List<Map<String, dynamic>> products,
     required int shipmentCharges,
     // ── Payment fields ──────────────────────────────────────────────────────
-    String paymentMethod  = 'cod',    // "cod" | "wallet" | "jazzcash"
-    String? walletTxnId,              // required for wallet
-    String? jazzcashTxnRef,           // required for jazzcash
+    String paymentMethod = 'cod', // "cod" | "wallet" | "jazzcash"
+    String? walletTxnId, // required for wallet
+    String? jazzcashTxnRef, // required for jazzcash
   }) async {
     final deviceId = await LocalStorage.getOrCreateDeviceId();
 
@@ -29,18 +30,19 @@ class CreateOrderRepository {
       final Map<String, dynamic> fields = {
         'buyerId': buyerId,
         'buyerDetails': {
-          'name':           name,
-          'deviceId':       deviceId,
-          'email':          email,
-          'phone':          phone,
-          'address':        address,
+          'name': name,
+          'deviceId': deviceId,
+          'email': email,
+          'phone': phone,
+          'address': address,
+          'buyerCity': buyerCity,
           'additionalNote': additionalNote ?? '',
         },
-        'products':         products,
-        'shipmentCharges':  shipmentCharges,
+        'products': products,
+        'shipmentCharges': shipmentCharges,
         // ── Payment ──────────────────────────────────────────────────────
-        'paymentMethod':    paymentMethod,
-        if (walletTxnId   != null) 'walletTxnId':   walletTxnId,
+        'paymentMethod': paymentMethod,
+        if (walletTxnId != null) 'walletTxnId': walletTxnId,
         if (jazzcashTxnRef != null) 'jazzcashTxnRef': jazzcashTxnRef,
       };
 
@@ -60,13 +62,10 @@ class CreateOrderRepository {
     required String phoneNumber,
   }) async {
     try {
-      final response = await apiServices.postApi(
-        Global.WalletOrderSendOtp,
-        {
-          'amount':      amount,
-          'phoneNumber': phoneNumber,
-        },
-      );
+      final response = await apiServices.postApi(Global.WalletOrderSendOtp, {
+        'amount': amount,
+        'phoneNumber': phoneNumber,
+      });
       return WalletOtpSendModel.fromJson(response);
     } catch (e) {
       return WalletOtpSendModel.error(e.toString());
@@ -82,13 +81,10 @@ class CreateOrderRepository {
     required String otp,
   }) async {
     try {
-      final response = await apiServices.postApi(
-        Global.WalletOrderVerifyOtp,
-        {
-          'sessionId': sessionId,
-          'otp':       otp,
-        },
-      );
+      final response = await apiServices.postApi(Global.WalletOrderVerifyOtp, {
+        'sessionId': sessionId,
+        'otp': otp,
+      });
       return WalletOtpVerifyModel.fromJson(response);
     } catch (e) {
       return WalletOtpVerifyModel.error(e.toString());
@@ -104,13 +100,10 @@ class CreateOrderRepository {
     required String mobileNumber,
   }) async {
     try {
-      final response = await apiServices.postApi(
-        Global.JazzcashPayInitiate,
-        {
-          'amount':       amount,
-          'mobileNumber': mobileNumber,
-        },
-      );
+      final response = await apiServices.postApi(Global.JazzcashPayInitiate, {
+        'amount': amount,
+        'mobileNumber': mobileNumber,
+      });
       return JazzcashInitiateModel.fromJson(response);
     } catch (e) {
       return JazzcashInitiateModel.error(e.toString());
@@ -125,10 +118,9 @@ class CreateOrderRepository {
     required String txnRefNo,
   }) async {
     try {
-      final response = await apiServices.postApi(
-        Global.JazzcashPayConfirm,
-        {'txnRefNo': txnRefNo},
-      );
+      final response = await apiServices.postApi(Global.JazzcashPayConfirm, {
+        'txnRefNo': txnRefNo,
+      });
       return JazzcashConfirmModel.fromJson(response);
     } catch (e) {
       return JazzcashConfirmModel.error(e.toString());

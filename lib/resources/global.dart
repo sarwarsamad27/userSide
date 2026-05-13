@@ -5,8 +5,8 @@ class Global {
   // static var BaseUrl = "http://192.168.88.59:5000/api/auth";
   static var imageUrl = "http://10.0.2.2:5000";
   static var BaseUrl = "http://10.0.2.2:5000/api/auth";
-//   static var BaseUrl = "https://seller-and-buyer-backend.onrender.com/api/auth";
-//   static var imageUrl = "https://seller-and-buyer-backend.onrender.com";
+  // static var BaseUrl = "https://seller-and-buyer-backend.onrender.com/api/auth"; 
+  // static var imageUrl = "https://seller-and-buyer-backend.onrender.com";
   static var SignUp = "${BaseUrl}/buyer/signup";
   static var Login = "${BaseUrl}/buyer/login";
   static var GoogleLogin = "${BaseUrl}/buyer/google/login";
@@ -31,6 +31,7 @@ class Global {
   static var OtherProduct = "${BaseUrl}/buyer/other/product";
   static var GetMyOrder = "${BaseUrl}/buyer/my/orders";
   static var CategoryWiseProduct = "${BaseUrl}/buyer/category";
+  static var ActiveCategoryChips = "${BaseUrl}/buyer/category/active-chips";
   static var RecommendedProducts = "${BaseUrl}/buyer/recommended/products";
   static var TrackProduct = "${BaseUrl}/buyer/track/product";
   static var ShareLink = "${BaseUrl}/buyer/share/link";

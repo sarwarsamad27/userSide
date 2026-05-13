@@ -18,23 +18,33 @@ class FavouriteProvider extends ChangeNotifier {
   Future<void> deleteAllFavourites() async {
     try {
       String? userId = await LocalStorage.getUserId();
-
       if (favouriteList?.favourites == null) return;
-
-      // Copy list length first to avoid index shift issues
       int len = favouriteList!.favourites!.length;
-
       for (int i = 0; i < len; i++) {
-        final item = favouriteList!.favourites![0]; // always delete first item
+        final item = favouriteList!.favourites![0];
         await deleteRepo.deleteFavourite(userId ?? '', item.product?.sId ?? '');
-
         favouriteList!.favourites!.removeAt(0);
       }
-
       quantityMap.clear();
       notifyListeners();
     } catch (e) {
-      print("Delete all favourites error: $e");
+      debugPrint("Delete all favourites error: $e");
+    }
+  }
+
+  Future<void> deleteOrderedFavourites(List<String> productIds) async {
+    try {
+      String? userId = await LocalStorage.getUserId();
+      if (userId == null) return;
+
+      for (String pid in productIds) {
+        await deleteRepo.deleteFavourite(userId, pid);
+      }
+
+      // Refresh the list to keep everything in sync
+      await getFavourites();
+    } catch (e) {
+      debugPrint("Delete ordered favourites error: $e");
     }
   }
 

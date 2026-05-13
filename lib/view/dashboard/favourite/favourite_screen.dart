@@ -150,6 +150,29 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
                                         color: AppColor.primaryColor,
                                       ),
                                     ),
+                                  if (item.product?.quantity == 0)
+                                    Container(
+                                      margin: EdgeInsets.only(top: 4.h),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 8.w,
+                                        vertical: 2.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(
+                                          4.r,
+                                        ),
+                                        border: Border.all(color: Colors.red),
+                                      ),
+                                      child: Text(
+                                        "Out of Stock",
+                                        style: TextStyle(
+                                          fontSize: 10.sp,
+                                          color: Colors.red,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                   SizedBox(height: 4.h),
 
                                   // SELLER INFO
@@ -337,34 +360,52 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
                         ],
                       ),
                       SizedBox(height: 10.h),
-                      CustomButton(
-                        width: double.infinity,
-                        second: true,
-                        text: 'Proceed to Checkout (${favs.length})',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProductBuyForm(
-                                favouriteItems: favs.map((e) {
-                                  return {
-                                    "productId": e.product?.sId,
-                                    "name": e.product?.name,
-                                    "price": e.product?.afterDiscountPrice
-                                        .toString(),
-                                    "imageUrl": e.product?.image,
-                                    "sizes": e.selectedSizes,
-                                    "colors": e.selectedColors,
-                                    "quantity": provider.getQuantity(
-                                      favs.indexOf(e),
-                                    ),
-                                  };
-                                }).toList(),
-                                productId: favs
-                                    .map((e) => e.product!.sId!)
-                                    .toList(),
-                              ),
-                            ),
+                      Builder(
+                        builder: (context) {
+                          final bool hasOutOfStock = favs.any(
+                            (e) => (e.product?.quantity ?? 0) <= 0,
+                          );
+
+                          return CustomButton(
+                            width: double.infinity,
+                            second: true,
+                            text: hasOutOfStock
+                                ? 'Remove Out of Stock items to Proceed'
+                                : 'Proceed to Checkout (${favs.length})',
+                            onTap: hasOutOfStock
+                                ? () {
+                                    AppToast.error(
+                                      "Please remove out-of-stock items first",
+                                    );
+                                  }
+                                : () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ProductBuyForm(
+                                          favouriteItems: favs.map((e) {
+                                            return {
+                                              "productId": e.product?.sId,
+                                              "name": e.product?.name,
+                                              "price": e
+                                                  .product
+                                                  ?.afterDiscountPrice
+                                                  .toString(),
+                                              "imageUrl": e.product?.image,
+                                              "sizes": e.selectedSizes,
+                                              "colors": e.selectedColors,
+                                              "quantity": provider.getQuantity(
+                                                favs.indexOf(e),
+                                              ),
+                                            };
+                                          }).toList(),
+                                          productId: favs
+                                              .map((e) => e.product!.sId!)
+                                              .toList(),
+                                        ),
+                                      ),
+                                    );
+                                  },
                           );
                         },
                       ),

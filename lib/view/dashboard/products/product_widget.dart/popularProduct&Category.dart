@@ -4,8 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/global.dart';
-import 'package:user_side/view/dashboard/homeDashboard/categoryAndProduct/categoryScreen.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
+import 'package:user_side/view/dashboard/products/category_all_products_screen.dart';
 import 'package:user_side/view/dashboard/products/product_widget.dart/productTile.dart';
 import 'package:user_side/viewModel/provider/productProvider/getPopularCategory_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/getPopularProduct_provider.dart';
@@ -92,9 +92,10 @@ class _PopularProductAndCategoryState extends State<PopularProductAndCategory> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => Categoryscreen(
-                                          profileId: item.profileId ?? '',
-                                          categoryId: item.categoryId ?? '',
+                                        builder: (_) =>
+                                            CategoryAllProductsScreen(
+                                          categoryName:
+                                              item.categoryName ?? '',
                                         ),
                                       ),
                                     );

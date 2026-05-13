@@ -12,7 +12,9 @@ import 'package:user_side/view/auth/splashView.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/notificationScreen/notification_route.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/viewModel/provider/multiProvider/multiProvider.dart';
-import 'package:user_side/resources/connectivity_plus.dart';
+import 'package:user_side/view/common/no_internet_screen.dart';
+import 'package:user_side/viewModel/provider/connectivity_provider.dart';
+import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
 
@@ -24,7 +26,7 @@ void main() async {
 
   await NotificationRouter.init();
   await AuthSession.instance.init();
-  ConnectivityService.instance.init();
+  // ConnectivityService.instance.init();
   runApp(const AppWrapper());
 }
 
@@ -53,13 +55,13 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _initDeepLinks();
     final appLinks = AppLinks();
-appLinks.uriLinkStream.listen((uri) {
-  if (uri.pathSegments.length >= 2 && uri.pathSegments[0] == 'p') {
-    final productId = uri.pathSegments[1];
-    // Product detail screen pe navigate karo
-    Navigator.pushNamed(context, '/product', arguments: productId);
-  }
-});
+    appLinks.uriLinkStream.listen((uri) {
+      if (uri.pathSegments.length >= 2 && uri.pathSegments[0] == 'p') {
+        final productId = uri.pathSegments[1];
+        // Product detail screen pe navigate karo
+        Navigator.pushNamed(context, '/product', arguments: productId);
+      }
+    });
   }
 
   Future<void> _initDeepLinks() async {
@@ -105,12 +107,22 @@ appLinks.uriLinkStream.listen((uri) {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MaterialApp(
-          navigatorKey: NotificationRouter.navigatorKey, // ✅ single key
-          debugShowCheckedModeBanner: false,
-          title: 'SHOOKOO',
-          theme: AppTheme.lightTheme,
-          home: SplashScreen(),
+        return Consumer<ConnectivityProvider>(
+          builder: (context, connectivity, child) {
+            return MaterialApp(
+              navigatorKey: NotificationRouter.navigatorKey, // ✅ single key
+              debugShowCheckedModeBanner: false,
+              title: 'SHOOKOO',
+              theme: AppTheme.lightTheme,
+              home: !connectivity.isConnected
+                  ? NoInternetScreen(
+                      onRetry: () {
+                        // Handled by provider
+                      },
+                    )
+                  : SplashScreen(),
+            );
+          },
         );
       },
     );

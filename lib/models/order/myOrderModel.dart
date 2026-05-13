@@ -188,6 +188,7 @@ class ExchangeRequestData {
 // ── Refund Request Data ────────────────────────────────────────────────────
 class RefundRequestData {
   final String? id;
+  final String? productId;
   final String? status;
   final String? reason;
   final String? reasonCategory;
@@ -195,10 +196,11 @@ class RefundRequestData {
   final double? refundAmount;
   final String? returnTrackingNumber;
   final String? createdAt;
-  final String? pdfPath; // ✅ NEW
+  final String? pdfPath;
 
   const RefundRequestData({
     this.id,
+    this.productId,
     this.status,
     this.reason,
     this.reasonCategory,
@@ -212,6 +214,7 @@ class RefundRequestData {
   factory RefundRequestData.fromJson(Map<String, dynamic> json) =>
       RefundRequestData(
         id: json['_id']?.toString(),
+        productId: json['productId']?.toString(),
         status: json['status']?.toString(),
         reason: json['reason']?.toString(),
         reasonCategory: json['reasonCategory']?.toString(),

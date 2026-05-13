@@ -23,6 +23,7 @@ import 'package:user_side/view/dashboard/userChat/userChatScreen.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getSingleProduct_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/productDetailUI_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/productShare_provider.dart';
+import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/followUnFollow_provider.dart';
 
 class ProductMainCard extends StatelessWidget {
   final GetSingleProductModel data;
@@ -139,13 +140,32 @@ class ProductMainCard extends StatelessWidget {
                               ),
                             ),
                             SizedBox(height: 2.h),
-                            Text(
-                              "View brand profile",
-                              style: TextStyle(
-                                color: const Color(0xFF6B7280),
-                                fontSize: 12.sp,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            Consumer<FollowProvider>(
+                              builder: (context, followProvider, _) {
+                                final count = followProvider.followersCount;
+                                final countStr = count >= 1000
+                                    ? "${(count / 1000).toStringAsFixed(1)}k"
+                                    : "$count";
+
+                                return Row(
+                                  children: [
+                                    Icon(
+                                      Icons.people_alt_outlined,
+                                      size: 14.sp,
+                                      color: const Color(0xFF6B7280),
+                                    ),
+                                    SizedBox(width: 4.w),
+                                    Text(
+                                      "$countStr Followers",
+                                      style: TextStyle(
+                                        color: const Color(0xFF6B7280),
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -301,31 +321,36 @@ class ProductMainCard extends StatelessWidget {
                         size: 22.sp,
                         color: const Color(0xFF111827),
                       ),
-                     onPressed: () async {
-  final shareProvider = context.read<ProductShareProvider>();
+                      onPressed: () async {
+                        final shareProvider = context
+                            .read<ProductShareProvider>();
 
-  final link = await shareProvider.fetchShareLink(
-    productId: product.sId ?? '',
-    profileId: product.profileId ?? '',
-  );
+                        final link = await shareProvider.fetchShareLink(
+                          productId: product.sId ?? '',
+                          profileId: product.profileId ?? '',
+                        );
 
-  if (link == null || link.isEmpty) return;
+                        if (link == null || link.isEmpty) return;
 
-  final name     = product.name ?? '';
-  final price    = product.afterDiscountPrice ?? 0;
-  final oldPrice = product.beforeDiscountPrice ?? 0;
-  final brand    = data.profileName ?? '';
-  final desc     = product.description ?? '';
-  final rating   = (data.averageRating ?? 0).toStringAsFixed(1);
-  final reviews  = data.reviews?.length ?? 0;
+                        final name = product.name ?? '';
+                        final price = product.afterDiscountPrice ?? 0;
+                        final oldPrice = product.beforeDiscountPrice ?? 0;
+                        final brand = data.profileName ?? '';
+                        final desc = product.description ?? '';
+                        final rating = (data.averageRating ?? 0)
+                            .toStringAsFixed(1);
+                        final reviews = data.reviews?.length ?? 0;
 
-  String discountLine = '';
-  if (oldPrice > 0 && oldPrice > price) {
-    final pct = (((oldPrice - price) / oldPrice) * 100).round();
-    discountLine = '🏷️ *${pct}% OFF* — ~~Rs: $oldPrice~~\n';
-  }
+                        String discountLine = '';
+                        if (oldPrice > 0 && oldPrice > price) {
+                          final pct = (((oldPrice - price) / oldPrice) * 100)
+                              .round();
+                          discountLine =
+                              '🏷️ *${pct}% OFF* — ~~Rs: $oldPrice~~\n';
+                        }
 
-  final shareText = '''🛍️ *$name*
+                        final shareText =
+                            '''🛍️ *$name*
 
 ${discountLine}💰 *Price: Rs: $price*
 ⭐ *$rating* ($reviews reviews)
@@ -340,41 +365,46 @@ $link
 
 _Powered by Shookoo 🇵🇰_''';
 
-  // ✅ Image bhi share karo
-  final imageUrl = product.images?.isNotEmpty == true
-      ? product.images!.first
-      : null;
+                        // ✅ Image bhi share karo
+                        final imageUrl = product.images?.isNotEmpty == true
+                            ? product.images!.first
+                            : null;
 
-  if (imageUrl != null && imageUrl.isNotEmpty) {
-    try {
-      // Image download karke share karo
-      final http = await HttpClient().getUrl(
-        Uri.parse(Global.getImageUrl(imageUrl)),
-      );
-      final response = await http.close();
-      final bytes = await consolidateHttpClientResponseBytes(response);
+                        if (imageUrl != null && imageUrl.isNotEmpty) {
+                          try {
+                            // Image download karke share karo
+                            final http = await HttpClient().getUrl(
+                              Uri.parse(Global.getImageUrl(imageUrl)),
+                            );
+                            final response = await http.close();
+                            final bytes =
+                                await consolidateHttpClientResponseBytes(
+                                  response,
+                                );
 
-      final tempDir = await getTemporaryDirectory();
-      final file    = File('${tempDir.path}/share_product.jpg');
-      await file.writeAsBytes(bytes);
+                            final tempDir = await getTemporaryDirectory();
+                            final file = File(
+                              '${tempDir.path}/share_product.jpg',
+                            );
+                            await file.writeAsBytes(bytes);
 
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: shareText,
-        subject: '$name — Rs: $price | Shookoo',
-      );
-      return;
-    } catch (_) {
-      // Image fail hoi toh sirf text share karo
-    }
-  }
+                            await Share.shareXFiles(
+                              [XFile(file.path)],
+                              text: shareText,
+                              subject: '$name — Rs: $price | Shookoo',
+                            );
+                            return;
+                          } catch (_) {
+                            // Image fail hoi toh sirf text share karo
+                          }
+                        }
 
-  // Fallback — sirf text
-  await Share.share(
-    shareText,
-    subject: '$name — Rs: $price | Shookoo',
-  );
-},
+                        // Fallback — sirf text
+                        await Share.share(
+                          shareText,
+                          subject: '$name — Rs: $price | Shookoo',
+                        );
+                      },
                     ),
 
                     // Stock badge
@@ -390,26 +420,35 @@ _Powered by Shookoo 🇵🇰_''';
                         if (qty != null) {
                           if (qty <= 0) {
                             label = 'Out of Stock';
-                            bgColor     = const Color(0xFFFEE2E2);
+                            bgColor = const Color(0xFFFEE2E2);
                             borderColor = const Color(0xFFFCA5A5);
-                            textColor   = const Color(0xFFB91C1C);
+                            textColor = const Color(0xFFB91C1C);
                           } else if (qty <= 5) {
                             label = 'Only $qty left!';
-                            bgColor     = const Color(0xFFFEF3C7);
+                            bgColor = const Color(0xFFFEF3C7);
                             borderColor = const Color(0xFFFCD34D);
-                            textColor   = const Color(0xFFB45309);
+                            textColor = const Color(0xFFB45309);
                           } else {
                             label = 'In Stock';
-                            bgColor     = const Color(0xFFDCFCE7);
+                            bgColor = const Color(0xFFDCFCE7);
                             borderColor = const Color(0xFF86EFAC);
-                            textColor   = const Color(0xFF166534);
+                            textColor = const Color(0xFF166534);
                           }
                         } else {
-                          final bool isOut = stockStr.toLowerCase() == 'out of stock';
-                          label       = isOut ? 'Out of Stock' : (stockStr.isEmpty ? 'In Stock' : stockStr);
-                          bgColor     = isOut ? const Color(0xFFFEE2E2) : const Color(0xFFFFEDD5);
-                          borderColor = isOut ? const Color(0xFFFCA5A5) : const Color(0xFFFDBA74);
-                          textColor   = isOut ? const Color(0xFFB91C1C) : const Color(0xFFC2410C);
+                          final bool isOut =
+                              stockStr.toLowerCase() == 'out of stock';
+                          label = isOut
+                              ? 'Out of Stock'
+                              : (stockStr.isEmpty ? 'In Stock' : stockStr);
+                          bgColor = isOut
+                              ? const Color(0xFFFEE2E2)
+                              : const Color(0xFFFFEDD5);
+                          borderColor = isOut
+                              ? const Color(0xFFFCA5A5)
+                              : const Color(0xFFFDBA74);
+                          textColor = isOut
+                              ? const Color(0xFFB91C1C)
+                              : const Color(0xFFC2410C);
                         }
 
                         return Container(

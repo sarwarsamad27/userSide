@@ -172,7 +172,7 @@ class Utils {
         ),
       ),
     );
-    Future.delayed(const Duration(seconds: 1), () {
+    Future.delayed(const Duration(milliseconds: 2500), () {
       if (Navigator.canPop(context)) {
         PremiumToast.success(context, "Order Placed Successfully");
         Navigator.pop(context);

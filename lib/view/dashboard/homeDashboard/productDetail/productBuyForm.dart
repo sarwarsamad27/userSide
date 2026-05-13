@@ -17,7 +17,6 @@ import 'package:user_side/widgets/customBgContainer.dart';
 import 'package:user_side/widgets/customButton.dart';
 import 'package:user_side/widgets/customContainer.dart';
 import 'package:user_side/widgets/customTextFeld.dart';
-import 'package:user_side/widgets/customValidation.dart';
 
 /// Payment method enum
 enum PaymentMethod { cod, wallet }
@@ -51,6 +50,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
   final TextEditingController _additionalNoteController =
       TextEditingController();
   final TextEditingController _walletPhoneController = TextEditingController();
@@ -80,6 +80,9 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
     _nameController.text = await LocalStorage.getUserName() ?? '';
     _phoneController.text = await LocalStorage.getUserPhone() ?? '';
     _addressController.text = await LocalStorage.getUserAddress() ?? '';
+    _cityController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   Future<void> _saveFormData() async {
@@ -138,9 +141,30 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
       context.read<DeliverySettingsProvider>();
 
   // ── Grand total ───────────────────────────────────────────────────────────
+  double _getCurrentShipping() {
+    final productTotal = _getProductsTotal();
+    final deliveryCfg = _delivery;
+
+    // Check if free delivery applies
+    if (deliveryCfg.freeDeliveryEnabled &&
+        productTotal >= deliveryCfg.freeDeliveryThreshold) {
+      return 0;
+    }
+
+    final city = _cityController.text.trim().toLowerCase();
+    if (city.isEmpty) return 200;
+
+    // Most sellers likely Karachi (Self/Local)
+    // In a real app, we'd compare with specific seller cities if available
+    // For now, Karachi is same city (200), Others (300)
+    if (city == 'karachi') return 200;
+
+    return 300;
+  }
+
   double _getGrandTotal() {
     final productTotal = _getProductsTotal();
-    return productTotal + _delivery.getShipmentCharges(productTotal);
+    return productTotal + _getCurrentShipping();
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -150,7 +174,8 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
     // Validate form fields first
     if (_nameController.text.trim().isEmpty ||
         _phoneController.text.trim().isEmpty ||
-        _addressController.text.trim().isEmpty) {
+        _addressController.text.trim().isEmpty ||
+        _cityController.text.trim().isEmpty) {
       PremiumToast.error(context, 'Please fill in all required fields');
       return;
     }
@@ -178,6 +203,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
       email: _emailController.text.trim(),
       phone: _phoneController.text.trim(),
       address: _addressController.text.trim(),
+      buyerCity: _cityController.text.trim(),
       additionalNote: _additionalNoteController.text.trim(),
       products: _buildProductList(),
       shipmentCharges: _delivery.getShipmentCharges(productTotal).toInt(),
@@ -227,6 +253,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
       email: _emailController.text.trim(),
       phone: _phoneController.text.trim(),
       address: _addressController.text.trim(),
+      buyerCity: _cityController.text.trim(),
       additionalNote: _additionalNoteController.text.trim(),
       products: _buildProductList(),
       shipmentCharges: _delivery.getShipmentCharges(productTotalW).toInt(),
@@ -275,10 +302,39 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
   // Handle order result
   // ──────────────────────────────────────────────────────────────────────────
   void _handleOrderResult(CreateOrderProvider provider) {
-    if (provider.orderData != null && provider.orderData!.order != null) {
+    final data = provider.orderData;
+    if (data != null &&
+        (data.order != null ||
+            (data.orders != null && data.orders!.isNotEmpty))) {
       _saveFormData(); // Save form data for next time
-      context.read<FavouriteProvider>().deleteAllFavourites();
+
+      // SHOW LOTTIE FIRST
       if (mounted) Utils.showOrderSuccessLottie(context);
+
+      // CLEAR ONLY ORDERED ITEMS FROM FAVOURITES
+      final List<String> orderedProductIds = [];
+      if (data.order != null && data.order!.products != null) {
+        for (var p in data.order!.products!) {
+          if (p.productId != null) orderedProductIds.add(p.productId!);
+        }
+      } else if (data.orders != null) {
+        for (var o in data.orders!) {
+          if (o.products != null) {
+            for (var p in o.products!) {
+              if (p.productId != null) orderedProductIds.add(p.productId!);
+            }
+          }
+        }
+      }
+
+      // If for some reason the response is empty but we have product IDs from widget
+      if (orderedProductIds.isEmpty) {
+        orderedProductIds.addAll(widget.productId);
+      }
+
+      context.read<FavouriteProvider>().deleteOrderedFavourites(
+        orderedProductIds,
+      );
     } else {
       if (mounted) {
         PremiumToast.error(
@@ -578,28 +634,63 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                     controller: _nameController,
                                     hintText: 'Enter your name',
                                     headerText: 'Full Name',
-                                    validator: Validators.name,
+                                    validator: (val) {
+                                      if (val == null || val.isEmpty)
+                                        return "Name is required";
+                                      return null;
+                                    },
                                   ),
                                   SizedBox(height: 20.h),
                                   CustomTextField(
                                     controller: _emailController,
                                     hintText: 'Enter your email',
                                     headerText: 'Email Address',
-                                    validator: Validators.email,
+                                    validator: (val) {
+                                      if (val == null || val.isEmpty)
+                                        return "Email is required";
+                                      final reg = RegExp(
+                                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                      );
+                                      if (!reg.hasMatch(val))
+                                        return "Invalid email format";
+                                      return null;
+                                    },
                                   ),
                                   SizedBox(height: 20.h),
                                   CustomTextField(
                                     controller: _phoneController,
-                                    hintText: 'Enter your phone number',
+                                    hintText: 'Enter your phone (03XXXXXXXXX)',
                                     headerText: 'Phone Number',
-                                    validator: Validators.phonePK,
+                                    validator: (val) {
+                                      if (val == null || val.isEmpty)
+                                        return "Phone is required";
+                                      final reg = RegExp(r'^03[0-9]{9}$');
+                                      if (!reg.hasMatch(val))
+                                        return "Invalid phone (11 digits, starts with 03)";
+                                      return null;
+                                    },
                                   ),
                                   SizedBox(height: 20.h),
                                   CustomTextField(
                                     controller: _addressController,
                                     hintText: 'Enter your address',
                                     headerText: 'Address',
-                                    validator: Validators.required,
+                                    validator: (val) {
+                                      if (val == null || val.isEmpty)
+                                        return "Address is required";
+                                      return null;
+                                    },
+                                  ),
+                                  SizedBox(height: 20.h),
+                                  CustomTextField(
+                                    controller: _cityController,
+                                    hintText: 'Enter your city (e.g. Karachi)',
+                                    headerText: 'City',
+                                    validator: (val) {
+                                      if (val == null || val.trim().isEmpty)
+                                        return "City is required";
+                                      return null;
+                                    },
                                   ),
                                   SizedBox(height: 20.h),
                                   CustomTextField(
@@ -618,10 +709,12 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                       final productTotal = isFromFavourite
                                           ? _calculateFavouriteTotal()
                                           : singlePrice * quantity;
-                                      final deliveryCfg = context.read<DeliverySettingsProvider>();
-                                      final shipment = deliveryCfg.getShipmentCharges(productTotal);
+                                      final shipment = _getCurrentShipping();
                                       final isFree = shipment == 0;
-                                      final grandTotal = productTotal + shipment;
+                                      final grandTotal =
+                                          productTotal + shipment;
+                                      final deliveryCfg = context
+                                          .read<DeliverySettingsProvider>();
 
                                       return Column(
                                         crossAxisAlignment:
@@ -650,38 +743,71 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                                   style: TextStyle(
                                                     fontSize: 13.sp,
                                                     color: Colors.grey,
-                                                    decoration: TextDecoration.lineThrough,
+                                                    decoration: TextDecoration
+                                                        .lineThrough,
                                                   ),
                                                 ),
                                                 SizedBox(width: 6.w),
                                                 Container(
-                                                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: 8.w,
+                                                    vertical: 2.h,
+                                                  ),
                                                   decoration: BoxDecoration(
                                                     color: Colors.green,
-                                                    borderRadius: BorderRadius.circular(12.r),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12.r,
+                                                        ),
                                                   ),
                                                   child: Text(
                                                     'FREE',
                                                     style: TextStyle(
                                                       fontSize: 11.sp,
                                                       color: Colors.white,
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                 ),
-                                              ] else
+                                              ] else ...[
                                                 Text(
-                                                  'Rs 200',
+                                                  'Rs ${_getCurrentShipping().toStringAsFixed(0)}',
                                                   style: TextStyle(
                                                     fontSize: 14.sp,
                                                     color: Colors.black87,
                                                   ),
                                                 ),
+                                                if (isFromFavourite &&
+                                                    widget.favouriteItems !=
+                                                        null &&
+                                                    widget
+                                                            .favouriteItems!
+                                                            .length >
+                                                        1)
+                                                  Padding(
+                                                    padding: EdgeInsets.only(
+                                                      left: 8.w,
+                                                    ),
+                                                    child: Text(
+                                                      '',
+                                                      style: TextStyle(
+                                                        fontSize: 10.sp,
+                                                        color: Colors.blue,
+                                                        fontStyle:
+                                                            FontStyle.italic,
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
                                             ],
                                           ),
-                                          if (!isFree && deliveryCfg.freeDeliveryEnabled)
+                                          if (!isFree &&
+                                              deliveryCfg.freeDeliveryEnabled)
                                             Padding(
-                                              padding: EdgeInsets.only(top: 4.h),
+                                              padding: EdgeInsets.only(
+                                                top: 4.h,
+                                              ),
                                               child: Text(
                                                 'Shop for Rs ${(deliveryCfg.freeDeliveryThreshold - productTotal).toStringAsFixed(0)} more for FREE delivery!',
                                                 style: TextStyle(

@@ -5,6 +5,7 @@ import 'package:user_side/view/dashboard/products/product_widget.dart/allProduct
 import 'package:user_side/view/dashboard/products/product_widget.dart/categoryWiseProduct.dart';
 import 'package:user_side/view/dashboard/products/product_widget.dart/popularProduct&Category.dart';
 import 'package:user_side/view/dashboard/products/product_widget.dart/searchBar_categoryList.dart';
+import 'package:user_side/viewModel/provider/productProvider/activeCategoryChips_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/categoryWiseProduct_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/getAllProduct_provider.dart';
 import 'package:user_side/viewModel/provider/productProvider/getPopularCategory_provider.dart';

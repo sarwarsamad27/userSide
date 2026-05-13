@@ -33,6 +33,8 @@ import 'package:user_side/viewModel/provider/productProvider/productShare_provid
 import 'package:user_side/viewModel/provider/productProvider/reviewEditOrDelete_provider.dart';
 import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
 import 'package:user_side/viewModel/provider/deliveryProvider/delivery_settings_provider.dart';
+import 'package:user_side/viewModel/provider/productProvider/activeCategoryChips_provider.dart';
+import 'package:user_side/viewModel/provider/connectivity_provider.dart';
 
 class AppMultiProvider extends StatelessWidget {
   final Widget child;
@@ -82,6 +84,8 @@ class AppMultiProvider extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ChatThreadProvider()),
         ChangeNotifierProvider(create: (_) => LeopardsTrackingProvider()),
         ChangeNotifierProvider(create: (_) => DeliverySettingsProvider()),
+        ChangeNotifierProvider(create: (_) => ActiveCategoryChipsProvider()),
+        ChangeNotifierProvider(create: (_) => ConnectivityProvider()),
         ChangeNotifierProvider<AuthSession>.value(value: AuthSession.instance),
       ],
       child: child,

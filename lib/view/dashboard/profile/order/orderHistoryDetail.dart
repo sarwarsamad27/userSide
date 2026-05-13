@@ -46,11 +46,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final refunds =
         context.read<ExchangeProvider>().refundListModel?.requests ?? [];
 
+    final currentProductId = _order.product?.productId?.toString();
+
     final myExchange = exchanges
-        .where((e) => e.orderId == _order.id)
+        .where((e) =>
+            e.orderId == _order.id &&
+            (currentProductId == null || e.productId == currentProductId))
         .firstOrNull;
     final myRefund = refunds
-        .where((r) => r.orderId == _order.orderId)
+        .where((r) =>
+            r.orderId == _order.orderId &&
+            (currentProductId == null || r.productId == currentProductId))
         .firstOrNull;
 
     if (myExchange != null || myRefund != null) {
@@ -89,6 +95,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           refundRequest: myRefund != null
               ? RefundRequestData(
                   id: myRefund.id,
+                  productId: myRefund.productId,
                   status: myRefund.status,
                   reason: myRefund.reason,
                   reasonCategory: myRefund.reasonCategory,

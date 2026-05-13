@@ -5,6 +5,7 @@ import 'package:user_side/network/network_api_services.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/resources/utiles.dart';
+import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/followUnFollow_provider.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/otherProduct.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/relatedPoduct.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/widgets/bottomActionBar.dart';
@@ -49,6 +50,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       );
 
       context.read<OtherProductProvider>().fetchOtherProducts(widget.productId);
+
+      /// ───────── Fetch Follow status for Follower count ─────────
+      context.read<FollowProvider>().getFollowStatus(widget.profileId);
 
       /// ───────── Track product view ─────────
       _trackProductView();

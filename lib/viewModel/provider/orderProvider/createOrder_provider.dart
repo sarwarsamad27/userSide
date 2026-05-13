@@ -33,16 +33,16 @@ class CreateOrderProvider with ChangeNotifier {
   bool _walletVerifyLoading = false;
   bool get walletVerifyLoading => _walletVerifyLoading;
 
-  String? _walletSessionId;          // from send-otp, used in verify-otp
-  String? _walletTxnId;              // from verify-otp, passed to createOrder
-  double? _walletNewBalance;         // updated balance after debit
+  String? _walletSessionId; // from send-otp, used in verify-otp
+  String? _walletTxnId; // from verify-otp, passed to createOrder
+  double? _walletNewBalance; // updated balance after debit
   double? get walletNewBalance => _walletNewBalance;
 
   // ── JazzCash state ─────────────────────────────────────────────────────────
   bool _jazzcashLoading = false;
   bool get jazzcashLoading => _jazzcashLoading;
 
-  String? _jazzcashTxnRef;           // from initiate, used in confirm + createOrder
+  String? _jazzcashTxnRef; // from initiate, used in confirm + createOrder
   bool _jazzcashConfirmed = false;
   bool get jazzcashConfirmed => _jazzcashConfirmed;
 
@@ -54,6 +54,7 @@ class CreateOrderProvider with ChangeNotifier {
     required String email,
     required String phone,
     required String address,
+    required String buyerCity,
     String? additionalNote,
     required List<Map<String, dynamic>> products,
     required int shipmentCharges,
@@ -73,23 +74,25 @@ class CreateOrderProvider with ChangeNotifier {
       }
 
       _orderData = await repository.createOrder(
-        buyerId:         buyerId,
-        name:            name,
-        email:           email,
-        phone:           phone,
-        address:         address,
-        additionalNote:  additionalNote,
-        products:        products,
+        buyerId: buyerId,
+        name: name,
+        email: email,
+        phone: phone,
+        address: address,
+        buyerCity: buyerCity,
+        additionalNote: additionalNote,
+        products: products,
         shipmentCharges: shipmentCharges,
-        paymentMethod:   paymentMethod,
+        paymentMethod: paymentMethod,
         // Attach pre-verified payment refs
-        walletTxnId:     paymentMethod == 'wallet'   ? _walletTxnId   : null,
-        jazzcashTxnRef:  paymentMethod == 'jazzcash' ? _jazzcashTxnRef : null,
+        walletTxnId: paymentMethod == 'wallet' ? _walletTxnId : null,
+        jazzcashTxnRef: paymentMethod == 'jazzcash' ? _jazzcashTxnRef : null,
       );
 
       // Clear payment refs after successful order
-      if (_orderData?.order != null) {
-        _walletTxnId    = null;
+      if (_orderData?.order != null ||
+          (_orderData?.orders != null && _orderData!.orders!.isNotEmpty)) {
+        _walletTxnId = null;
         _jazzcashTxnRef = null;
         _jazzcashConfirmed = false;
       } else {
@@ -118,7 +121,7 @@ class CreateOrderProvider with ChangeNotifier {
     notifyListeners();
 
     final result = await repository.sendWalletOrderOtp(
-      amount:      amount,
+      amount: amount,
       phoneNumber: phoneNumber,
     );
 
@@ -153,15 +156,15 @@ class CreateOrderProvider with ChangeNotifier {
 
     final result = await repository.verifyWalletOrderOtp(
       sessionId: _walletSessionId!,
-      otp:       otp,
+      otp: otp,
     );
 
     _walletVerifyLoading = false;
 
     if (result.success) {
-      _walletTxnId      = result.txnId;
+      _walletTxnId = result.txnId;
       _walletNewBalance = result.newBalance;
-      _walletSessionId  = null;   // clear session
+      _walletSessionId = null; // clear session
       notifyListeners();
       return true;
     } else {
@@ -187,7 +190,7 @@ class CreateOrderProvider with ChangeNotifier {
     notifyListeners();
 
     final result = await repository.initiateJazzcashPayment(
-      amount:       amount,
+      amount: amount,
       mobileNumber: mobileNumber,
     );
 
@@ -196,7 +199,11 @@ class CreateOrderProvider with ChangeNotifier {
     if (result.success) {
       _jazzcashTxnRef = result.txnRefNo;
       notifyListeners();
-      return (success: true, message: result.message, autoApproved: result.autoApproved);
+      return (
+        success: true,
+        message: result.message,
+        autoApproved: result.autoApproved,
+      );
     } else {
       _errorMessage = result.message;
       notifyListeners();
@@ -238,8 +245,9 @@ class CreateOrderProvider with ChangeNotifier {
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
-  bool get walletPaymentReady   => _walletTxnId != null;
-  bool get jazzcashPaymentReady => _jazzcashTxnRef != null && _jazzcashConfirmed;
+  bool get walletPaymentReady => _walletTxnId != null;
+  bool get jazzcashPaymentReady =>
+      _jazzcashTxnRef != null && _jazzcashConfirmed;
 
   void clearError() {
     _errorMessage = null;
@@ -247,12 +255,12 @@ class CreateOrderProvider with ChangeNotifier {
   }
 
   void resetPayment() {
-    _walletTxnId       = null;
-    _walletSessionId   = null;
-    _walletNewBalance  = null;
-    _jazzcashTxnRef    = null;
+    _walletTxnId = null;
+    _walletSessionId = null;
+    _walletNewBalance = null;
+    _jazzcashTxnRef = null;
     _jazzcashConfirmed = false;
-    _errorMessage      = null;
+    _errorMessage = null;
     notifyListeners();
   }
 }

@@ -31,21 +31,24 @@ class Favourites {
   Product? product;
   Seller? seller;
 
-  Favourites(
-      {this.sId,
-      this.selectedSizes,
-      this.selectedColors,
-      this.product,
-      this.seller});
+  Favourites({
+    this.sId,
+    this.selectedSizes,
+    this.selectedColors,
+    this.product,
+    this.seller,
+  });
 
   Favourites.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     selectedSizes = json['selectedSizes'].cast<String>();
     selectedColors = json['selectedColors'].cast<String>();
-    product =
-        json['product'] != null ? new Product.fromJson(json['product']) : null;
-    seller =
-        json['seller'] != null ? new Seller.fromJson(json['seller']) : null;
+    product = json['product'] != null
+        ? new Product.fromJson(json['product'])
+        : null;
+    seller = json['seller'] != null
+        ? new Seller.fromJson(json['seller'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -69,13 +72,16 @@ class Product {
   int? beforeDiscountPrice;
   int? afterDiscountPrice;
   String? image;
+  int? quantity;
 
-  Product(
-      {this.sId,
-      this.name,
-      this.beforeDiscountPrice,
-      this.afterDiscountPrice,
-      this.image});
+  Product({
+    this.sId,
+    this.name,
+    this.beforeDiscountPrice,
+    this.afterDiscountPrice,
+    this.image,
+    this.quantity,
+  });
 
   Product.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -83,6 +89,7 @@ class Product {
     beforeDiscountPrice = json['beforeDiscountPrice'];
     afterDiscountPrice = json['afterDiscountPrice'];
     image = json['image'];
+    quantity = json['quantity'];
   }
 
   Map<String, dynamic> toJson() {
@@ -92,6 +99,7 @@ class Product {
     data['beforeDiscountPrice'] = this.beforeDiscountPrice;
     data['afterDiscountPrice'] = this.afterDiscountPrice;
     data['image'] = this.image;
+    data['quantity'] = this.quantity;
     return data;
   }
 }
