@@ -29,6 +29,7 @@ class ProductBuyForm extends StatefulWidget {
   final List<String>? sizes;
   final List<String> productId;
   final List<dynamic>? favouriteItems;
+  final int? initialStock;
 
   const ProductBuyForm({
     super.key,
@@ -39,6 +40,7 @@ class ProductBuyForm extends StatefulWidget {
     this.sizes,
     this.favouriteItems,
     required this.productId,
+    this.initialStock,
   });
 
   @override
@@ -80,6 +82,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
     _nameController.text = await LocalStorage.getUserName() ?? '';
     _phoneController.text = await LocalStorage.getUserPhone() ?? '';
     _addressController.text = await LocalStorage.getUserAddress() ?? '';
+    _cityController.text = await LocalStorage.getUserCity() ?? '';
     _cityController.addListener(() {
       if (mounted) setState(() {});
     });
@@ -89,6 +92,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
     await LocalStorage.saveUserName(_nameController.text.trim());
     await LocalStorage.saveUserPhone(_phoneController.text.trim());
     await LocalStorage.saveUserAddress(_addressController.text.trim());
+    await LocalStorage.saveUserCity(_cityController.text.trim());
   }
 
   @override
@@ -180,6 +184,13 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
       return;
     }
 
+    // ── Stock Check ───────────────────────────────────────────────────────────
+    _loadingNotifier.value = true;
+    final bool isStockAvailable = await _checkStockBeforeOrder();
+    _loadingNotifier.value = false;
+
+    if (!isStockAvailable) return;
+
     switch (_selectedPayment) {
       case PaymentMethod.cod:
         await _placeOrderCod();
@@ -188,6 +199,83 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
         await _startWalletOtpFlow();
         break;
     }
+  }
+
+  Future<bool> _checkStockBeforeOrder() async {
+    try {
+      final isFromFavourite =
+          widget.favouriteItems != null && widget.favouriteItems!.isNotEmpty;
+
+      if (!isFromFavourite) {
+        final currentQty = _quantityNotifier.value;
+        final available = widget.initialStock ?? 999;
+
+        if (available <= 0) {
+          _showOutOfStockDialog();
+          return false;
+        }
+
+        if (currentQty > available) {
+          _showLowStockDialog(available);
+          return false;
+        }
+      }
+      return true;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  void _showOutOfStockDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        title: Text(
+          'Out of Stock',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp),
+        ),
+        content: Text(
+          'We apologize, but this item is currently unavailable. Why not explore our other premium products while you wait?',
+          style: TextStyle(fontSize: 14.sp),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Back to Gallery'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLowStockDialog(int available) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        title: Text(
+          'Low Stock Alert',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp),
+        ),
+        content: Text(
+          'Only $available items are left in stock. Would you like to adjust your quantity and proceed?',
+          style: TextStyle(fontSize: 14.sp),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Adjust Quantity'),
+          ),
+        ],
+      ),
+    );
   }
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -361,6 +449,23 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
         children: [
           Scaffold(
             backgroundColor: AppColor.appimagecolor,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              centerTitle: true,
+              title: Text(
+                'Confirm Order',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
             bottomNavigationBar: SafeArea(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
@@ -371,16 +476,17 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
               ),
             ),
             body: CustomBgContainer(
-              child: SafeArea(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
                 child: Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: 24.w,
-                    vertical: 30.h,
+                    vertical: 20.h,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Product info (unchanged) ────────────────────────────
+                      // ── Product info ─────────────────────────────────────────
                       if (isFromFavourite)
                         SizedBox(
                           height: 110.h,
@@ -520,7 +626,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
 
                       SizedBox(height: 16.h),
 
-                      // ── Quantity (unchanged) ────────────────────────────────
+                      // ── Quantity ─────────────────────────────────────────────
                       if (!isFromFavourite)
                         ValueListenableBuilder<int>(
                           valueListenable: _quantityNotifier,
@@ -619,242 +725,147 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                         },
                       ),
 
-                      SizedBox(height: 16.h),
+                      SizedBox(height: 24.h),
 
                       // ── Form fields ─────────────────────────────────────────
-                      Expanded(
-                        child: Center(
-                          child: CustomAppContainer(
-                            width: double.infinity,
-                            padding: EdgeInsets.all(24.w),
-                            child: SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  CustomTextField(
-                                    controller: _nameController,
-                                    hintText: 'Enter your name',
-                                    headerText: 'Full Name',
-                                    validator: (val) {
-                                      if (val == null || val.isEmpty)
-                                        return "Name is required";
-                                      return null;
-                                    },
-                                  ),
-                                  SizedBox(height: 20.h),
-                                  CustomTextField(
-                                    controller: _emailController,
-                                    hintText: 'Enter your email',
-                                    headerText: 'Email Address',
-                                    validator: (val) {
-                                      if (val == null || val.isEmpty)
-                                        return "Email is required";
-                                      final reg = RegExp(
-                                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                                      );
-                                      if (!reg.hasMatch(val))
-                                        return "Invalid email format";
-                                      return null;
-                                    },
-                                  ),
-                                  SizedBox(height: 20.h),
-                                  CustomTextField(
-                                    controller: _phoneController,
-                                    hintText: 'Enter your phone (03XXXXXXXXX)',
-                                    headerText: 'Phone Number',
-                                    validator: (val) {
-                                      if (val == null || val.isEmpty)
-                                        return "Phone is required";
-                                      final reg = RegExp(r'^03[0-9]{9}$');
-                                      if (!reg.hasMatch(val))
-                                        return "Invalid phone (11 digits, starts with 03)";
-                                      return null;
-                                    },
-                                  ),
-                                  SizedBox(height: 20.h),
-                                  CustomTextField(
-                                    controller: _addressController,
-                                    hintText: 'Enter your address',
-                                    headerText: 'Address',
-                                    validator: (val) {
-                                      if (val == null || val.isEmpty)
-                                        return "Address is required";
-                                      return null;
-                                    },
-                                  ),
-                                  SizedBox(height: 20.h),
-                                  CustomTextField(
-                                    controller: _cityController,
-                                    hintText: 'Enter your city (e.g. Karachi)',
-                                    headerText: 'City',
-                                    validator: (val) {
-                                      if (val == null || val.trim().isEmpty)
-                                        return "City is required";
-                                      return null;
-                                    },
-                                  ),
-                                  SizedBox(height: 20.h),
-                                  CustomTextField(
-                                    controller: _additionalNoteController,
-                                    hintText: 'Write additional notes',
-                                    headerText: 'Order Notes (optional)',
-
-                                    height: 120.h,
-                                  ),
-                                  SizedBox(height: 20.h),
-
-                                  // ── Price summary ─────────────────────────
-                                  ValueListenableBuilder<int>(
-                                    valueListenable: _quantityNotifier,
-                                    builder: (_, quantity, __) {
-                                      final productTotal = isFromFavourite
-                                          ? _calculateFavouriteTotal()
-                                          : singlePrice * quantity;
-                                      final shipment = _getCurrentShipping();
-                                      final isFree = shipment == 0;
-                                      final grandTotal =
-                                          productTotal + shipment;
-                                      final deliveryCfg = context
-                                          .read<DeliverySettingsProvider>();
-
-                                      return Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Total Price: Rs ${productTotal.toStringAsFixed(0)}',
-                                            style: TextStyle(
-                                              fontSize: 15.sp,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          SizedBox(height: 8.h),
-                                          Row(
-                                            children: [
-                                              Text(
-                                                'Shipment Charges: ',
-                                                style: TextStyle(
-                                                  fontSize: 14.sp,
-                                                  color: Colors.black87,
-                                                ),
-                                              ),
-                                              if (isFree) ...[
-                                                Text(
-                                                  'Rs 200',
-                                                  style: TextStyle(
-                                                    fontSize: 13.sp,
-                                                    color: Colors.grey,
-                                                    decoration: TextDecoration
-                                                        .lineThrough,
-                                                  ),
-                                                ),
-                                                SizedBox(width: 6.w),
-                                                Container(
-                                                  padding: EdgeInsets.symmetric(
-                                                    horizontal: 8.w,
-                                                    vertical: 2.h,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.green,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12.r,
-                                                        ),
-                                                  ),
-                                                  child: Text(
-                                                    'FREE',
-                                                    style: TextStyle(
-                                                      fontSize: 11.sp,
-                                                      color: Colors.white,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ] else ...[
-                                                Text(
-                                                  'Rs ${_getCurrentShipping().toStringAsFixed(0)}',
-                                                  style: TextStyle(
-                                                    fontSize: 14.sp,
-                                                    color: Colors.black87,
-                                                  ),
-                                                ),
-                                                if (isFromFavourite &&
-                                                    widget.favouriteItems !=
-                                                        null &&
-                                                    widget
-                                                            .favouriteItems!
-                                                            .length >
-                                                        1)
-                                                  Padding(
-                                                    padding: EdgeInsets.only(
-                                                      left: 8.w,
-                                                    ),
-                                                    child: Text(
-                                                      '',
-                                                      style: TextStyle(
-                                                        fontSize: 10.sp,
-                                                        color: Colors.blue,
-                                                        fontStyle:
-                                                            FontStyle.italic,
-                                                      ),
-                                                    ),
-                                                  ),
-                                              ],
-                                            ],
-                                          ),
-                                          if (!isFree &&
-                                              deliveryCfg.freeDeliveryEnabled)
-                                            Padding(
-                                              padding: EdgeInsets.only(
-                                                top: 4.h,
-                                              ),
-                                              child: Text(
-                                                'Shop for Rs ${(deliveryCfg.freeDeliveryThreshold - productTotal).toStringAsFixed(0)} more for FREE delivery!',
-                                                style: TextStyle(
-                                                  fontSize: 11.sp,
-                                                  color: Colors.green.shade700,
-                                                  fontStyle: FontStyle.italic,
-                                                ),
-                                              ),
-                                            ),
-                                          SizedBox(height: 8.h),
-                                          Text(
-                                            'Grand Total: Rs ${grandTotal.toStringAsFixed(0)}',
-                                            style: TextStyle(
-                                              fontSize: 16.sp,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          SizedBox(height: 6.h),
-                                          // Payment method badge
-                                          Container(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 10.w,
-                                              vertical: 4.h,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: _paymentColor()
-                                                  .withOpacity(0.12),
-                                              borderRadius:
-                                                  BorderRadius.circular(20.r),
-                                            ),
-                                            child: Text(
-                                              _paymentLabel(),
-                                              style: TextStyle(
-                                                fontSize: 12.sp,
-                                                color: _paymentColor(),
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
+                      CustomAppContainer(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(24.w),
+                        child: Column(
+                          children: [
+                            CustomTextField(
+                              controller: _nameController,
+                              hintText: 'Enter your name',
+                              headerText: 'Full Name',
+                              validator: (val) {
+                                if (val == null || val.isEmpty)
+                                  return "Name is required";
+                                return null;
+                              },
                             ),
-                          ),
+                            SizedBox(height: 20.h),
+                            CustomTextField(
+                              controller: _emailController,
+                              hintText: 'Enter your email',
+                              headerText: 'Email Address',
+                              validator: (val) {
+                                if (val == null || val.isEmpty)
+                                  return "Email is required";
+                                final reg = RegExp(
+                                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                );
+                                if (!reg.hasMatch(val))
+                                  return "Invalid email format";
+                                return null;
+                              },
+                            ),
+                            SizedBox(height: 20.h),
+                            CustomTextField(
+                              controller: _phoneController,
+                              hintText: 'Enter your phone (03XXXXXXXXX)',
+                              headerText: 'Phone Number',
+                              validator: (val) {
+                                if (val == null || val.isEmpty)
+                                  return "Phone is required";
+                                final reg = RegExp(r'^03[0-9]{9}$');
+                                if (!reg.hasMatch(val))
+                                  return "Invalid phone (11 digits, starts with 03)";
+                                return null;
+                              },
+                            ),
+                            SizedBox(height: 20.h),
+                            CustomTextField(
+                              controller: _addressController,
+                              hintText: 'Enter your address',
+                              headerText: 'Address',
+                              validator: (val) {
+                                if (val == null || val.isEmpty)
+                                  return "Address is required";
+                                return null;
+                              },
+                            ),
+                            SizedBox(height: 20.h),
+                            CustomTextField(
+                              controller: _cityController,
+                              hintText: 'Enter your city (e.g. Karachi)',
+                              headerText: 'City',
+                              validator: (val) {
+                                if (val == null || val.trim().isEmpty)
+                                  return "City is required";
+                                return null;
+                              },
+                            ),
+                            SizedBox(height: 20.h),
+                            CustomTextField(
+                              controller: _additionalNoteController,
+                              hintText: 'Write additional notes',
+                              headerText: 'Order Notes (optional)',
+                              height: 120.h,
+                            ),
+                            SizedBox(height: 20.h),
+
+                            // ── Price summary ───────────────────────────
+                            ValueListenableBuilder<int>(
+                              valueListenable: _quantityNotifier,
+                              builder: (_, quantity, __) {
+                                final productTotal = isFromFavourite
+                                    ? _calculateFavouriteTotal()
+                                    : singlePrice * quantity;
+                                final shipment = _getCurrentShipping();
+                                final grandTotal = productTotal + shipment;
+
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Total Price: Rs ${productTotal.toStringAsFixed(0)}',
+                                      style: TextStyle(
+                                        fontSize: 15.sp,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: 8.h),
+                                    Text(
+                                      'Shipment Charges: Rs ${shipment.toStringAsFixed(0)}',
+                                      style: TextStyle(
+                                        fontSize: 14.sp,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    SizedBox(height: 8.h),
+                                    Text(
+                                      'Grand Total: Rs ${grandTotal.toStringAsFixed(0)}',
+                                      style: TextStyle(
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    SizedBox(height: 6.h),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 10.w,
+                                        vertical: 4.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _paymentColor().withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(
+                                          20.r,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        _paymentLabel(),
+                                        style: TextStyle(
+                                          fontSize: 12.sp,
+                                          color: _paymentColor(),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -975,28 +986,29 @@ class _PaymentOptionCard extends StatelessWidget {
           ],
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (imagePath != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(6.r),
                 child: Image.asset(
                   imagePath!,
-                  width: 28.w,
-                  height: 28.h,
+                  width: 24.w,
+                  height: 24.h,
                   fit: BoxFit.cover,
                 ),
               )
             else
-              Icon(icon, color: selected ? color : Colors.grey, size: 26.r),
-            SizedBox(height: 6.h),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 10.sp,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: selected ? color : Colors.grey.shade600,
+              Icon(icon, color: selected ? color : Colors.grey, size: 22.r),
+            SizedBox(width: 8.w),
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: selected ? color : Colors.grey.shade600,
+                ),
               ),
             ),
           ],
@@ -1007,9 +1019,9 @@ class _PaymentOptionCard extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Wallet Phone Sheet — enter phone number to receive OTP
+//  Wallet Phone Sheet
 // ─────────────────────────────────────────────────────────────────────────────
-class _WalletPhoneSheet extends StatefulWidget {
+class _WalletPhoneSheet extends StatelessWidget {
   final double amount;
   final TextEditingController controller;
   final CreateOrderProvider provider;
@@ -1024,11 +1036,6 @@ class _WalletPhoneSheet extends StatefulWidget {
     required this.onCancel,
   });
 
-  @override
-  State<_WalletPhoneSheet> createState() => _WalletPhoneSheetState();
-}
-
-class _WalletPhoneSheetState extends State<_WalletPhoneSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1046,7 +1053,6 @@ class _WalletPhoneSheetState extends State<_WalletPhoneSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Handle bar
           Center(
             child: Container(
               width: 40.w,
@@ -1058,33 +1064,18 @@ class _WalletPhoneSheetState extends State<_WalletPhoneSheet> {
             ),
           ),
           SizedBox(height: 20.h),
-          Row(
-            children: [
-              Icon(
-                Icons.account_balance_wallet_rounded,
-                color: const Color(0xFF2979FF),
-                size: 24.r,
-              ),
-              SizedBox(width: 8.w),
-              Text(
-                'Wallet Payment',
-                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700),
-              ),
-            ],
+          Text(
+            'Wallet Payment',
+            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700),
           ),
           SizedBox(height: 6.h),
           Text(
-            'Rs ${widget.amount.toStringAsFixed(0)} will be deducted from your wallet after OTP confirmation.',
+            'Rs ${amount.toStringAsFixed(0)} will be deducted from your wallet.',
             style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade600),
           ),
           SizedBox(height: 20.h),
-          Text(
-            'Phone Number for OTP',
-            style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600),
-          ),
-          SizedBox(height: 8.h),
           TextField(
-            controller: widget.controller,
+            controller: controller,
             keyboardType: TextInputType.phone,
             decoration: InputDecoration(
               hintText: '03XXXXXXXXX',
@@ -1092,107 +1083,39 @@ class _WalletPhoneSheetState extends State<_WalletPhoneSheet> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
               ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 14.h,
-              ),
             ),
           ),
           SizedBox(height: 20.h),
           Consumer<CreateOrderProvider>(
-            builder: (_, provider, __) => SizedBox(
+            builder: (_, prov, __) => SizedBox(
               width: double.infinity,
-              height: 50.h,
               child: CustomButton(
-                text: "Send OTP",
-                onTap: provider.walletOtpLoading
+                text: 'Send OTP',
+                onTap: prov.walletOtpLoading
                     ? null
                     : () async {
-                        final phone = widget.controller.text.trim();
+                        final phone = controller.text.trim();
                         if (phone.isEmpty ||
                             !RegExp(r'^03[0-9]{9}$').hasMatch(phone)) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Enter a valid Pakistani number (03XXXXXXXXX)',
-                              ),
-                            ),
+                          PremiumToast.error(
+                            context,
+                            'Enter valid phone number',
                           );
                           return;
                         }
-                        final sent = await provider.sendWalletOtp(
-                          amount: widget.amount,
+                        final ok = await prov.sendWalletOtp(
+                          amount: amount,
                           phoneNumber: phone,
                         );
-                        if (sent) {
-                          widget.onOtpSent();
-                        } else if (provider.errorMessage != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(provider.errorMessage!)),
-                          );
-                        }
+                        if (ok) onOtpSent();
                       },
               ),
-
-              // ElevatedButton(
-              //   onPressed: provider.walletOtpLoading
-              //       ? null
-              //       : () async {
-              //           final phone = widget.controller.text.trim();
-              //           if (phone.isEmpty ||
-              //               !RegExp(r'^03[0-9]{9}$').hasMatch(phone)) {
-              //             ScaffoldMessenger.of(context).showSnackBar(
-              //               const SnackBar(
-              //                 content: Text(
-              //                   'Enter a valid Pakistani number (03XXXXXXXXX)',
-              //                 ),
-              //               ),
-              //             );
-              //             return;
-              //           }
-              //           final sent = await provider.sendWalletOtp(
-              //             amount: widget.amount,
-              //             phoneNumber: phone,
-              //           );
-              //           if (sent) {
-              //             widget.onOtpSent();
-              //           } else if (provider.errorMessage != null) {
-              //             ScaffoldMessenger.of(context).showSnackBar(
-              //               SnackBar(content: Text(provider.errorMessage!)),
-              //             );
-              //           }
-              //         },
-              //   style: ElevatedButton.styleFrom(
-              //     backgroundColor: const Color(0xFF2979FF),
-              //     shape: RoundedRectangleBorder(
-              //       borderRadius: BorderRadius.circular(12.r),
-              //     ),
-              //   ),
-              //   child: provider.walletOtpLoading
-              //       ? const CircularProgressIndicator(
-              //           color: Colors.white,
-              //           strokeWidth: 2,
-              //         )
-              //       : Text(
-              //           'Send OTP',
-              //           style: TextStyle(
-              //             fontSize: 15.sp,
-              //             color: Colors.white,
-              //             fontWeight: FontWeight.w600,
-              //           ),
-              //         ),
-              // ),
             ),
           ),
-          SizedBox(height: 10.h),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton(
-              onPressed: widget.onCancel,
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey, fontSize: 14.sp),
-              ),
+          TextButton(
+            onPressed: onCancel,
+            child: const Center(
+              child: Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
           ),
         ],
@@ -1271,18 +1194,12 @@ class _WalletOtpSheetState extends State<_WalletOtpSheet> {
             keyboardType: TextInputType.number,
             maxLength: 6,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 24.sp,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 8,
-            ),
             decoration: InputDecoration(
               counterText: '',
               hintText: '------',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
               ),
-              contentPadding: EdgeInsets.symmetric(vertical: 16.h),
             ),
           ),
           SizedBox(height: 20.h),
@@ -1290,15 +1207,14 @@ class _WalletOtpSheetState extends State<_WalletOtpSheet> {
             builder: (_, provider, __) => SizedBox(
               width: double.infinity,
               height: 50.h,
-              child: ElevatedButton(
-                onPressed: provider.walletVerifyLoading
+              child: CustomButton(
+                text: 'Verify & Pay',
+                onTap: provider.walletVerifyLoading
                     ? null
                     : () async {
                         final otp = _otpController.text.trim();
                         if (otp.length != 6) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Enter 6-digit OTP')),
-                          );
+                          PremiumToast.error(context, 'Enter 6-digit OTP');
                           return;
                         }
                         final verified = await provider.verifyWalletOtp(
@@ -1307,30 +1223,9 @@ class _WalletOtpSheetState extends State<_WalletOtpSheet> {
                         if (verified) {
                           widget.onVerified();
                         } else if (provider.errorMessage != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(provider.errorMessage!)),
-                          );
+                          PremiumToast.error(context, provider.errorMessage!);
                         }
                       },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2979FF),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                ),
-                child: provider.walletVerifyLoading
-                    ? const CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      )
-                    : Text(
-                        'Verify & Pay',
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
               ),
             ),
           ),
@@ -1339,292 +1234,6 @@ class _WalletOtpSheetState extends State<_WalletOtpSheet> {
             width: double.infinity,
             child: TextButton(
               onPressed: widget.onCancel,
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey, fontSize: 14.sp),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  JazzCash Initiate Sheet — enter JazzCash number
-// ─────────────────────────────────────────────────────────────────────────────
-class _JazzcashInitiateSheet extends StatefulWidget {
-  final double amount;
-  final TextEditingController controller;
-  final CreateOrderProvider provider;
-  final VoidCallback onInitiated;
-  final VoidCallback onCancel;
-
-  const _JazzcashInitiateSheet({
-    required this.amount,
-    required this.controller,
-    required this.provider,
-    required this.onInitiated,
-    required this.onCancel,
-  });
-
-  @override
-  State<_JazzcashInitiateSheet> createState() => _JazzcashInitiateSheetState();
-}
-
-class _JazzcashInitiateSheetState extends State<_JazzcashInitiateSheet> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        24.w,
-        20.h,
-        24.w,
-        MediaQuery.of(context).viewInsets.bottom + 24.h,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40.w,
-              height: 4.h,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2.r),
-              ),
-            ),
-          ),
-          SizedBox(height: 20.h),
-          Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8.r),
-                child: Image.asset(
-                  'assets/images/JazzCashLogo.jpg',
-                  width: 32.w,
-                  height: 32.h,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              SizedBox(width: 10.w),
-              Text(
-                'Pay with JazzCash',
-                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700),
-              ),
-            ],
-          ),
-          SizedBox(height: 6.h),
-          Text(
-            'Rs ${widget.amount.toStringAsFixed(0)} will be deducted from your JazzCash account.',
-            style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade600),
-          ),
-          SizedBox(height: 20.h),
-          Text(
-            'JazzCash Mobile Number',
-            style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600),
-          ),
-          SizedBox(height: 8.h),
-          TextField(
-            controller: widget.controller,
-            keyboardType: TextInputType.phone,
-            decoration: InputDecoration(
-              hintText: '03XXXXXXXXX',
-              prefixIcon: const Icon(Icons.phone_android),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 14.h,
-              ),
-            ),
-          ),
-          SizedBox(height: 20.h),
-          Consumer<CreateOrderProvider>(
-            builder: (_, provider, __) => SizedBox(
-              width: double.infinity,
-              height: 50.h,
-              child: ElevatedButton(
-                onPressed: provider.jazzcashLoading
-                    ? null
-                    : () async {
-                        final mobile = widget.controller.text.trim();
-                        if (mobile.isEmpty ||
-                            !RegExp(r'^03[0-9]{9}$').hasMatch(mobile)) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Enter a valid JazzCash number (03XXXXXXXXX)',
-                              ),
-                            ),
-                          );
-                          return;
-                        }
-                        final result = await provider.initiateJazzcash(
-                          amount: widget.amount,
-                          mobileNumber: mobile,
-                        );
-                        if (result.success) {
-                          widget.onInitiated();
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(result.message)),
-                          );
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF6F00),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                ),
-                child: provider.jazzcashLoading
-                    ? const CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      )
-                    : Text(
-                        'Send Payment Request',
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-              ),
-            ),
-          ),
-          SizedBox(height: 10.h),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton(
-              onPressed: widget.onCancel,
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey, fontSize: 14.sp),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  JazzCash Wait Sheet — user approves in JazzCash app, then tap "I've paid"
-// ─────────────────────────────────────────────────────────────────────────────
-class _JazzcashWaitSheet extends StatelessWidget {
-  final CreateOrderProvider provider;
-  final VoidCallback onConfirmed;
-  final VoidCallback onCancel;
-
-  const _JazzcashWaitSheet({
-    required this.provider,
-    required this.onConfirmed,
-    required this.onCancel,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(24.w, 20.h, 24.w, 32.h),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40.w,
-            height: 4.h,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(2.r),
-            ),
-          ),
-          SizedBox(height: 24.h),
-          Container(
-            padding: EdgeInsets.all(20.r),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFF6F00).withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.phone_android_rounded,
-              color: const Color(0xFFFF6F00),
-              size: 40.r,
-            ),
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            'Open JazzCash App',
-            style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700),
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            'A payment request has been sent to your JazzCash account. '
-            'Open your JazzCash app and approve the payment, then tap "I\'ve Paid" below.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13.sp,
-              color: Colors.grey.shade600,
-              height: 1.5,
-            ),
-          ),
-          SizedBox(height: 28.h),
-          Consumer<CreateOrderProvider>(
-            builder: (_, prov, __) => SizedBox(
-              width: double.infinity,
-              height: 50.h,
-              child: ElevatedButton(
-                onPressed: prov.jazzcashLoading
-                    ? null
-                    : () async {
-                        final confirmed = await prov.confirmJazzcash();
-                        if (confirmed) {
-                          onConfirmed();
-                        } else if (prov.errorMessage != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(prov.errorMessage!)),
-                          );
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF6F00),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                ),
-                child: prov.jazzcashLoading
-                    ? const CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      )
-                    : Text(
-                        "I've Paid — Confirm Order",
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-              ),
-            ),
-          ),
-          SizedBox(height: 10.h),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton(
-              onPressed: onCancel,
               child: Text(
                 'Cancel',
                 style: TextStyle(color: Colors.grey, fontSize: 14.sp),

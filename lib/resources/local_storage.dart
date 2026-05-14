@@ -33,6 +33,7 @@ class LocalStorage {
     await prefs.remove("userName");
     await prefs.remove("userPhone");
     await prefs.remove("userAddress");
+    await prefs.remove("userCity");
   }
 
   /// -------------------- USER INFO --------------------
@@ -74,6 +75,16 @@ class LocalStorage {
   static Future<String?> getUserAddress() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString("userAddress");
+  }
+
+  static Future<void> saveUserCity(String city) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("userCity", city);
+  }
+
+  static Future<String?> getUserCity() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("userCity");
   }
 
   /// -------------------- TOKEN --------------------
