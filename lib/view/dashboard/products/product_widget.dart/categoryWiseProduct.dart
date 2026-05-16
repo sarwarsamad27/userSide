@@ -49,14 +49,14 @@ class _CategoryWiseProductsWidgetState
       builder: (context, provider, child) {
         if (provider.loading) {
           return Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(20).w,
             child: Utils.shoppingLoadingLottie(size: 80),
           );
         }
 
         if (provider.products.isEmpty) {
           return Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(20).w,
             child: Center(
               child: Text(
                 "No products found in ${widget.category}",
@@ -72,7 +72,12 @@ class _CategoryWiseProductsWidgetState
 
         // GridView with 2 items per row
         return GridView.builder(
-          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+          padding: EdgeInsets.only(
+            left: 8.w,
+            right: 8.w,
+            top: 8.h,
+            bottom: 100.h,
+          ),
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: provider.products.length,

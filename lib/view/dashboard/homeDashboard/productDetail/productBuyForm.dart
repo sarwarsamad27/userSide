@@ -764,6 +764,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                               controller: _phoneController,
                               hintText: 'Enter your phone (03XXXXXXXXX)',
                               headerText: 'Phone Number',
+                              keyboardType: TextInputType.phone,
                               validator: (val) {
                                 if (val == null || val.isEmpty)
                                   return "Phone is required";

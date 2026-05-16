@@ -43,7 +43,10 @@ class BuyNowButton extends StatelessWidget {
           : () {
               if ((productHasColors && selectedColors.isEmpty) ||
                   (productHasSizes && selectedSizes.isEmpty)) {
-                AppToast.warning("Please select required options");
+                AppToast.warning(
+                  "Please select required options",
+                  context: context,
+                );
                 return;
               }
               Navigator.push(
