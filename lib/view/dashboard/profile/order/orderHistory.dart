@@ -9,6 +9,8 @@ import 'package:user_side/resources/global.dart';
 import 'package:user_side/view/auth/AuthLoginGate.dart';
 import 'package:user_side/view/dashboard/profile/order/orderHistoryDetail.dart';
 import 'package:user_side/view/dashboard/profile/order/reviewScreen.dart';
+import 'package:user_side/resources/local_storage.dart';
+import 'package:user_side/viewModel/provider/exchangeProvider/exchange_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/getMyOrder_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/review_provider.dart';
 
@@ -35,6 +37,17 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 200) {
         provider.fetchMyOrders();
+      }
+    });
+
+    // Fetch exchange/refund lists once so list screen can match correctly
+    Future.microtask(() async {
+      final buyerId = await LocalStorage.getUserId();
+      if (buyerId != null && mounted) {
+        final exchProvider =
+            Provider.of<ExchangeProvider>(context, listen: false);
+        exchProvider.fetchMyRequests(buyerId);
+        exchProvider.fetchMyRefunds(buyerId);
       }
     });
   }
@@ -79,8 +92,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
             ),
           ),
         ),
-        body: Consumer2<GetMyOrderProvider, ReviewProvider>(
-          builder: (context, provider, reviewProvider, child) {
+        body: Consumer3<GetMyOrderProvider, ReviewProvider, ExchangeProvider>(
+          builder: (context, provider, reviewProvider, exchProvider, child) {
             // ── INITIAL LOADING ─────────────────────────────────────
             if (provider.isLoading && provider.orderList.isEmpty) {
               return Center(child: Utils.shoppingLoadingLottie(size: 200));
@@ -227,12 +240,25 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                   orderId.isNotEmpty &&
                                   !reviewProvider.isReviewed(orderId);
 
-                              // Exchange / Refund badge
-                              final hasExchange = order.exchangeRequest != null;
-                              final hasRefund = order.refundRequest != null;
-                              final exchangeStatus =
-                                  order.exchangeRequest?.status;
-                              final refundStatus = order.refundRequest?.status;
+                              // Match exchange/refund by orderId+productId from provider
+                              // (avoids backend cross-contamination by productId alone)
+                              final oid = order.id ?? '';
+                              final pid = order.product?.productId;
+                              final myEx = exchProvider.listModel?.requests
+                                  .where((e) =>
+                                      e.orderId == oid &&
+                                      (pid == null || e.productId == pid))
+                                  .firstOrNull;
+                              final myRef =
+                                  exchProvider.refundListModel?.requests
+                                      .where((r) =>
+                                          r.orderId == oid &&
+                                          (pid == null || r.productId == pid))
+                                      .firstOrNull;
+                              final hasExchange = myEx != null;
+                              final hasRefund = myRef != null;
+                              final exchangeStatus = myEx?.status;
+                              final refundStatus = myRef?.status;
 
                               // Status color
                               Color statusColor = _statusColor(order.status);
@@ -485,7 +511,12 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                             ),
 
                                             // ── EXCHANGE / REFUND BADGE ─
-                                            if (hasExchange || hasRefund) ...[
+                                            // Only show after delivery; never on Pending/Dispatched/Cancelled
+                                            if ((hasExchange || hasRefund) &&
+                                                order.status != "Cancelled" &&
+                                                order.status != "Pending" &&
+                                                order.status !=
+                                                    "Dispatched") ...[
                                               SizedBox(height: 10.h),
                                               _buildRequestBadge(
                                                 hasExchange: hasExchange,
@@ -519,7 +550,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                                               builder: (_) =>
                                                                   ReviewScreen(
                                                                     productId:
-                                                                        productId!,
+                                                                        productId,
                                                                     orderId:
                                                                         orderId,
                                                                   ),

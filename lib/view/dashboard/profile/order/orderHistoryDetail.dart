@@ -28,7 +28,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _order = widget.order;
+    // Strip exchange/refund from the order passed by list screen immediately.
+    // Backend may populate these incorrectly (by productId, not orderId).
+    // _refreshExchangeStatus() will set them correctly from the authoritative source.
+    _order = Orders(
+      id: widget.order.id,
+      orderId: widget.order.orderId,
+      status: widget.order.status,
+      createdAt: widget.order.createdAt,
+      product: widget.order.product,
+      seller: widget.order.seller,
+      buyerDetails: widget.order.buyerDetails,
+      shipmentCharges: widget.order.shipmentCharges,
+      grandTotal: widget.order.grandTotal,
+      leopardsBooked: widget.order.leopardsBooked,
+      trackNumber: widget.order.trackNumber,
+      slipLink: widget.order.slipLink,
+      leopardsStatus: widget.order.leopardsStatus,
+      cnNumber: widget.order.cnNumber,
+      exchangeRequest: null,
+      refundRequest: null,
+    );
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _refreshExchangeStatus(),
     );
@@ -53,61 +73,60 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             e.orderId == _order.id &&
             (currentProductId == null || e.productId == currentProductId))
         .firstOrNull;
+    // Use _order.id (MongoDB _id) for refund — same as exchange
     final myRefund = refunds
         .where((r) =>
-            r.orderId == _order.orderId &&
+            r.orderId == _order.id &&
             (currentProductId == null || r.productId == currentProductId))
         .firstOrNull;
 
-    if (myExchange != null || myRefund != null) {
-      setState(() {
-        _order = Orders(
-          id: _order.id,
-          orderId: _order.orderId,
-          status: _order.status,
-          createdAt: _order.createdAt,
-          product: _order.product,
-          seller: _order.seller,
-          buyerDetails: _order.buyerDetails,
-          shipmentCharges: _order.shipmentCharges,
-          grandTotal: _order.grandTotal,
-          leopardsBooked: _order.leopardsBooked,
-          trackNumber: _order.trackNumber,
-          slipLink: _order.slipLink,
-          leopardsStatus: _order.leopardsStatus,
-          exchangeRequest: myExchange != null
-              ? ExchangeRequestData(
-                  id: myExchange.id,
-                  status: myExchange.status,
-                  reason: myExchange.reason,
-                  reasonCategory: myExchange.reasonCategory,
-                  companyNote: myExchange.companyNote,
-                  resolutionType: myExchange.resolutionType,
-                  courierPaidBy: myExchange.courierPaidBy,
-                  returnTrackingNumber: myExchange.returnTrackingNumber,
-                  replacementTrackingNumber:
-                      myExchange.replacementTrackingNumber,
-                  replacementSlipLink: myExchange.replacementSlipLink,
-                  refundAmount: myExchange.refundAmount,
-                  pdfPath: myExchange.pdfPath,
-                )
-              : _order.exchangeRequest,
-          refundRequest: myRefund != null
-              ? RefundRequestData(
-                  id: myRefund.id,
-                  productId: myRefund.productId,
-                  status: myRefund.status,
-                  reason: myRefund.reason,
-                  reasonCategory: myRefund.reasonCategory,
-                  companyNote: myRefund.companyNote,
-                  refundAmount: myRefund.refundAmount,
-                  returnTrackingNumber: myRefund.returnTrackingNumber,
-                  pdfPath: myRefund.pdfPath,
-                )
-              : _order.refundRequest,
-        );
-      });
-    }
+    setState(() {
+      _order = Orders(
+        id: _order.id,
+        orderId: _order.orderId,
+        status: _order.status,
+        createdAt: _order.createdAt,
+        product: _order.product,
+        seller: _order.seller,
+        buyerDetails: _order.buyerDetails,
+        shipmentCharges: _order.shipmentCharges,
+        grandTotal: _order.grandTotal,
+        leopardsBooked: _order.leopardsBooked,
+        trackNumber: _order.trackNumber,
+        slipLink: _order.slipLink,
+        leopardsStatus: _order.leopardsStatus,
+        exchangeRequest: myExchange != null
+            ? ExchangeRequestData(
+                id: myExchange.id,
+                status: myExchange.status,
+                reason: myExchange.reason,
+                reasonCategory: myExchange.reasonCategory,
+                companyNote: myExchange.companyNote,
+                resolutionType: myExchange.resolutionType,
+                courierPaidBy: myExchange.courierPaidBy,
+                returnTrackingNumber: myExchange.returnTrackingNumber,
+                replacementTrackingNumber:
+                    myExchange.replacementTrackingNumber,
+                replacementSlipLink: myExchange.replacementSlipLink,
+                refundAmount: myExchange.refundAmount,
+                pdfPath: myExchange.pdfPath,
+              )
+            : null,
+        refundRequest: myRefund != null
+            ? RefundRequestData(
+                id: myRefund.id,
+                productId: myRefund.productId,
+                status: myRefund.status,
+                reason: myRefund.reason,
+                reasonCategory: myRefund.reasonCategory,
+                companyNote: myRefund.companyNote,
+                refundAmount: myRefund.refundAmount,
+                returnTrackingNumber: myRefund.returnTrackingNumber,
+                pdfPath: myRefund.pdfPath,
+              )
+            : null,
+      );
+    });
   }
 
   String formatDate(String date) {
