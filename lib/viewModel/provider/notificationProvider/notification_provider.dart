@@ -59,4 +59,26 @@ class NotificationProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // Mark all unread as read — locally instant, API calls in background
+  Future<void> markAllRead() async {
+    final unreadIds = items
+        .where((n) => n.isRead != true && n.id != null)
+        .map((n) => n.id!)
+        .toList();
+
+    if (unreadIds.isEmpty) return;
+
+    // Update UI instantly
+    for (final n in items) {
+      if (n.isRead != true) n.isRead = true;
+    }
+    unreadCount = 0;
+    notifyListeners();
+
+    // Fire API calls in background (don't block UI)
+    for (final id in unreadIds) {
+      repo.markRead(id); // intentionally not awaited
+    }
+  }
 }

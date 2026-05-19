@@ -22,11 +22,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final p = Provider.of<NotificationProvider>(context, listen: false);
       if (!p.hasFetched) {
-        p.fetch();
+        await p.fetch();
       }
+      // Mark all as read the moment user opens this screen
+      p.markAllRead();
     });
   }
 
@@ -96,7 +98,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         title: Text(
           "Notifications",
           style: TextStyle(
-            color: AppColor.textPrimaryColor,
+            color: AppColor.whiteColor,
             fontWeight: FontWeight.w700,
             fontSize: 16.sp,
           ),

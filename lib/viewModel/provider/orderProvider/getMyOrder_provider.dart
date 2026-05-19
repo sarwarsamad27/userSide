@@ -8,6 +8,7 @@ class GetMyOrderProvider with ChangeNotifier {
 
   bool isLoading = false;
   bool isMoreLoading = false;
+  bool _isFetching = false; // guard against concurrent fetches
 
   int page = 1;
   final int limit = 10;
@@ -17,39 +18,48 @@ class GetMyOrderProvider with ChangeNotifier {
   List<Orders> orderList = [];
 
   Future<void> fetchMyOrders({bool isRefresh = false}) async {
-    final buyerId = await LocalStorage.getUserId();
+    // Prevent concurrent fetches — the scroll listener can fire many times
+    if (_isFetching) return;
+    _isFetching = true;
 
-    if (isRefresh) {
-      page = 1;
-      hasMore = true;
-      orderList.clear();
+    try {
+      final buyerId = await LocalStorage.getUserId();
+      if (buyerId == null) return;
+
+      if (isRefresh) {
+        page = 1;
+        hasMore = true;
+        orderList.clear();
+        notifyListeners();
+      }
+
+      if (!hasMore) return;
+
+      if (page == 1) {
+        isLoading = true;
+      } else {
+        isMoreLoading = true;
+      }
+      notifyListeners();
+
+      final data = await _repo.getMyOrder(buyerId, limit, page);
+
+      if (data.success == true) {
+        final incoming = data.orders ?? [];
+        orderList.addAll(incoming);
+
+        // Deduplicate by id — safety net in case of any double-fetch
+        final seen = <String>{};
+        orderList.retainWhere((o) => seen.add(o.id ?? o.orderId ?? ''));
+
+        hasMore = (data.page! < data.totalPages!);
+        if (hasMore) page++;
+      }
+    } finally {
+      isLoading = false;
+      isMoreLoading = false;
+      _isFetching = false;
       notifyListeners();
     }
-
-    if (!hasMore) return;
-
-    if (page == 1) {
-      isLoading = true;
-    } else {
-      isMoreLoading = true;
-    }
-    notifyListeners();
-
-    final data = await _repo.getMyOrder(buyerId!, limit, page);
-
-    if (data.success == true) {
-      /// list append
-      orderList.addAll(data.orders ?? []);
-
-      /// check more data
-      hasMore = (data.page! < data.totalPages!);
-
-      /// next page
-      if (hasMore) page++;
-    }
-
-    isLoading = false;
-    isMoreLoading = false;
-    notifyListeners();
   }
 }

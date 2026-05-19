@@ -59,6 +59,7 @@ class BuyNowButton extends StatelessWidget {
                     colors: selectedColors,
                     sizes: selectedSizes,
                     productId: [productId],
+                    initialStock: quantity, // pass stock limit
                   ),
                 ),
               );

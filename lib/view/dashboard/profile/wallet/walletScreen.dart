@@ -542,7 +542,13 @@ class _TransactionTile extends StatelessWidget {
                   : const Color(0xFFFF1744).withOpacity(0.1),
               borderRadius: BorderRadius.circular(14.r),
             ),
-            child: Center(child: _getPaymentIcon(transaction.method)),
+            child: Center(
+              child: _getPaymentIcon(
+                transaction.method,
+                subtitle: transaction.subtitle,
+                title: transaction.title,
+              ),
+            ),
           ),
           SizedBox(width: 12.w),
           Expanded(
@@ -630,56 +636,47 @@ class _TransactionTile extends StatelessWidget {
     );
   }
 
-  Widget _getPaymentIcon(String method) {
+  Widget _getPaymentIcon(
+    String method, {
+    String subtitle = '',
+    String title = '',
+  }) {
     final m = method.toLowerCase().trim();
+    final sub = subtitle.toLowerCase();
+    final ttl = title.toLowerCase();
 
-    // JazzCash — all JazzCash methods
-    if (m.contains('jazz') || m.contains('jazzcash') || m == 'send') {
-      return ClipOval(
-        child: Image.asset(
-          'assets/images/JazzCashLogo.jpg',
-          fit: BoxFit.cover,
-          width: 36.r,
-          height: 36.r,
-        ),
-      );
-    } else if (m.contains('easy') || m.contains('easypaisa') || m == 'send') {
-      return ClipOval(
-        child: Image.asset(
-          'assets/images/easypaisaLogo.jpg',
-          fit: BoxFit.cover,
-          width: 36.r,
-          height: 36.r,
-        ),
-      );
-    }
-
-    // Order Payment (wallet debit for order)
-    if (m == 'order' || m == 'wallet') {
-      return Icon(
-        Icons.shopping_bag_rounded,
-        color: const Color(0xFF6C63FF),
-        size: 24.sp,
-      );
-    }
-
-    // Cashback
-    if (m == 'cashback') {
-      return Icon(
-        Icons.card_giftcard_rounded,
-        color: const Color(0xFF00C853),
-        size: 24.sp,
-      );
-    }
-
-    // Default fallback → JazzCash logo
-    return ClipOval(
-      child: Image.asset(
-        'assets/images/JazzCashLogo.jpg',
-        fit: BoxFit.cover,
-        width: 36.r,
-        height: 36.r,
-      ),
+    Widget logo(String asset) => ClipOval(
+      child: Image.asset(asset, fit: BoxFit.cover, width: 36.r, height: 36.r),
     );
+
+    Widget iconW(IconData ic, Color c) => Icon(ic, color: c, size: 24.sp);
+
+    // Subtitle takes priority — DB may store wrong method
+    if (sub.contains('easypaisa'))
+      return logo('assets/images/easypaisaLogo.jpg');
+    if (sub.contains('jazzcash') || sub.contains('jazz cash')) {
+      return logo('assets/images/JazzCashLogo.jpg');
+    }
+
+    // Then check method
+    if (m.contains('easy')) return logo('assets/images/easypaisaLogo.jpg');
+    if (m.contains('jazz')) return logo('assets/images/JazzCashLogo.jpg');
+
+    // Type-based icons
+    if (ttl.contains('courier') || m.contains('courier')) {
+      return iconW(Icons.local_shipping_rounded, const Color(0xFF6C63FF));
+    }
+    if (ttl.contains('refund')) {
+      return iconW(Icons.currency_rupee_rounded, const Color(0xFF00C853));
+    }
+    if (ttl.contains('cashback') || ttl.contains('bonus') || m == 'cashback') {
+      return iconW(Icons.card_giftcard_rounded, const Color(0xFFFF9800));
+    }
+    if (m == 'order' || m == 'wallet' || ttl.contains('order')) {
+      return iconW(Icons.shopping_bag_rounded, const Color(0xFF3B82F6));
+    }
+
+    // Default
+    return iconW(Icons.account_balance_wallet_rounded, const Color(0xFF607D8B));
   }
 }

@@ -114,7 +114,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Add Money via JazzCash',
-            style: TextStyle(color: const Color(0xFF1A1A2E),
+            style: TextStyle(color:  Colors.white,
                 fontSize: 17.sp, fontWeight: FontWeight.w700)),
         centerTitle: true,
       ),

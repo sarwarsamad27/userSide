@@ -80,7 +80,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
       appBar: AppBar(
         title: const Text(
           "My Favourites ",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: AppColor.appimagecolor,

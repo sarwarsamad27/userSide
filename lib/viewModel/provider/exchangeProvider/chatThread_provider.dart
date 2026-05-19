@@ -60,4 +60,56 @@ class ChatThreadProvider extends ChangeNotifier {
 
     notifyListeners();
   }
+
+  // In-memory update — no API call
+  void onNewMessage({
+    required String threadId,
+    required String lastMessage,
+    required String lastMessageTime,
+    bool incrementUnread = true,
+    bool isExchangeRequest = false,
+  }) {
+    final list = threadListModel?.threads;
+    if (list == null) return;
+
+    final idx = list.indexWhere((t) => t.threadId == threadId);
+    if (idx == -1) return;
+
+    final old = list[idx];
+    final updated = ChatThreadModel(
+      threadId: old.threadId,
+      toType: old.toType,
+      toId: old.toId,
+      title: old.title,
+      image: old.image,
+      lastMessage: lastMessage,
+      lastMessageTime: lastMessageTime,
+      unreadCount: incrementUnread ? old.unreadCount + 1 : old.unreadCount,
+      isExchangeRequest: isExchangeRequest ? true : old.isExchangeRequest,
+    );
+
+    list.removeAt(idx);
+    list.insert(0, updated);
+    notifyListeners();
+  }
+
+  void markThreadRead(String threadId) {
+    final list = threadListModel?.threads;
+    if (list == null) return;
+    final idx = list.indexWhere((t) => t.threadId == threadId);
+    if (idx == -1 || list[idx].unreadCount == 0) return;
+    final t = list[idx];
+    list[idx] = ChatThreadModel(
+      threadId: t.threadId,
+      toType: t.toType,
+      toId: t.toId,
+      title: t.title,
+      image: t.image,
+      lastMessage: t.lastMessage,
+      lastMessageTime: t.lastMessageTime,
+      unreadCount: 0,
+      isExchangeRequest: t.isExchangeRequest,
+    );
+    notifyListeners();
+  }
 }

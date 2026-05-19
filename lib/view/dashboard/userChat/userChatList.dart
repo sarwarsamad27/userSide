@@ -88,28 +88,67 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
     } catch (_) {}
   }
 
-  void _setupSocketListeners() {
-    final socket = SocketService().socket;
-    if (socket == null || !socket.connected) return;
+  void _setupSocketListeners() async {
+    // Must use buyerId auth — backend sets role:"buyer" only from buyerId
+    // Using token auth can assign wrong role → fromType:"seller" on buyer msgs
+    final uid = buyerId ?? AuthSession.instance.userId ?? await LocalStorage.getUserId();
+    if (uid == null || uid.isEmpty || !mounted) return;
 
+    final socket = await SocketService().ensureConnected(
+      baseUrl: Global.imageUrl,
+      auth: {'buyerId': uid},
+    );
+    if (socket == null || !mounted) return;
+
+    // Clear first to avoid duplicate handlers
     socket.off("chat:message");
     socket.off("exchange:new");
     socket.off("admin:message");
     socket.off("admin:broadcast");
 
-    socket.on("chat:message", (_) {
-      if (mounted && buyerId != null) {
-        context.read<ChatThreadProvider>().fetchThreads(buyerId!);
+    // In-memory update — no API call needed
+    socket.on("chat:message", (data) {
+      if (!mounted || data is! Map) return;
+      final tId = data["threadId"]?.toString();
+      final text = (data["text"] ?? "").toString();
+      final ts = (data["timestamp"] ?? data["createdAt"] ??
+              DateTime.now().toIso8601String())
+          .toString();
+      final fromType = data["fromType"]?.toString();
+      if (tId == null) return;
+
+      final provider = context.read<ChatThreadProvider>();
+      final known =
+          provider.threadListModel?.threads.any((t) => t.threadId == tId) ??
+              false;
+
+      if (known) {
+        // buyer's own sent messages (fromType=="buyer") don't add unread
+        provider.onNewMessage(
+          threadId: tId,
+          lastMessage: text,
+          lastMessageTime: ts,
+          incrementUnread: fromType != "buyer",
+        );
+      } else {
+        // New thread: fetch once to discover it
+        if (buyerId != null) provider.fetchThreads(buyerId!);
       }
     });
 
-    socket.on("exchange:new", (_) {
-      if (mounted && buyerId != null) {
-        context.read<ChatThreadProvider>().fetchThreads(buyerId!);
-      }
+    socket.on("exchange:new", (data) {
+      if (!mounted || data is! Map) return;
+      final tId = data["threadId"]?.toString();
+      if (tId == null) return;
+      context.read<ChatThreadProvider>().onNewMessage(
+        threadId: tId,
+        lastMessage: "📦 New exchange request",
+        lastMessageTime: DateTime.now().toIso8601String(),
+        incrementUnread: true,
+        isExchangeRequest: true,
+      );
     });
 
-    // Admin message / announcement → highlight SHOOKOO tile
     socket.on("admin:message", (data) {
       if (!mounted) return;
       final msg = (data is Map) ? data : {};
@@ -326,7 +365,7 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
         children: [
           CircleAvatar(
             radius: 28.r,
-            backgroundColor: AppColor.primaryColor.withOpacity(0.1),
+            backgroundColor: AppColor.primaryColor.withValues(alpha: 0.1),
             child: ClipOval(
               child: thread.image != null && thread.image!.isNotEmpty
                   ? Image.network(
@@ -428,7 +467,9 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
         ],
       ),
       onTap: () {
-        print("📱 Opening chat: ${thread.threadId}");
+        // Clear unread badge immediately in-memory
+        context.read<ChatThreadProvider>().markThreadRead(thread.threadId);
+
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -441,10 +482,8 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
             ),
           ),
         ).then((_) {
-          // Refresh after returning
-          if (buyerId != null) {
-            context.read<ChatThreadProvider>().fetchThreads(buyerId!);
-          }
+          // Re-register socket listeners — chat screen may have removed them
+          if (mounted) _setupSocketListeners();
         });
       },
     );

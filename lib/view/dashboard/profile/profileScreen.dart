@@ -181,7 +181,7 @@ class _ProfilescreenState extends State<Profilescreen> {
               style: TextStyle(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: Colors.white,
               ),
             ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.2),
           ],

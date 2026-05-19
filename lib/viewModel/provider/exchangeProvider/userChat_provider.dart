@@ -393,10 +393,11 @@ class UserChatProvider extends ChangeNotifier {
   // ==============================
   void _setupSocketListeners() {
     if (_listenersBound) return;
-    _listenersBound = true;
 
     final socket = SocketService().socket;
     if (socket == null) return;
+
+    _listenersBound = true; // Set AFTER confirming socket exists
 
      socket.off("chat:message");
   socket.off("exchange:new");

@@ -8,6 +8,7 @@ import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/resources/premium_toast.dart';
 import 'package:user_side/view/auth/AuthLoginGate.dart';
 import 'package:user_side/viewModel/provider/favouriteProvider/getFavourite_provider.dart';
+import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getSingleProduct_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/createOrder_provider.dart';
 import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
 import 'package:user_side/viewModel/provider/deliveryProvider/delivery_settings_provider.dart';
@@ -394,9 +395,15 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
     if (data != null &&
         (data.order != null ||
             (data.orders != null && data.orders!.isNotEmpty))) {
-      _saveFormData(); // Save form data for next time
+      _saveFormData();
 
-      // SHOW LOTTIE FIRST
+      // Decrement stock instantly in productDetailScreen — no refresh needed
+      try {
+        context.read<GetSingleProductProvider>().decrementStock(
+          _quantityNotifier.value,
+        );
+      } catch (_) {}
+
       if (mounted) Utils.showOrderSuccessLottie(context);
 
       // CLEAR ONLY ORDERED ITEMS FROM FAVOURITES
@@ -456,13 +463,13 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
               title: Text(
                 'Confirm Order',
                 style: TextStyle(
-                  color: Colors.black,
+                  color: Colors.white,
                   fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
@@ -644,10 +651,17 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                 ),
                               ),
                               SizedBox(width: 20.w),
-                              _qtyBtn(
-                                Icons.add,
-                                () => _quantityNotifier.value++,
-                              ),
+                              _qtyBtn(Icons.add, () {
+                                final maxQty = widget.initialStock ?? 999;
+                                if (quantity < maxQty) {
+                                  _quantityNotifier.value++;
+                                } else {
+                                  PremiumToast.error(
+                                    context,
+                                    'Only $maxQty items available in stock',
+                                  );
+                                }
+                              }),
                             ],
                           ),
                         ),

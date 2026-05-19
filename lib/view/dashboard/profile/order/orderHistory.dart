@@ -35,7 +35,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     }
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200) {
+              _scrollController.position.maxScrollExtent - 200 &&
+          !provider.isLoading &&
+          !provider.isMoreLoading) {
         provider.fetchMyOrders();
       }
     });
@@ -44,8 +46,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     Future.microtask(() async {
       final buyerId = await LocalStorage.getUserId();
       if (buyerId != null && mounted) {
-        final exchProvider =
-            Provider.of<ExchangeProvider>(context, listen: false);
+        final exchProvider = Provider.of<ExchangeProvider>(
+          context,
+          listen: false,
+        );
         exchProvider.fetchMyRequests(buyerId);
         exchProvider.fetchMyRefunds(buyerId);
       }
@@ -245,16 +249,21 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                               final oid = order.id ?? '';
                               final pid = order.product?.productId;
                               final myEx = exchProvider.listModel?.requests
-                                  .where((e) =>
-                                      e.orderId == oid &&
-                                      (pid == null || e.productId == pid))
+                                  .where(
+                                    (e) =>
+                                        e.orderId == oid &&
+                                        (pid == null || e.productId == pid),
+                                  )
                                   .firstOrNull;
-                              final myRef =
-                                  exchProvider.refundListModel?.requests
-                                      .where((r) =>
-                                          r.orderId == oid &&
-                                          (pid == null || r.productId == pid))
-                                      .firstOrNull;
+                              final myRef = exchProvider
+                                  .refundListModel
+                                  ?.requests
+                                  .where(
+                                    (r) =>
+                                        r.orderId == oid &&
+                                        (pid == null || r.productId == pid),
+                                  )
+                                  .firstOrNull;
                               final hasExchange = myEx != null;
                               final hasRefund = myRef != null;
                               final exchangeStatus = myEx?.status;

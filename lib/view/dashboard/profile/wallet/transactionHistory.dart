@@ -178,7 +178,7 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha:0.08),
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: Row(
@@ -187,7 +187,7 @@ class _SummaryCard extends StatelessWidget {
             width: 32.r,
             height: 32.r,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withValues(alpha:0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 16.r),
@@ -251,18 +251,73 @@ class _TxnList extends StatelessWidget {
     return subtitle;
   }
 
+  // Returns the correct icon/logo widget for a transaction
+  Widget _buildTxnIcon(WalletTransactionModel tx) {
+    final title  = tx.title.toLowerCase();
+    final method = tx.method.toLowerCase().trim();
+    final sub    = tx.subtitle.toLowerCase();
+    final bgCredit = const Color(0xFF00C853);
+    final bgDebit  = const Color(0xFFFF1744);
+    final bg = tx.isCredit ? bgCredit : bgDebit;
+
+    Widget logo(String asset) => ClipOval(
+          child: Image.asset(asset,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity),
+        );
+
+    Widget icon(IconData ic, Color c) => Icon(ic, color: c, size: 22.sp);
+
+    // ── Subtitle takes priority — more reliable than stored method ────────
+    if (sub.contains('easypaisa')) {
+      return logo('assets/images/easypaisaLogo.jpg');
+    }
+    if (sub.contains('jazzcash') || sub.contains('jazz cash')) {
+      return logo('assets/images/JazzCashLogo.jpg');
+    }
+    // ── Then check method field ───────────────────────────────────────────
+    if (method.contains('easy')) {
+      return logo('assets/images/easypaisaLogo.jpg');
+    }
+    if (method.contains('jazz')) {
+      return logo('assets/images/JazzCashLogo.jpg');
+    }
+
+    // ── Transaction-type icons ────────────────────────────────────────────
+    if (title.contains('courier') || method.contains('courier')) {
+      return icon(Icons.local_shipping_rounded, const Color(0xFF6C63FF));
+    }
+    if (title.contains('refund')) {
+      return icon(Icons.currency_rupee_rounded, const Color(0xFF00C853));
+    }
+    if (title.contains('cashback') || title.contains('bonus')) {
+      return icon(Icons.card_giftcard_rounded, const Color(0xFFFF9800));
+    }
+    if (title.contains('order') || method == 'order' || method == 'wallet') {
+      return icon(Icons.shopping_bag_rounded, const Color(0xFF3B82F6));
+    }
+    if (title.contains('withdraw')) {
+      // Subtitle may carry payment brand when method is generic
+      if (sub.contains('easypaisa') || sub.contains('easy')) {
+        return logo('assets/images/easypaisaLogo.jpg');
+      }
+      if (sub.contains('jazz')) {
+        return logo('assets/images/JazzCashLogo.jpg');
+      }
+      return icon(Icons.account_balance_wallet_rounded, const Color(0xFF2979FF));
+    }
+    if (title.contains('add money') || title.contains('top')) {
+      return icon(Icons.add_circle_rounded, const Color(0xFF00C853));
+    }
+
+    // Default
+    return icon(Icons.account_balance_wallet_rounded, bg.withValues(alpha: 0.7));
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isJazzcash =
-        transactions.isNotEmpty &&
-        transactions.first.method.toLowerCase().contains('jazzcash');
-    final String logoPath = isJazzcash
-        ? 'assets/images/JazzCashLogo.jpg'
-        : 'assets/images/easypaisaLogo.jpg';
-
-    log(
-      'First transaction method: ${transactions.isNotEmpty ? transactions.first.method : 'N/A'}',
-    );
+    log('Txn count: ${transactions.length}');
     if (transactions.isEmpty) {
       return Center(
         child: Column(
@@ -284,13 +339,6 @@ class _TxnList extends StatelessWidget {
       itemCount: transactions.length,
       itemBuilder: (context, index) {
         final tx = transactions[index];
-        final String methodLower = tx.method.toLowerCase().trim();
-        final bool isJazzCash =
-            methodLower.contains('jazzcash') || methodLower == 'send';
-
-        final String logoPath = isJazzCash
-            ? 'assets/images/JazzCashLogo.jpg'
-            : 'assets/images/easypaisaLogo.jpg';
         return Padding(
           padding: EdgeInsets.only(bottom: 10.h),
           child:
@@ -301,7 +349,7 @@ class _TxnList extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14.r),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha:0.04),
                           blurRadius: 10,
                           offset: const Offset(0, 2),
                         ),
@@ -314,20 +362,11 @@ class _TxnList extends StatelessWidget {
                           height: 46.r,
                           decoration: BoxDecoration(
                             color: tx.isCredit
-                                ? const Color(0xFF00C853).withOpacity(0.1)
-                                : const Color(0xFFFF1744).withOpacity(0.1),
+                                ? const Color(0xFF00C853).withValues(alpha:0.1)
+                                : const Color(0xFFFF1744).withValues(alpha:0.1),
                             borderRadius: BorderRadius.circular(14.r),
                           ),
-                          child: Center(
-                            child: ClipOval(
-                              child: Image.asset(
-                                logoPath, // ← now correct per transaction
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                              ),
-                            ),
-                          ),
+                          child: Center(child: _buildTxnIcon(tx)),
                         ),
                         SizedBox(width: 12.w),
                         Expanded(
@@ -382,10 +421,10 @@ class _TxnList extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: tx.status == 'success'
-                                    ? const Color(0xFF00C853).withOpacity(0.1)
+                                    ? const Color(0xFF00C853).withValues(alpha:0.1)
                                     : tx.status == 'pending'
-                                    ? Colors.orange.withOpacity(0.1)
-                                    : Colors.red.withOpacity(0.1),
+                                    ? Colors.orange.withValues(alpha:0.1)
+                                    : Colors.red.withValues(alpha:0.1),
                                 borderRadius: BorderRadius.circular(20.r),
                               ),
                               child: Text(

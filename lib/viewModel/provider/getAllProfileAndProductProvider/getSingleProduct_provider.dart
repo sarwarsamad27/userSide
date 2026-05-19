@@ -12,6 +12,15 @@ class GetSingleProductProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Decrement stock locally after a successful order (no refetch needed)
+  void decrementStock(int orderedQty) {
+    final product = productData?.product;
+    if (product == null) return;
+    final current = product.quantity ?? 0;
+    product.quantity = (current - orderedQty).clamp(0, current);
+    notifyListeners();
+  }
+
   Future<void> fetchSingleProduct(
     String profileId,
     String categoryId,
