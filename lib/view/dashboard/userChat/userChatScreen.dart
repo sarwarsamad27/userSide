@@ -18,6 +18,11 @@ class UserChatScreen extends StatelessWidget {
   // ✅ CHANGED: Use Map instead of String
   final Map<String, dynamic>? initialProductData;
   final String? initialMessage;
+  final void Function({
+    required String lastMessage,
+    required String timestamp,
+    required bool isMyMessage,
+  })? onThreadUpdate;
 
   const UserChatScreen({
     super.key,
@@ -26,8 +31,9 @@ class UserChatScreen extends StatelessWidget {
     required this.toId,
     required this.title,
     this.sellerImage,
-    this.initialProductData, // ✅ Changed type
+    this.initialProductData,
     this.initialMessage,
+    this.onThreadUpdate,
   });
 
   @override
@@ -40,8 +46,9 @@ class UserChatScreen extends StatelessWidget {
         threadId: threadId,
         toType: toType,
         toId: toId,
-        initialProductData: initialProductData, // ✅ Pass Map
+        initialProductData: initialProductData,
         initialMessage: initialMessage,
+        onThreadUpdate: onThreadUpdate,
       )..init(),
       child: Scaffold(
         backgroundColor: const Color(0xFFECE5DD),

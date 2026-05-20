@@ -110,19 +110,29 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
                           item.product?.beforeDiscountPrice ?? 0;
                       final afterPrice = item.product?.afterDiscountPrice ?? 0;
                       final qty = provider.getQuantity(index);
+                      final stock = item.product?.quantity ?? 999;
+                      final isOutOfStock = stock <= 0;
 
                       return Container(
                         margin: EdgeInsets.only(bottom: 12.h),
                         padding: EdgeInsets.all(12.w),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          // Red tint when out of stock
+                          color: isOutOfStock
+                              ? Colors.red.withValues(alpha: 0.05)
+                              : Colors.white,
                           border: Border.all(
-                            color: AppColor.primaryColor.withOpacity(.3),
+                            color: isOutOfStock
+                                ? Colors.red.withValues(alpha: 0.6)
+                                : AppColor.primaryColor.withValues(alpha: 0.3),
+                            width: isOutOfStock ? 1.5 : 1,
                           ),
                           borderRadius: BorderRadius.circular(12.r),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black12,
+                              color: isOutOfStock
+                                  ? Colors.red.withValues(alpha: 0.08)
+                                  : Colors.black12,
                               blurRadius: 5,
                               offset: const Offset(0, 2),
                             ),
@@ -272,14 +282,29 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
                                             ),
                                           ),
                                           GestureDetector(
-                                            onTap: () => provider
-                                                .increaseQuantity(index),
+                                            onTap: isOutOfStock
+                                                ? null
+                                                : () {
+                                                    if (qty >= stock) {
+                                                      AppToast.error(
+                                                        "Only $stock items available in stock",
+                                                      );
+                                                    } else {
+                                                      provider.increaseQuantity(
+                                                          index);
+                                                    }
+                                                  },
                                             child: Container(
                                               padding: EdgeInsets.all(4.w),
-                                              color: Colors.grey[300],
+                                              color: (isOutOfStock || qty >= stock)
+                                                  ? Colors.grey[200]
+                                                  : Colors.grey[300],
                                               child: Icon(
                                                 Icons.add,
                                                 size: 16.sp,
+                                                color: (isOutOfStock || qty >= stock)
+                                                    ? Colors.grey[400]
+                                                    : Colors.black,
                                               ),
                                             ),
                                           ),
@@ -362,20 +387,22 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
                       SizedBox(height: 10.h),
                       Builder(
                         builder: (context) {
-                          final bool hasOutOfStock = favs.any(
-                            (e) => (e.product?.quantity ?? 0) <= 0,
-                          );
+                          // Only in-stock items go to checkout
+                          final inStockFavs = favs
+                              .where((e) => (e.product?.quantity ?? 0) > 0)
+                              .toList();
+                          final allOutOfStock = inStockFavs.isEmpty;
 
                           return CustomButton(
                             width: double.infinity,
                             second: true,
-                            text: hasOutOfStock
-                                ? 'Remove Out of Stock items to Proceed'
-                                : 'Proceed to Checkout (${favs.length})',
-                            onTap: hasOutOfStock
+                            text: allOutOfStock
+                                ? 'All items are Out of Stock'
+                                : 'Proceed to Checkout (${inStockFavs.length})',
+                            onTap: allOutOfStock
                                 ? () {
                                     AppToast.error(
-                                      "Please remove out-of-stock items first",
+                                      "All items in your favourites are out of stock",
                                     );
                                   }
                                 : () {
@@ -383,23 +410,23 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => ProductBuyForm(
-                                          favouriteItems: favs.map((e) {
+                                          favouriteItems:
+                                              inStockFavs.map((e) {
+                                            final idx = favs.indexOf(e);
                                             return {
                                               "productId": e.product?.sId,
                                               "name": e.product?.name,
-                                              "price": e
-                                                  .product
+                                              "price": e.product
                                                   ?.afterDiscountPrice
                                                   .toString(),
                                               "imageUrl": e.product?.image,
                                               "sizes": e.selectedSizes,
                                               "colors": e.selectedColors,
-                                              "quantity": provider.getQuantity(
-                                                favs.indexOf(e),
-                                              ),
+                                              "quantity":
+                                                  provider.getQuantity(idx),
                                             };
                                           }).toList(),
-                                          productId: favs
+                                          productId: inStockFavs
                                               .map((e) => e.product!.sId!)
                                               .toList(),
                                         ),

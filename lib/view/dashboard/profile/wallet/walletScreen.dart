@@ -70,7 +70,7 @@ class _WalletScreenState extends State<WalletScreen>
               SliverAppBar(
                 expandedHeight: 260.h,
                 pinned: true,
-                backgroundColor: const Color(0xFF1A1A2E),
+                backgroundColor: AppColor.primaryColor,
                 leading: IconButton(
                   icon: const Icon(
                     Icons.arrow_back_ios_new,
@@ -211,7 +211,7 @@ class _WalletScreenState extends State<WalletScreen>
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0F3460)],
+          colors: [AppColor.primaryColor, Color(0xFFE8873A), Color(0xFFDF762E)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

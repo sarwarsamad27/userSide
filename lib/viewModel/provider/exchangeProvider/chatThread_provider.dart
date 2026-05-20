@@ -85,7 +85,7 @@ class ChatThreadProvider extends ChangeNotifier {
       lastMessage: lastMessage,
       lastMessageTime: lastMessageTime,
       unreadCount: incrementUnread ? old.unreadCount + 1 : old.unreadCount,
-      isExchangeRequest: isExchangeRequest ? true : old.isExchangeRequest,
+      isExchangeRequest: isExchangeRequest,
     );
 
     list.removeAt(idx);

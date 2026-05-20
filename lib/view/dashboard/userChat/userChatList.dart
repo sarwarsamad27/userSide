@@ -111,6 +111,8 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
       if (!mounted || data is! Map) return;
       final tId = data["threadId"]?.toString();
       final text = (data["text"] ?? "").toString();
+      final imageUrl = data["imageUrl"]?.toString();
+      final displayText = text.isNotEmpty ? text : (imageUrl != null ? "📷 Image" : "");
       final ts = (data["timestamp"] ?? data["createdAt"] ??
               DateTime.now().toIso8601String())
           .toString();
@@ -123,12 +125,12 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
               false;
 
       if (known) {
-        // buyer's own sent messages (fromType=="buyer") don't add unread
         provider.onNewMessage(
           threadId: tId,
-          lastMessage: text,
+          lastMessage: displayText,
           lastMessageTime: ts,
           incrementUnread: fromType != "buyer",
+          isExchangeRequest: false,
         );
       } else {
         // New thread: fetch once to discover it
@@ -479,6 +481,19 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
               toId: thread.toId,
               title: thread.title,
               sellerImage: thread.image,
+              onThreadUpdate: ({
+                required lastMessage,
+                required timestamp,
+                required isMyMessage,
+              }) {
+                if (!mounted) return;
+                context.read<ChatThreadProvider>().onNewMessage(
+                  threadId: thread.threadId,
+                  lastMessage: lastMessage,
+                  lastMessageTime: timestamp,
+                  incrementUnread: !isMyMessage,
+                );
+              },
             ),
           ),
         ).then((_) {

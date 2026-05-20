@@ -25,12 +25,19 @@ class UserChatProvider extends ChangeNotifier {
   final Map<String, dynamic>? initialProductData;
   final String? initialMessage;
 
+  final void Function({
+    required String lastMessage,
+    required String timestamp,
+    required bool isMyMessage,
+  })? onThreadUpdate;
+
   UserChatProvider({
     required this.threadId,
     required this.toType,
     required this.toId,
-    this.initialProductData, // ✅ Changed type
+    this.initialProductData,
     this.initialMessage,
+    this.onThreadUpdate,
   });
 
   // ===== Optional UI scroll controller =====
@@ -543,18 +550,24 @@ class UserChatProvider extends ChangeNotifier {
 
       for (int i = 0; i < messages.length; i++) {
         if (messages[i].id == messageId) {
+          final m = messages[i];
           messages[i] = ChatMessage(
-            id: messages[i].id,
-            threadId: messages[i].threadId,
-            fromType: messages[i].fromType,
-            fromId: messages[i].fromId,
-            text: messages[i].text,
-            timestamp: messages[i].timestamp,
+            id: m.id,
+            threadId: m.threadId,
+            fromType: m.fromType,
+            fromId: m.fromId,
+            text: m.text,
+            timestamp: m.timestamp,
             deliveredAt: deliveredAt,
             readAt: readAt,
-            isExchangeRequest: messages[i].isExchangeRequest,
-            exchangeData: messages[i].exchangeData,
-            productCard: messages[i].productCard,
+            isExchangeRequest: m.isExchangeRequest,
+            exchangeData: m.exchangeData,
+            productCard: m.productCard,
+            replyToId: m.replyToId,
+            replyToText: m.replyToText,
+            replyToFromType: m.replyToFromType,
+            replyToImageUrl: m.replyToImageUrl,
+            imageUrl: m.imageUrl,
           );
           break;
         }
@@ -571,18 +584,24 @@ class UserChatProvider extends ChangeNotifier {
 
       for (int i = 0; i < messages.length; i++) {
         if (messageIds.contains(messages[i].id)) {
+          final m = messages[i];
           messages[i] = ChatMessage(
-            id: messages[i].id,
-            threadId: messages[i].threadId,
-            fromType: messages[i].fromType,
-            fromId: messages[i].fromId,
-            text: messages[i].text,
-            timestamp: messages[i].timestamp,
-            deliveredAt: messages[i].deliveredAt ?? readAt,
+            id: m.id,
+            threadId: m.threadId,
+            fromType: m.fromType,
+            fromId: m.fromId,
+            text: m.text,
+            timestamp: m.timestamp,
+            deliveredAt: m.deliveredAt ?? readAt,
             readAt: readAt,
-            isExchangeRequest: messages[i].isExchangeRequest,
-            exchangeData: messages[i].exchangeData,
-            productCard: messages[i].productCard,
+            isExchangeRequest: m.isExchangeRequest,
+            exchangeData: m.exchangeData,
+            productCard: m.productCard,
+            replyToId: m.replyToId,
+            replyToText: m.replyToText,
+            replyToFromType: m.replyToFromType,
+            replyToImageUrl: m.replyToImageUrl,
+            imageUrl: m.imageUrl,
           );
         }
       }
@@ -593,6 +612,8 @@ class UserChatProvider extends ChangeNotifier {
   // ==============================
   // Send Message
   // ==============================
+  bool isSendingImage = false;
+
   void sendMessage(String text) {
     final msg = text.trim();
     if (msg.isEmpty) return;
@@ -605,15 +626,31 @@ class UserChatProvider extends ChangeNotifier {
     final clientId = now.millisecondsSinceEpoch.toString();
     final tempTs = now.toIso8601String();
 
+    // ✅ Capture reply BEFORE creating temp or clearing
+    final currentReply = replyTo;
+    final replyPayload = currentReply != null
+        ? {
+            "replyToId": currentReply.id,
+            "replyToText": currentReply.text,
+            "replyToFromType": currentReply.fromType,
+            "replyToImageUrl": currentReply.imageUrl,
+          }
+        : <String, dynamic>{};
+
     _pendingClientMap[clientId] = tempId;
     _processedMessageIds.add(tempId);
 
+    // ✅ Temp message includes reply context immediately
     final tempMsg = ChatMessage(
       id: tempId,
       threadId: threadId,
       fromType: "buyer",
       text: msg,
       timestamp: tempTs,
+      replyToId: currentReply?.id,
+      replyToText: currentReply?.text,
+      replyToFromType: currentReply?.fromType,
+      replyToImageUrl: currentReply?.imageUrl,
     );
 
     _registerFingerprint(tempMsg);
@@ -621,11 +658,13 @@ class UserChatProvider extends ChangeNotifier {
     _safeNotify();
 
     onTyping("");
-
-    final replyPayload = replyTo != null
-        ? {"replyToId": replyTo!.id, "replyToText": replyTo!.text, "replyToFromType": replyTo!.fromType}
-        : <String, dynamic>{};
     clearReplyTo();
+
+    onThreadUpdate?.call(
+      lastMessage: msg,
+      timestamp: tempTs,
+      isMyMessage: true,
+    );
 
     socket.emitWithAck(
       "chat:send",
@@ -669,6 +708,89 @@ class UserChatProvider extends ChangeNotifier {
         }
       },
     );
+  }
+
+  Future<void> sendImage(File image) async {
+    final socket = SocketService().socket;
+    if (socket == null || !socket.connected) return;
+
+    isSendingImage = true;
+    _safeNotify();
+
+    try {
+      final bytes = await image.readAsBytes();
+      final base64Image = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+
+      final response = await http.post(
+        Uri.parse(Global.ChatUploadImage),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'image': base64Image}),
+      );
+
+      if (response.statusCode != 200) return;
+      final data = jsonDecode(response.body);
+      if (data['success'] != true) return;
+
+      final imageUrl = data['url'] as String;
+
+      final now = DateTime.now();
+      final tempId = "temp_img_${now.millisecondsSinceEpoch}";
+      final clientId = "img_${now.millisecondsSinceEpoch}";
+      final tempTs = now.toIso8601String();
+
+      _pendingClientMap[clientId] = tempId;
+      _processedMessageIds.add(tempId);
+
+      final tempMsg = ChatMessage(
+        id: tempId,
+        threadId: threadId,
+        fromType: "buyer",
+        text: "",
+        timestamp: tempTs,
+        imageUrl: imageUrl,
+      );
+
+      _registerFingerprint(tempMsg);
+      messages.insert(0, tempMsg);
+      _safeNotify();
+
+      onThreadUpdate?.call(
+        lastMessage: "📷 Image",
+        timestamp: tempTs,
+        isMyMessage: true,
+      );
+
+      socket.emitWithAck(
+        "chat:send",
+        {
+          "threadId": threadId,
+          "toType": toType,
+          "toId": toId,
+          "text": "",
+          "imageUrl": imageUrl,
+          "clientId": clientId,
+        },
+        ack: (resp) {
+          if (resp is! Map || resp["ok"] != true || resp["data"] == null) return;
+          final serverMessage = ChatMessage.fromJson(Map<String, dynamic>.from(resp["data"]));
+          _processedClientIds.add(clientId);
+          final tId = _pendingClientMap.remove(clientId);
+          if (tId == null) return;
+          final idx = messages.indexWhere((m) => m.id == tId);
+          if (idx != -1) {
+            messages[idx] = serverMessage;
+            _processedMessageIds.remove(tId);
+            if (serverMessage.id != null) _processedMessageIds.add(serverMessage.id!);
+            _registerFingerprint(serverMessage);
+            _safeNotify();
+          }
+        },
+      );
+    } catch (_) {
+    } finally {
+      isSendingImage = false;
+      _safeNotify();
+    }
   }
 
   // ==============================

@@ -43,6 +43,7 @@ class Global {
   static var BuyerGetAdminMessages = "${BaseUrl}/buyer/admin/messages";
   static var BuyerContactAdmin = "${BaseUrl}/buyer/contact/admin";
   static var ChatThreads = "${BaseUrl}/buyer/chat/threads";
+  static var ChatUploadImage = "${imageUrl}/api/chat/upload-image";
   static var WalletBalance = "${BaseUrl}/buyer/wallet/balance";
   // static var AddMoneySendOtp = "${BaseUrl}/buyer/wallet/add-money/send-otp";
   // static var AddMoneyVerifyOtp = "${BaseUrl}/buyer/wallet/add-money/verify-otp";

@@ -62,7 +62,7 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
         centerTitle: true,
         title: Text(
           "Exchange Details",
-          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold,color: Colors.white),
         ),
       ),
       body: _loading
