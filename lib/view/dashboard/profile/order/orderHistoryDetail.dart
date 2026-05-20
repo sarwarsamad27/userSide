@@ -13,6 +13,7 @@ import 'package:user_side/view/dashboard/userChat/exchangeRequestSheet.dart';
 import 'package:user_side/view/dashboard/userChat/refundRequestSheet.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/exchange_provider.dart';
+import 'package:user_side/viewModel/provider/orderProvider/getMyOrder_provider.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final Orders order;
@@ -57,9 +58,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Future<void> _refreshExchangeStatus() async {
     final buyerId = await LocalStorage.getUserId() ?? '';
     if (buyerId.isEmpty || !mounted) return;
+
+    // 1. Refresh global order list to get updated status from backend (sync might have happened during tracking)
+    try {
+      await context.read<GetMyOrderProvider>().fetchMyOrders(isRefresh: true);
+    } catch (e) {
+      debugPrint("❌ Error refreshing orders: $e");
+    }
+
     await context.read<ExchangeProvider>().fetchMyRequests(buyerId);
     await context.read<ExchangeProvider>().fetchMyRefunds(buyerId);
+
     if (!mounted) return;
+
+    final updatedOrders = context.read<GetMyOrderProvider>().orderList;
+    final refreshedOrder = updatedOrders
+        .where((o) => o.id == _order.id)
+        .firstOrNull;
 
     final exchanges =
         context.read<ExchangeProvider>().listModel?.requests ?? [];
@@ -69,32 +84,37 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final currentProductId = _order.product?.productId?.toString();
 
     final myExchange = exchanges
-        .where((e) =>
-            e.orderId == _order.id &&
-            (currentProductId == null || e.productId == currentProductId))
+        .where(
+          (e) =>
+              e.orderId == _order.id &&
+              (currentProductId == null || e.productId == currentProductId),
+        )
         .firstOrNull;
     // Use _order.id (MongoDB _id) for refund — same as exchange
     final myRefund = refunds
-        .where((r) =>
-            r.orderId == _order.id &&
-            (currentProductId == null || r.productId == currentProductId))
+        .where(
+          (r) =>
+              r.orderId == _order.id &&
+              (currentProductId == null || r.productId == currentProductId),
+        )
         .firstOrNull;
 
     setState(() {
       _order = Orders(
         id: _order.id,
-        orderId: _order.orderId,
-        status: _order.status,
-        createdAt: _order.createdAt,
-        product: _order.product,
-        seller: _order.seller,
-        buyerDetails: _order.buyerDetails,
-        shipmentCharges: _order.shipmentCharges,
-        grandTotal: _order.grandTotal,
-        leopardsBooked: _order.leopardsBooked,
-        trackNumber: _order.trackNumber,
-        slipLink: _order.slipLink,
-        leopardsStatus: _order.leopardsStatus,
+        orderId: refreshedOrder?.orderId ?? _order.orderId,
+        status: refreshedOrder?.status ?? _order.status,
+        createdAt: refreshedOrder?.createdAt ?? _order.createdAt,
+        product: refreshedOrder?.product ?? _order.product,
+        seller: refreshedOrder?.seller ?? _order.seller,
+        buyerDetails: refreshedOrder?.buyerDetails ?? _order.buyerDetails,
+        shipmentCharges:
+            refreshedOrder?.shipmentCharges ?? _order.shipmentCharges,
+        grandTotal: refreshedOrder?.grandTotal ?? _order.grandTotal,
+        leopardsBooked: refreshedOrder?.leopardsBooked ?? _order.leopardsBooked,
+        trackNumber: refreshedOrder?.trackNumber ?? _order.trackNumber,
+        slipLink: refreshedOrder?.slipLink ?? _order.slipLink,
+        leopardsStatus: refreshedOrder?.leopardsStatus ?? _order.leopardsStatus,
         exchangeRequest: myExchange != null
             ? ExchangeRequestData(
                 id: myExchange.id,
@@ -105,8 +125,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 resolutionType: myExchange.resolutionType,
                 courierPaidBy: myExchange.courierPaidBy,
                 returnTrackingNumber: myExchange.returnTrackingNumber,
-                replacementTrackingNumber:
-                    myExchange.replacementTrackingNumber,
+                replacementTrackingNumber: myExchange.replacementTrackingNumber,
                 replacementSlipLink: myExchange.replacementSlipLink,
                 refundAmount: myExchange.refundAmount,
                 pdfPath: myExchange.pdfPath,
@@ -1037,7 +1056,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       ),
     );
   }
-  
+
   // ── Timeline ──────────────────────────────────────────────────
   static const List<_StatusStep> _exchangeStatuses = [
     _StatusStep("Requested", "Pending", Icons.send_rounded),

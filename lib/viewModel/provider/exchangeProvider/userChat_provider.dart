@@ -29,7 +29,8 @@ class UserChatProvider extends ChangeNotifier {
     required String lastMessage,
     required String timestamp,
     required bool isMyMessage,
-  })? onThreadUpdate;
+  })?
+  onThreadUpdate;
 
   UserChatProvider({
     required this.threadId,
@@ -50,8 +51,15 @@ class UserChatProvider extends ChangeNotifier {
 
   // ===== Reply-to state =====
   ChatMessage? replyTo;
-  void setReplyTo(ChatMessage msg) { replyTo = msg; notifyListeners(); }
-  void clearReplyTo() { replyTo = null; notifyListeners(); }
+  void setReplyTo(ChatMessage msg) {
+    replyTo = msg;
+    notifyListeners();
+  }
+
+  void clearReplyTo() {
+    replyTo = null;
+    notifyListeners();
+  }
 
   // ===== Typing =====
   Timer? _typingTimer;
@@ -406,14 +414,14 @@ class UserChatProvider extends ChangeNotifier {
 
     _listenersBound = true; // Set AFTER confirming socket exists
 
-     socket.off("chat:message");
-  socket.off("exchange:new");
-  socket.off("exchange:status"); // ✅ add
-  socket.off("refund:new");
-  socket.off("refund:status");
-  socket.off("chat:typing");
-  socket.off("chat:status");
-  socket.off("chat:status_bulk");
+    socket.off("chat:message");
+    socket.off("exchange:new");
+    socket.off("exchange:status"); // ✅ add
+    socket.off("refund:new");
+    socket.off("refund:status");
+    socket.off("chat:typing");
+    socket.off("chat:status");
+    socket.off("chat:status_bulk");
 
     // ------- refund:new -------
     socket.on("refund:new", (data) {
@@ -434,22 +442,22 @@ class UserChatProvider extends ChangeNotifier {
     });
 
     // ------- refund:status -------
-   socket.on("refund:status", (data) {
-    if (data is! Map) return;
-    final refundId = (data["refundId"] ?? data["refundRequestId"])?.toString();
-    final newStatus = data["status"]?.toString();
-    if (refundId == null || newStatus == null) return;
-    _updateRefundStatusLocally(refundId, newStatus, data);
-  });
+    socket.on("refund:status", (data) {
+      if (data is! Map) return;
+      final refundId = (data["refundId"] ?? data["refundRequestId"])
+          ?.toString();
+      final newStatus = data["status"]?.toString();
+      if (refundId == null || newStatus == null) return;
+      _updateRefundStatusLocally(refundId, newStatus, data);
+    });
 
-
- socket.on("exchange:status", (data) {
-    if (data is! Map) return;
-    final exchangeId = data["exchangeRequestId"]?.toString();
-    final newStatus = data["status"]?.toString();
-    if (exchangeId == null || newStatus == null) return;
-    _updateExchangeStatusLocally(exchangeId, newStatus, data);
-  });
+    socket.on("exchange:status", (data) {
+      if (data is! Map) return;
+      final exchangeId = data["exchangeRequestId"]?.toString();
+      final newStatus = data["status"]?.toString();
+      if (exchangeId == null || newStatus == null) return;
+      _updateExchangeStatusLocally(exchangeId, newStatus, data);
+    });
     socket.on("chat:message", (data) {
       if (data is! Map) return;
 
@@ -741,6 +749,16 @@ class UserChatProvider extends ChangeNotifier {
       _pendingClientMap[clientId] = tempId;
       _processedMessageIds.add(tempId);
 
+      final currentReply = replyTo;
+      final replyPayload = currentReply != null
+          ? {
+              "replyToId": currentReply.id,
+              "replyToText": currentReply.text,
+              "replyToFromType": currentReply.fromType,
+              "replyToImageUrl": currentReply.imageUrl,
+            }
+          : <String, dynamic>{};
+
       final tempMsg = ChatMessage(
         id: tempId,
         threadId: threadId,
@@ -748,11 +766,16 @@ class UserChatProvider extends ChangeNotifier {
         text: "",
         timestamp: tempTs,
         imageUrl: imageUrl,
+        replyToId: currentReply?.id,
+        replyToText: currentReply?.text,
+        replyToFromType: currentReply?.fromType,
+        replyToImageUrl: currentReply?.imageUrl,
       );
 
       _registerFingerprint(tempMsg);
       messages.insert(0, tempMsg);
       _safeNotify();
+      clearReplyTo();
 
       onThreadUpdate?.call(
         lastMessage: "📷 Image",
@@ -769,10 +792,14 @@ class UserChatProvider extends ChangeNotifier {
           "text": "",
           "imageUrl": imageUrl,
           "clientId": clientId,
+          ...replyPayload,
         },
         ack: (resp) {
-          if (resp is! Map || resp["ok"] != true || resp["data"] == null) return;
-          final serverMessage = ChatMessage.fromJson(Map<String, dynamic>.from(resp["data"]));
+          if (resp is! Map || resp["ok"] != true || resp["data"] == null)
+            return;
+          final serverMessage = ChatMessage.fromJson(
+            Map<String, dynamic>.from(resp["data"]),
+          );
           _processedClientIds.add(clientId);
           final tId = _pendingClientMap.remove(clientId);
           if (tId == null) return;
@@ -780,7 +807,8 @@ class UserChatProvider extends ChangeNotifier {
           if (idx != -1) {
             messages[idx] = serverMessage;
             _processedMessageIds.remove(tId);
-            if (serverMessage.id != null) _processedMessageIds.add(serverMessage.id!);
+            if (serverMessage.id != null)
+              _processedMessageIds.add(serverMessage.id!);
             _registerFingerprint(serverMessage);
             _safeNotify();
           }
@@ -957,57 +985,58 @@ class UserChatProvider extends ChangeNotifier {
       Fluttertoast.showToast(msg: "Download error: $e");
     }
   }
-void _updateExchangeStatusLocally(
-  String exchangeId,
-  String newStatus,
-  Map data,
-) {
-  for (int i = 0; i < messages.length; i++) {
-    if (messages[i].isExchangeRequest &&
-        messages[i].exchangeData?.exchangeId == exchangeId) {
-      final old = messages[i];
-      messages[i] = ChatMessage(
-        id: old.id,
-        threadId: old.threadId,
-        fromType: old.fromType,
-        fromId: old.fromId,
-        isExchangeRequest: true,
-        timestamp: old.timestamp,
-        text: old.text,
-        deliveredAt: old.deliveredAt,
-        readAt: old.readAt,
-        exchangeData: ExchangeRequestData(
-          exchangeId: old.exchangeData?.exchangeId,
-          orderId: old.exchangeData?.orderId,
-          productId: old.exchangeData?.productId,
-          productName: old.exchangeData?.productName,
-          reason: old.exchangeData?.reason,
-          reasonCategory: old.exchangeData?.reasonCategory,
-          status: newStatus,
-          createdAt: old.exchangeData?.createdAt,
-          images: old.exchangeData?.images ?? const [],
-          companyNote:
-              data["companyNote"]?.toString() ??
-              old.exchangeData?.companyNote,
-          courierPaidBy:
-              data["courierPaidBy"]?.toString() ??
-              old.exchangeData?.courierPaidBy,
-          resolutionType:
-              data["resolutionType"]?.toString() ??
-              old.exchangeData?.resolutionType,
-          pdfPath:
-              data["pdfPath"]?.toString() ?? old.exchangeData?.pdfPath,
-          selectedColor: old.exchangeData?.selectedColor ?? const [],
-          selectedSize: old.exchangeData?.selectedSize ?? const [],
-          requestedColor: old.exchangeData?.requestedColor,
-          requestedSize: old.exchangeData?.requestedSize,
-        ),
-      );
-      break;
+
+  void _updateExchangeStatusLocally(
+    String exchangeId,
+    String newStatus,
+    Map data,
+  ) {
+    for (int i = 0; i < messages.length; i++) {
+      if (messages[i].isExchangeRequest &&
+          messages[i].exchangeData?.exchangeId == exchangeId) {
+        final old = messages[i];
+        messages[i] = ChatMessage(
+          id: old.id,
+          threadId: old.threadId,
+          fromType: old.fromType,
+          fromId: old.fromId,
+          isExchangeRequest: true,
+          timestamp: old.timestamp,
+          text: old.text,
+          deliveredAt: old.deliveredAt,
+          readAt: old.readAt,
+          exchangeData: ExchangeRequestData(
+            exchangeId: old.exchangeData?.exchangeId,
+            orderId: old.exchangeData?.orderId,
+            productId: old.exchangeData?.productId,
+            productName: old.exchangeData?.productName,
+            reason: old.exchangeData?.reason,
+            reasonCategory: old.exchangeData?.reasonCategory,
+            status: newStatus,
+            createdAt: old.exchangeData?.createdAt,
+            images: old.exchangeData?.images ?? const [],
+            companyNote:
+                data["companyNote"]?.toString() ??
+                old.exchangeData?.companyNote,
+            courierPaidBy:
+                data["courierPaidBy"]?.toString() ??
+                old.exchangeData?.courierPaidBy,
+            resolutionType:
+                data["resolutionType"]?.toString() ??
+                old.exchangeData?.resolutionType,
+            pdfPath: data["pdfPath"]?.toString() ?? old.exchangeData?.pdfPath,
+            selectedColor: old.exchangeData?.selectedColor ?? const [],
+            selectedSize: old.exchangeData?.selectedSize ?? const [],
+            requestedColor: old.exchangeData?.requestedColor,
+            requestedSize: old.exchangeData?.requestedSize,
+          ),
+        );
+        break;
+      }
     }
+    _safeNotify();
   }
-  _safeNotify();
-}
+
   void _updateRefundStatusLocally(
     String refundId,
     String status, [

@@ -21,9 +21,7 @@ class MessageBubble extends StatelessWidget {
             backgroundColor: Colors.black,
             iconTheme: const IconThemeData(color: Colors.white),
           ),
-          body: Center(
-            child: InteractiveViewer(child: Image.network(url)),
-          ),
+          body: Center(child: InteractiveViewer(child: Image.network(url))),
         ),
       ),
     );
@@ -34,7 +32,7 @@ class MessageBubble extends StatelessWidget {
     final p = context.read<UserChatProvider>();
     final isMe = message.fromType == "buyer";
     final isSystem = message.fromType == "system";
-    final hasReply = message.replyToText?.isNotEmpty ?? false;
+    final hasReply = message.replyToId != null;
 
     if (isSystem) {
       return Center(
@@ -82,18 +80,30 @@ class MessageBubble extends StatelessWidget {
               if (hasReply)
                 Container(
                   margin: EdgeInsets.only(bottom: 6.h),
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 6.h,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.06),
                     borderRadius: BorderRadius.circular(8.r),
-                    border: Border(left: BorderSide(color: const Color(0xFF128C7E), width: 3)),
+                    border: Border(
+                      left: BorderSide(
+                        color: const Color(0xFF128C7E),
+                        width: 3,
+                      ),
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         message.replyToFromType == "buyer" ? "You" : "Seller",
-                        style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w700, color: const Color(0xFF128C7E)),
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF128C7E),
+                        ),
                       ),
                       SizedBox(height: 2.h),
                       if (message.replyToImageUrl != null)
@@ -111,7 +121,10 @@ class MessageBubble extends StatelessWidget {
                           message.replyToText ?? "",
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 12.sp, color: Colors.black54),
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.black54,
+                          ),
                         ),
                     ],
                   ),
@@ -132,16 +145,25 @@ class MessageBubble extends StatelessWidget {
                           : SizedBox(
                               width: 200.w,
                               height: 160.h,
-                              child: const Center(child: CircularProgressIndicator()),
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
                             ),
-                      errorBuilder: (_, __, ___) => Icon(Icons.broken_image, size: 40.sp, color: Colors.black38),
+                      errorBuilder: (_, __, ___) => Icon(
+                        Icons.broken_image,
+                        size: 40.sp,
+                        color: Colors.black38,
+                      ),
                     ),
                   ),
                 ),
 
               // ── Message text ──────────────────────────────────────
               if (message.text != null && message.text!.isNotEmpty)
-                Text(message.text!, style: TextStyle(fontSize: 14.sp, color: Colors.black87)),
+                Text(
+                  message.text!,
+                  style: TextStyle(fontSize: 14.sp, color: Colors.black87),
+                ),
               SizedBox(height: 4.h),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -156,14 +178,14 @@ class MessageBubble extends StatelessWidget {
                       message.readAt != null
                           ? Icons.done_all
                           : message.deliveredAt != null
-                              ? Icons.done_all
-                              : Icons.done,
+                          ? Icons.done_all
+                          : Icons.done,
                       size: 14.sp,
                       color: message.readAt != null
                           ? Colors.blue
                           : message.deliveredAt != null
-                              ? Colors.black45
-                              : Colors.black26,
+                          ? Colors.black45
+                          : Colors.black26,
                     ),
                   ],
                 ],
@@ -202,7 +224,9 @@ class _SwipeToReplyState extends State<_SwipeToReply> {
         // Received → swipe right. Sent → swipe left.
         final delta = widget.isMe ? -d.delta.dx : d.delta.dx;
         if (delta > 0) {
-          setState(() => _offset = (_offset + delta).clamp(0, _threshold * 1.3));
+          setState(
+            () => _offset = (_offset + delta).clamp(0, _threshold * 1.3),
+          );
         }
       },
       onHorizontalDragEnd: (_) {
@@ -211,7 +235,10 @@ class _SwipeToReplyState extends State<_SwipeToReply> {
           HapticFeedback.lightImpact();
           widget.onSwipe!();
         }
-        setState(() { _offset = 0; _triggered = false; });
+        setState(() {
+          _offset = 0;
+          _triggered = false;
+        });
       },
       child: Stack(
         children: [
@@ -223,7 +250,8 @@ class _SwipeToReplyState extends State<_SwipeToReply> {
             Positioned(
               left: widget.isMe ? null : (_offset - 32).clamp(0, 30),
               right: widget.isMe ? (_offset - 32).clamp(0, 30) : null,
-              top: 0, bottom: 0,
+              top: 0,
+              bottom: 0,
               child: Center(
                 child: Opacity(
                   opacity: (_offset / _threshold).clamp(0, 1),
@@ -233,7 +261,11 @@ class _SwipeToReplyState extends State<_SwipeToReply> {
                       color: Color(0xFFE0F2F1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.reply, color: Color(0xFF128C7E), size: 18),
+                    child: const Icon(
+                      Icons.reply,
+                      color: Color(0xFF128C7E),
+                      size: 18,
+                    ),
                   ),
                 ),
               ),
