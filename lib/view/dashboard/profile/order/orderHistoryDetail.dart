@@ -50,9 +50,89 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       exchangeRequest: null,
       refundRequest: null,
     );
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _refreshExchangeStatus(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _applyProviderCache(); // instant, no API call
+      _refreshExchangeStatus(); // background API refresh
+    });
+  }
+
+  // Reads already-loaded exchange/refund data from the provider (no API call).
+  // Called immediately so the card appears without waiting for the network.
+  void _applyProviderCache() {
+    if (!mounted) return;
+    final exchanges =
+        context.read<ExchangeProvider>().listModel?.requests ?? [];
+    final refunds =
+        context.read<ExchangeProvider>().refundListModel?.requests ?? [];
+    if (exchanges.isEmpty && refunds.isEmpty) return;
+
+    final currentProductId = _order.product?.productId?.toString();
+
+    final myExchange = exchanges
+        .where(
+          (e) =>
+              e.orderId == _order.id &&
+              (currentProductId == null || e.productId == currentProductId),
+        )
+        .firstOrNull;
+
+    final myRefund = refunds
+        .where(
+          (r) =>
+              (r.orderId == _order.id || r.orderId == _order.orderId) &&
+              (currentProductId == null || r.productId == currentProductId),
+        )
+        .firstOrNull;
+
+    if (myExchange == null && myRefund == null) return;
+
+    setState(() {
+      _order = Orders(
+        id: _order.id,
+        orderId: _order.orderId,
+        status: _order.status,
+        createdAt: _order.createdAt,
+        product: _order.product,
+        seller: _order.seller,
+        buyerDetails: _order.buyerDetails,
+        shipmentCharges: _order.shipmentCharges,
+        grandTotal: _order.grandTotal,
+        leopardsBooked: _order.leopardsBooked,
+        trackNumber: _order.trackNumber,
+        slipLink: _order.slipLink,
+        leopardsStatus: _order.leopardsStatus,
+        cnNumber: _order.cnNumber,
+        exchangeRequest: myExchange != null
+            ? ExchangeRequestData(
+                id: myExchange.id,
+                status: myExchange.status,
+                reason: myExchange.reason,
+                reasonCategory: myExchange.reasonCategory,
+                companyNote: myExchange.companyNote,
+                resolutionType: myExchange.resolutionType,
+                courierPaidBy: myExchange.courierPaidBy,
+                returnTrackingNumber: myExchange.returnTrackingNumber,
+                replacementTrackingNumber: myExchange.replacementTrackingNumber,
+                replacementSlipLink: myExchange.replacementSlipLink,
+                refundAmount: myExchange.refundAmount,
+                pdfPath: myExchange.pdfPath,
+              )
+            : null,
+        refundRequest: myRefund != null
+            ? RefundRequestData(
+                id: myRefund.id,
+                productId: myRefund.productId,
+                status: myRefund.status,
+                reason: myRefund.reason,
+                reasonCategory: myRefund.reasonCategory,
+                companyNote: myRefund.companyNote,
+                refundAmount: myRefund.refundAmount,
+                returnTrackingNumber: myRefund.returnTrackingNumber,
+                pdfPath: myRefund.pdfPath,
+              )
+            : null,
+      );
+    });
   }
 
   Future<void> _refreshExchangeStatus() async {
@@ -90,11 +170,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               (currentProductId == null || e.productId == currentProductId),
         )
         .firstOrNull;
-    // Use _order.id (MongoDB _id) for refund — same as exchange
     final myRefund = refunds
         .where(
           (r) =>
-              r.orderId == _order.id &&
+              (r.orderId == _order.id || r.orderId == _order.orderId) &&
               (currentProductId == null || r.productId == currentProductId),
         )
         .firstOrNull;
@@ -646,7 +725,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildTimeline(_refundStatuses, refReq.status),
+                _buildTimeline(
+                  _refundStatuses,
+                  refReq.status,
+                  extendedOrder: _refundStatusOrder,
+                ),
                 SizedBox(height: 16.h),
 
                 if (refReq.reason?.isNotEmpty == true)
@@ -1077,12 +1160,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     _StatusStep("Accepted", "Accepted", Icons.check_circle_outline),
     _StatusStep("Ship Item", "ReturnShipped", Icons.local_shipping_rounded),
     _StatusStep("Received", "ReturnReceived", Icons.inventory_2_rounded),
-    _StatusStep("Inspection", "Inspecting", Icons.search_rounded),
-    _StatusStep("Refunded", "Refunded", Icons.account_balance_wallet_rounded),
-    // _StatusStep("Done", "Completed", Icons.check_circle_rounded),
   ];
 
-  Widget _buildTimeline(List<_StatusStep> steps, String? currentStatus) {
+  // Extended order for refund so Refunded/Completed status fills all 4 steps
+  static const List<String> _refundStatusOrder = [
+    "Pending",
+    "Accepted",
+    "ReturnShipped",
+    "ReturnReceived",
+    "Refunded",
+    "Completed",
+  ];
+
+  Widget _buildTimeline(
+    List<_StatusStep> steps,
+    String? currentStatus, {
+    List<String>? extendedOrder,
+  }) {
     final isDenied = currentStatus == "Denied" || currentStatus == "Rejected";
     if (isDenied) {
       return Container(
@@ -1109,7 +1203,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       );
     }
 
-    final statusOrder = steps.map((s) => s.statusKey).toList();
+    final statusOrder = extendedOrder ?? steps.map((s) => s.statusKey).toList();
     final currentIndex = statusOrder.indexOf(currentStatus ?? '');
 
     return SingleChildScrollView(

@@ -61,7 +61,11 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
         centerTitle: true,
         title: Text(
           "Refund Details",
-          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ),
       body: _loading
@@ -84,7 +88,7 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
                     _buildInfoCard(),
                     SizedBox(height: 16.h),
 
-                    // ── Refund Slip (PDF) ─────────────────────────
+                    // Refund Slip (PDF) — only if no return label yet
                     if (_refund!.pdfPath?.isNotEmpty == true &&
                         _refund!.returnSlipLink?.isEmpty == true) ...[
                       _buildSlipDownloadCard(
@@ -95,34 +99,31 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
                       SizedBox(height: 16.h),
                     ],
 
-                    // ✅ Return proof — sirf Accepted pe
+                    // Accepted: return proof + download label
                     if (_refund!.isAccepted) ...[
                       _buildReturnProofSection(),
                       SizedBox(height: 16.h),
                     ],
 
-                    // ✅ Return tracking
-                    if (_refund!.isReturnShipped ||
-                        _refund!.isReturnReceived ||
-                        _refund!.isInspecting ||
-                        _refund!.isApprovedInspection) ...[
+                    // ReturnShipped: show tracking info
+                    if (_refund!.isReturnShipped) ...[
                       _buildReturnTrackingCard(),
                       SizedBox(height: 16.h),
                     ],
 
-                    // ✅ Refund complete
+                    // ReturnReceived: parcel received, refund being processed
+                    if (_refund!.isReturnReceived) ...[
+                      _buildReceivedProcessingCard(),
+                      SizedBox(height: 16.h),
+                    ],
+
+                    // Refunded: wallet credited
                     if (_refund!.isRefunded || _refund!.isCompleted) ...[
                       _buildRefundCompleteCard(),
                       SizedBox(height: 16.h),
                     ],
 
-                    // ✅ Dispute
-                    if (_refund!.isDisputed) ...[
-                      _buildDisputeCard(),
-                      SizedBox(height: 16.h),
-                    ],
-
-                    // ✅ Rejected
+                    // Rejected
                     if (_refund!.isDenied) ...[
                       _buildRejectedCard(),
                       SizedBox(height: 16.h),
@@ -152,17 +153,14 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
       _Step("Accepted", "Accepted", Icons.check_circle_outline),
       _Step("Ship Item", "ReturnShipped", Icons.local_shipping_rounded),
       _Step("Received", "ReturnReceived", Icons.inventory_2_rounded),
-      _Step("Inspection", "Inspecting", Icons.search_rounded),
-      _Step("Refunded", "Refunded", Icons.account_balance_wallet_rounded),
     ];
 
+    // Refunded/Completed map to index >= 3 so all 4 steps show filled
     final statusOrder = [
       "Pending",
       "Accepted",
       "ReturnShipped",
       "ReturnReceived",
-      "Inspecting",
-      "ApprovedInspection",
       "Refunded",
       "Completed",
     ];
@@ -335,13 +333,16 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
         color: isBuyer ? Colors.orange[50] : Colors.green[50],
         borderRadius: BorderRadius.circular(10.r),
         border: Border.all(
-            color: isBuyer ? Colors.orange[200]! : Colors.green[200]!),
+          color: isBuyer ? Colors.orange[200]! : Colors.green[200]!,
+        ),
       ),
       child: Row(
         children: [
-          Icon(Icons.local_shipping_outlined,
-              size: 16.sp,
-              color: isBuyer ? Colors.orange[700] : Colors.green[700]),
+          Icon(
+            Icons.local_shipping_outlined,
+            size: 16.sp,
+            color: isBuyer ? Colors.orange[700] : Colors.green[700],
+          ),
           SizedBox(width: 8.w),
           Expanded(
             child: Text(
@@ -349,9 +350,10 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
                   ? "Return courier cost: Your responsibility"
                   : "Seller will cover all courier costs",
               style: TextStyle(
-                  fontSize: 12.sp,
-                  color: isBuyer ? Colors.orange[700] : Colors.green[700],
-                  fontWeight: FontWeight.w500),
+                fontSize: 12.sp,
+                color: isBuyer ? Colors.orange[700] : Colors.green[700],
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -406,6 +408,44 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
     );
   }
 
+  // ── Received Processing Card ──────────────────────────────────
+  Widget _buildReceivedProcessingCard() {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.teal[50],
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: Colors.teal[300]!),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.inventory_2_rounded, color: Colors.teal[700], size: 32.sp),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Parcel Received",
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.teal[800],
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  "Your return has been received. Refund will be credited to your wallet shortly.",
+                  style: TextStyle(fontSize: 13.sp, color: Colors.teal[700]),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ── Refund Complete Card ──────────────────────────────────────
   Widget _buildRefundCompleteCard() {
     return Container(
@@ -424,7 +464,7 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Refund Processed! 🎉",
+                  "Refund Credited to Wallet",
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
@@ -435,55 +475,12 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
                     _refund!.refundAmount! > 0) ...[
                   SizedBox(height: 4.h),
                   Text(
-                    "Rs ${_refund!.refundAmount!.toStringAsFixed(0)} credited to your wallet",
+                    "Rs ${_refund!.refundAmount!.toStringAsFixed(0)} has been added to your wallet",
                     style: TextStyle(fontSize: 13.sp, color: Colors.green[700]),
                   ),
                 ],
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Dispute Card ──────────────────────────────────────────────
-  Widget _buildDisputeCard() {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.red[50],
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: Colors.red[300]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.warning_amber, color: Colors.red[700], size: 24.sp),
-              SizedBox(width: 8.w),
-              Text(
-                "Inspection Disputed",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red[800],
-                ),
-              ),
-            ],
-          ),
-          if (_refund!.disputeNote?.isNotEmpty == true) ...[
-            SizedBox(height: 8.h),
-            Text(
-              _refund!.disputeNote!,
-              style: TextStyle(fontSize: 13.sp, color: Colors.red[700]),
-            ),
-          ],
-          SizedBox(height: 8.h),
-          Text(
-            "Admin will review and resolve within 48 hours.",
-            style: TextStyle(fontSize: 12.sp, color: Colors.red[400]),
           ),
         ],
       ),
@@ -850,7 +847,11 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () async {
-                  final uri = Uri.parse(rf.returnSlipLink!);
+                  final trackNo = rf.returnTrackingNumber ?? '';
+                  final fullUrl = trackNo.isNotEmpty
+                      ? Global.downloadSlip(trackNo)
+                      : Global.getImageUrl(rf.returnSlipLink);
+                  final uri = Uri.parse(fullUrl);
                   if (await canLaunchUrl(uri)) {
                     await launchUrl(uri, mode: LaunchMode.externalApplication);
                   }

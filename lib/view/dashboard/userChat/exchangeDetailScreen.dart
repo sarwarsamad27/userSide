@@ -2,9 +2,13 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:user_side/models/chatModel/exchangeRequestModel.dart';
@@ -15,7 +19,6 @@ import 'package:user_side/view/dashboard/profile/order/leopards_tracking_screen.
 import 'package:user_side/resources/premium_toast.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/exchange_provider.dart';
-import 'dart:convert';
 
 class ExchangeDetailScreen extends StatefulWidget {
   final String exchangeId;
@@ -28,6 +31,44 @@ class ExchangeDetailScreen extends StatefulWidget {
 class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
   ExchangeRequest? _exchange;
   bool _loading = true;
+  bool _downloadingLabel = false;
+
+  Future<void> _downloadReturnLabel(String url) async {
+    if (_downloadingLabel) return;
+    setState(() => _downloadingLabel = true);
+    try {
+      final returnTrackNo = _exchange?.returnTrackingNumber ?? '';
+      final downloadUrl = returnTrackNo.isNotEmpty
+          ? Global.downloadSlip(returnTrackNo)
+          : url;
+      final response = await http.get(
+        Uri.parse(downloadUrl),
+        headers: {"Accept": "application/pdf"},
+      );
+      if (response.statusCode != 200) {
+        if (mounted)
+          PremiumToast.error(
+            context,
+            "Download failed (${response.statusCode})",
+          );
+        return;
+      }
+      final dir = await getApplicationDocumentsDirectory();
+      final labelName = returnTrackNo.isNotEmpty
+          ? returnTrackNo
+          : DateTime.now().millisecondsSinceEpoch.toString();
+      final file = File("${dir.path}/return_label_$labelName.pdf");
+      await file.writeAsBytes(response.bodyBytes, flush: true);
+      final result = await OpenFilex.open(file.path);
+      if (result.type != ResultType.done && mounted) {
+        PremiumToast.error(context, "Saved to Documents folder");
+      }
+    } catch (e) {
+      if (mounted) PremiumToast.error(context, "Download error: $e");
+    } finally {
+      if (mounted) setState(() => _downloadingLabel = false);
+    }
+  }
 
   @override
   void initState() {
@@ -62,7 +103,11 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
         centerTitle: true,
         title: Text(
           "Exchange Details",
-          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold,color: Colors.white),
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ),
       body: _loading
@@ -433,28 +478,28 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
 
         // ✅ Leopards replacement slip download
         if (_exchange!.replacementSlipLink?.isNotEmpty == true) ...[
-          SizedBox(height: 12.h),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () async {
-                final uri = Uri.parse(_exchange!.replacementSlipLink!);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
-              },
-              icon: Icon(Icons.download_rounded, size: 16.sp),
-              label: const Text("Download Replacement Slip"),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.green,
-                side: const BorderSide(color: Colors.green),
-                padding: EdgeInsets.symmetric(vertical: 10.h),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-              ),
-            ),
-          ),
+          // SizedBox(height: 12.h),
+          // SizedBox(
+          //   width: double.infinity,
+          //   child: OutlinedButton.icon(
+          //     onPressed: () async {
+          //       final uri = Uri.parse(_exchange!.replacementSlipLink!);
+          //       if (await canLaunchUrl(uri)) {
+          //         await launchUrl(uri, mode: LaunchMode.externalApplication);
+          //       }
+          //     },
+          //     icon: Icon(Icons.download_rounded, size: 16.sp),
+          //     label: const Text("Download Replacement Slip"),
+          //     style: OutlinedButton.styleFrom(
+          //       foregroundColor: Colors.green,
+          //       side: const BorderSide(color: Colors.green),
+          //       padding: EdgeInsets.symmetric(vertical: 10.h),
+          //       shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(10.r),
+          //       ),
+          //     ),
+          //   ),
+          // ),
         ],
       ],
     );
@@ -857,15 +902,23 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () async {
-                  final uri = Uri.parse(ex.returnSlipLink!);
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  }
-                },
-                icon: Icon(Icons.picture_as_pdf_rounded, size: 20.sp),
+                onPressed: _downloadingLabel
+                    ? null
+                    : () => _downloadReturnLabel(ex.returnSlipLink!),
+                icon: _downloadingLabel
+                    ? SizedBox(
+                        width: 18.sp,
+                        height: 18.sp,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Icon(Icons.picture_as_pdf_rounded, size: 20.sp),
                 label: Text(
-                  "Download Return Label",
+                  _downloadingLabel
+                      ? "Downloading..."
+                      : "Download Return Label",
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.bold,

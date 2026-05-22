@@ -247,11 +247,12 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                               // Match exchange/refund by orderId+productId from provider
                               // (avoids backend cross-contamination by productId alone)
                               final oid = order.id ?? '';
+                              final oReadableId = order.orderId ?? '';
                               final pid = order.product?.productId;
                               final myEx = exchProvider.listModel?.requests
                                   .where(
                                     (e) =>
-                                        e.orderId == oid &&
+                                        (e.orderId == oid || e.orderId == oReadableId) &&
                                         (pid == null || e.productId == pid),
                                   )
                                   .firstOrNull;
@@ -260,7 +261,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                   ?.requests
                                   .where(
                                     (r) =>
-                                        r.orderId == oid &&
+                                        (r.orderId == oid || r.orderId == oReadableId) &&
                                         (pid == null || r.productId == pid),
                                   )
                                   .firstOrNull;

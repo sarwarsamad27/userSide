@@ -3,17 +3,17 @@
 class Global {
   // static var imageUrl = "http://192.168.88.59:5000";
   // static var BaseUrl = "http://192.168.88.59:5000/api/auth";
-  // static var imageUrl = "http://10.0.2.2:5000";
-  // static var BaseUrl = "http://10.0.2.2:5000/api/auth";
+//   static var imageUrl = "http://10.0.2.2:5000";
+//   static var BaseUrl = "http://10.0.2.2:5000/api/auth";
   static var BaseUrl = "https://seller-and-buyer-backend.onrender.com/api/auth"; 
   static var imageUrl = "https://seller-and-buyer-backend.onrender.com";
   static var SignUp = "${BaseUrl}/buyer/signup";
   static var Login = "${BaseUrl}/buyer/login";
-  static var GoogleLogin = "${BaseUrl}/buyer/google/login";
+  static var GoogleLogin = "${BaseUrl}/buyer/google/login"; 
   static var ForgotPassword = "${BaseUrl}/buyer/forgot-password";
   static var VerifyCode = "${BaseUrl}/buyer/verifycode";
   static var UpdatePassword = "${BaseUrl}/buyer/reset/password";
-  static var GetAllProfile = "${BaseUrl}/buyer/company/profiles";
+  static var GetAllProfile = "${BaseUrl}/buyer/company/profiles";   
   static var GetAllCategoryProfileWise = "${BaseUrl}/buyer/get/categories";
   static var GetAllProductCategoryWise = "${BaseUrl}/buyer/get/products";
   static var GetSingleProduct = "${BaseUrl}/buyer/get/single/product";
@@ -44,6 +44,8 @@ class Global {
   static var BuyerContactAdmin = "${BaseUrl}/buyer/contact/admin";
   static var ChatThreads = "${BaseUrl}/buyer/chat/threads";
   static var ChatUploadImage = "${imageUrl}/api/chat/upload-image";
+  static String downloadSlip(String trackNumber) =>
+      "${imageUrl}/api/chat/download-slip/$trackNumber";
   static var WalletBalance = "${BaseUrl}/buyer/wallet/balance";
   // static var AddMoneySendOtp = "${BaseUrl}/buyer/wallet/add-money/send-otp";
   // static var AddMoneyVerifyOtp = "${BaseUrl}/buyer/wallet/add-money/verify-otp";
