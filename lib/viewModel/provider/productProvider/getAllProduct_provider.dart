@@ -17,6 +17,9 @@ class GetAllProductProvider extends ChangeNotifier {
 
   bool isFetchedOnce = false;
 
+  String _searchQuery = '';
+  String get searchQuery => _searchQuery;
+
   // ✅ derived flag (safe)
   bool get hasMore {
     if (pagination == null) return true; // first time assume true
@@ -38,6 +41,7 @@ class GetAllProductProvider extends ChangeNotifier {
   }
 
   void searchProducts(String query) {
+    _searchQuery = query;
     if (query.isEmpty) {
       filteredProducts = List.from(allProducts);
     } else {

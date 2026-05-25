@@ -115,7 +115,16 @@ class _ProductScreenState extends State<ProductScreen> {
                   ),
 
                   if (selectedCategory == "All") ...[
-                    const PopularProductAndCategory(),
+                    Consumer<GetAllProductProvider>(
+                      builder: (context, allProvider, _) {
+                        if (allProvider.searchQuery.isEmpty) {
+                          return const PopularProductAndCategory();
+                        }
+                        return const SliverToBoxAdapter(
+                          child: SizedBox.shrink(),
+                        );
+                      },
+                    ),
                     SliverPadding(
                       padding: const EdgeInsets.only(bottom: 90),
                       sliver: const AllProducts(),

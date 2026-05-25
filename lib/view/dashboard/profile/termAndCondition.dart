@@ -53,18 +53,20 @@ class TermsConditionScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColor.primaryColor,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Color(0xFF1E1E2D)),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Terms & Conditions',
           style: TextStyle(
-            color: const Color(0xFF1E1E2D),
+            color: Colors.white,
             fontWeight: FontWeight.w700,
             fontSize: 17.sp,
           ),
@@ -121,10 +123,7 @@ class TermsConditionScreen extends StatelessWidget {
                   ...List.generate(_sections.length, (i) {
                     return Padding(
                       padding: EdgeInsets.only(bottom: 14.h),
-                      child: _TermsCard(
-                        section: _sections[i],
-                        index: i + 1,
-                      ),
+                      child: _TermsCard(section: _sections[i], index: i + 1),
                     );
                   }),
                 ],
@@ -249,7 +248,9 @@ class _TermsCard extends StatelessWidget {
             // Items
             ...List.generate(section.items.length, (i) {
               return Padding(
-                padding: EdgeInsets.only(bottom: i < section.items.length - 1 ? 10.h : 0),
+                padding: EdgeInsets.only(
+                  bottom: i < section.items.length - 1 ? 10.h : 0,
+                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

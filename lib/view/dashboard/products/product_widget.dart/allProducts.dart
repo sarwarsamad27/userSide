@@ -14,7 +14,7 @@ class AllProducts extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: EdgeInsets.symmetric(horizontal: 8.w),
+      padding: EdgeInsets.only(left: 8.w, right: 8.w, top: 14.h),
       sliver: Consumer<GetAllProductProvider>(
         builder: (context, provider, child) {
           final products = provider.filteredProducts;

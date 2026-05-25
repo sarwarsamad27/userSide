@@ -118,7 +118,6 @@ class _WalletScreenState extends State<WalletScreen>
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0),
-                  child: _buildPromoBanner(),
                 ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
               ),
 
@@ -388,60 +387,60 @@ class _WalletScreenState extends State<WalletScreen>
     );
   }
 
-  Widget _buildPromoBanner() {
-    return Container(
-      padding: EdgeInsets.all(16.r),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFF6B35), Color(0xFFFF8C42)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Row(
-        children: [
-          Text('🎁', style: TextStyle(fontSize: 32.sp)),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'First Top-Up Bonus!',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  'Add Rs 1000+ and get Rs 100 cashback',
-                  style: TextStyle(color: Colors.white70, fontSize: 11.sp),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20.r),
-            ),
-            child: Text(
-              'Claim',
-              style: TextStyle(
-                color: const Color(0xFFFF6B35),
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildPromoBanner() {
+  //   return Container(
+  //     padding: EdgeInsets.all(16.r),
+  //     decoration: BoxDecoration(
+  //       gradient: const LinearGradient(
+  //         colors: [Color(0xFFFF6B35), Color(0xFFFF8C42)],
+  //         begin: Alignment.centerLeft,
+  //         end: Alignment.centerRight,
+  //       ),
+  //       borderRadius: BorderRadius.circular(16.r),
+  //     ),
+  //     child: Row(
+  //       children: [
+  //         Text('🎁', style: TextStyle(fontSize: 32.sp)),
+  //         SizedBox(width: 12.w),
+  //         Expanded(
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Text(
+  //                 'First Top-Up Bonus!',
+  //                 style: TextStyle(
+  //                   color: Colors.white,
+  //                   fontSize: 14.sp,
+  //                   fontWeight: FontWeight.w700,
+  //                 ),
+  //               ),
+  //               SizedBox(height: 2.h),
+  //               Text(
+  //                 'Add Rs 1000+ and get Rs 100 cashback',
+  //                 style: TextStyle(color: Colors.white70, fontSize: 11.sp),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //         Container(
+  //           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+  //           decoration: BoxDecoration(
+  //             color: Colors.white,
+  //             borderRadius: BorderRadius.circular(20.r),
+  //           ),
+  //           child: Text(
+  //             'Claim',
+  //             style: TextStyle(
+  //               color: const Color(0xFFFF6B35),
+  //               fontSize: 12.sp,
+  //               fontWeight: FontWeight.w700,
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   PageRouteBuilder _pageRoute(Widget page) {
     return PageRouteBuilder(
