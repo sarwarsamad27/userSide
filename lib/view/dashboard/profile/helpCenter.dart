@@ -33,7 +33,7 @@ class HelpCenterScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColor.primaryColor,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
@@ -44,7 +44,7 @@ class HelpCenterScreen extends StatelessWidget {
         title: Text(
           'Help Center',
           style: TextStyle(
-            color: const Color(0xFF1E1E2D),
+            color:  Colors.white,
             fontWeight: FontWeight.w700,
             fontSize: 17.sp,
           ),
