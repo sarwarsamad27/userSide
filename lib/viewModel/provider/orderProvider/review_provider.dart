@@ -8,6 +8,25 @@ class ReviewFormProvider extends ChangeNotifier {
   final TextEditingController reviewController = TextEditingController();
   final List<File> images = [];
   File? video;
+  bool _isSubmitting = false;
+  double _uploadProgress = 0.0;
+
+  ReviewFormProvider() {
+    reviewController.addListener(notifyListeners);
+  }
+
+  bool get isSubmitting => _isSubmitting;
+  double get uploadProgress => _uploadProgress;
+
+  void setSubmitting(bool v) {
+    _isSubmitting = v;
+    notifyListeners();
+  }
+
+  void setProgress(double v) {
+    _uploadProgress = v.clamp(0.0, 1.0);
+    notifyListeners();
+  }
 
   void setRating(int value) {
     selectedRating = value;
@@ -33,18 +52,24 @@ class ReviewFormProvider extends ChangeNotifier {
   }
 
   String get trimmedText => reviewController.text.trim();
-  bool get canSubmit => selectedRating > 0 && trimmedText.isNotEmpty;
+
+  // Enable when BOTH rating and text are filled (any order)
+  bool get canSubmit =>
+      selectedRating > 0 && trimmedText.isNotEmpty && !_isSubmitting;
 
   void reset() {
     selectedRating = 0;
     reviewController.clear();
     images.clear();
     video = null;
+    _isSubmitting = false;
+    _uploadProgress = 0.0;
     notifyListeners();
   }
 
   @override
   void dispose() {
+    reviewController.removeListener(notifyListeners);
     reviewController.dispose();
     super.dispose();
   }
@@ -74,7 +99,7 @@ class ReviewProvider extends ChangeNotifier {
     await showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.6),
+      barrierColor: Colors.black.withValues(alpha: 0.6),
       builder: (_) => const SuccessDialog(),
     );
   }

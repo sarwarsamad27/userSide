@@ -21,7 +21,11 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (e) {
+    if (!e.toString().contains('duplicate-app')) rethrow;
+  }
   await NotificationService.init();
 
   await NotificationRouter.init();

@@ -30,6 +30,7 @@ class Global {
   static var RelatedProduct = "${BaseUrl}/buyer/related/product";
   static var OtherProduct = "${BaseUrl}/buyer/other/product";
   static var GetMyOrder = "${BaseUrl}/buyer/my/orders";
+  static var CancelOrder = "${BaseUrl}/buyer/cancel/order";
   static var CategoryWiseProduct = "${BaseUrl}/buyer/category";
   static var ActiveCategoryChips = "${BaseUrl}/buyer/category/active-chips";
   static var RecommendedProducts = "${BaseUrl}/buyer/recommended/products";

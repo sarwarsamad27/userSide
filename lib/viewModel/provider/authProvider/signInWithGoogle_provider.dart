@@ -22,7 +22,7 @@ class GoogleLoginProvider with ChangeNotifier {
   final GoogleSignIn googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile', 'openid'],
     serverClientId:
-        '42694486923-frbnu8ts0ph8glgo5u3jv1ovtpv9i0jf.apps.googleusercontent.com',
+        '900853727644-a6m3k2sf0bdumpfkvm7h2hhlal4ct76i.apps.googleusercontent.com',
   );
 
   Future<void> loginWithGoogle() async {

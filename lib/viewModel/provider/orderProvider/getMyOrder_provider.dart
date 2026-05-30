@@ -17,6 +17,23 @@ class GetMyOrderProvider with ChangeNotifier {
 
   List<Orders> orderList = [];
 
+  // Called from socket — update a single order's status in-place, no API hit
+  void updateOrderStatus(
+    String orderId, {
+    String? status,
+    String? cancelledBy,
+    String? cancelReason,
+  }) {
+    final idx = orderList.indexWhere(
+      (o) => o.id == orderId || o.orderId == orderId,
+    );
+    if (idx == -1) return;
+    if (status != null) orderList[idx].status = status;
+    if (cancelledBy != null) orderList[idx].cancelledBy = cancelledBy;
+    if (cancelReason != null) orderList[idx].cancelReason = cancelReason;
+    notifyListeners();
+  }
+
   Future<void> fetchMyOrders({bool isRefresh = false}) async {
     // Prevent concurrent fetches — the scroll listener can fire many times
     if (_isFetching) return;

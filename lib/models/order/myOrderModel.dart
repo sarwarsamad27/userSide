@@ -66,6 +66,11 @@ class Orders {
   String? leopardsStatus;
   String? cnNumber;
 
+  // ✅ Cancel fields
+  String? cancelReason;
+  String? cancelledBy; // 'buyer' or 'seller'
+  String? cancelledAt;
+
   Orders({
     this.id,
     this.orderId,
@@ -84,6 +89,9 @@ class Orders {
     this.slipLink,
     this.leopardsStatus,
     this.cnNumber,
+    this.cancelReason,
+    this.cancelledBy,
+    this.cancelledAt,
   });
 
   Orders.fromJson(Map<String, dynamic> json) {
@@ -112,6 +120,11 @@ class Orders {
     slipLink = json['slipLink'];
     leopardsStatus = json['leopardsStatus'];
     cnNumber = json['cnNumber'];
+
+    // ✅ Cancel fields
+    cancelReason = json['cancelReason'];
+    cancelledBy = json['cancelledBy'];
+    cancelledAt = json['cancelledAt'];
   }
 
   Map<String, dynamic> toJson() {

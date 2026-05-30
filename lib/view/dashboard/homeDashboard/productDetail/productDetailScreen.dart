@@ -46,7 +46,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
       context.read<RelatedProductProvider>().fetchRelatedProducts(
         widget.productId,
-        widget.categoryId,
       );
 
       context.read<OtherProductProvider>().fetchOtherProducts(widget.productId);

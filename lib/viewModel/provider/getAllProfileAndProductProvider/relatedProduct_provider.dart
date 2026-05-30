@@ -11,11 +11,11 @@ class RelatedProductProvider extends ChangeNotifier {
   int page = 1;
   int limit = 10;
 
-  Future<void> fetchRelatedProducts(String productId, String categoryId) async {
+  Future<void> fetchRelatedProducts(String productId) async {
     loading = true;
     notifyListeners();
 
-    final response = await repo.relatedProduct(page, productId, categoryId, limit);
+    final response = await repo.relatedProduct(page, productId, limit);
 
     relatedModel = response;
     loading = false;

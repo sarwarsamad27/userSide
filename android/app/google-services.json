@@ -1,13 +1,32 @@
 {
   "project_info": {
-    "project_number": "690756156202",
-    "project_id": "notification-b086a",
-    "storage_bucket": "notification-b086a.firebasestorage.app"
+    "project_number": "900853727644",
+    "project_id": "notification-97939",
+    "storage_bucket": "notification-97939.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:690756156202:android:eab4cd8059c37c5182bc53",
+        "mobilesdk_app_id": "1:900853727644:android:87e50cc266b90eb98b4859",
+        "android_client_info": {
+          "package_name": "com.example.admin_side"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCh4BuOoOKGQkjWrzcGWFryidlkFuO-2sk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:900853727644:android:2d0a90372e0b87ac8b4859",
         "android_client_info": {
           "package_name": "com.example.user_side"
         }
@@ -15,7 +34,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyC11FS3Wy6fIOHjPs2GsKZflAXCOiizw4w"
+          "current_key": "AIzaSyCh4BuOoOKGQkjWrzcGWFryidlkFuO-2sk"
         }
       ],
       "services": {
