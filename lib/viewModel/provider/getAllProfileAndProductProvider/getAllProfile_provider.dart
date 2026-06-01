@@ -21,7 +21,8 @@ class GetAllProfileProvider with ChangeNotifier {
 
     try {
       productData = await repo.getAllProfile(page: currentPage, limit: limit);
-      filteredProfiles = productData?.profiles ?? []; // ✅ update karo
+      productData?.profiles?.shuffle();
+      filteredProfiles = productData?.profiles ?? [];
     } catch (e) {
       productData = GetAllProfileModel(message: e.toString(), profiles: []);
       filteredProfiles = [];
@@ -50,7 +51,8 @@ class GetAllProfileProvider with ChangeNotifier {
 
     try {
       productData = await repo.getAllProfile(page: currentPage, limit: limit);
-      filteredProfiles = productData?.profiles ?? []; // ✅ yeh bhi missing tha
+      productData?.profiles?.shuffle();
+      filteredProfiles = productData?.profiles ?? [];
     } catch (e) {
       productData = GetAllProfileModel(message: e.toString(), profiles: []);
       filteredProfiles = [];

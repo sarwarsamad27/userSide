@@ -60,10 +60,6 @@ class _ReviewState extends State<Review> {
     Navigator.push(ctx, MaterialPageRoute(builder: (_) => _FullscreenImages(urls: urls, initialIndex: index)));
   }
 
-  void _openFullscreenVideo(BuildContext ctx, String url) {
-    Navigator.push(ctx, MaterialPageRoute(builder: (_) => _FullscreenVideo(url: url)));
-  }
-
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<GetSingleProductProvider>();
@@ -156,10 +152,7 @@ class _ReviewState extends State<Review> {
                                 // Review video
                                 if (hasVideo) ...[
                                   SizedBox(height: 10.h),
-                                  GestureDetector(
-                                    onTap: () => _openFullscreenVideo(context, r.video!),
-                                    child: _NetworkVideoThumb(url: r.video!),
-                                  ),
+                                  _InlineVideoPlayer(url: r.video!),
                                 ],
 
                                 // Date
@@ -275,10 +268,7 @@ class _ReviewState extends State<Review> {
                                                   // Reply video
                                                   if (hasReplyVideo) ...[
                                                     SizedBox(height: 8.h),
-                                                    GestureDetector(
-                                                      onTap: () => _openFullscreenVideo(context, r.replyVideo!),
-                                                      child: _NetworkVideoThumb(url: r.replyVideo!),
-                                                    ),
+                                                    _InlineVideoPlayer(url: r.replyVideo!),
                                                   ],
                                                 ],
                                               ),
@@ -328,50 +318,117 @@ class _ReviewState extends State<Review> {
   }
 }
 
-// ── Network video thumbnail with play overlay ────────────────────────────────
-class _NetworkVideoThumb extends StatefulWidget {
+// ── Inline video player (lazy-init: controller created only when user taps play)
+class _InlineVideoPlayer extends StatefulWidget {
   final String url;
-  const _NetworkVideoThumb({required this.url});
+  const _InlineVideoPlayer({required this.url});
 
   @override
-  State<_NetworkVideoThumb> createState() => _NetworkVideoThumbState();
+  State<_InlineVideoPlayer> createState() => _InlineVideoPlayerState();
 }
 
-class _NetworkVideoThumbState extends State<_NetworkVideoThumb> {
-  late VideoPlayerController _ctrl;
+class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
+  VideoPlayerController? _ctrl;
   bool _ready = false;
+  bool _loading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = VideoPlayerController.networkUrl(Uri.parse(widget.url))
-      ..initialize().then((_) { if (mounted) setState(() => _ready = true); });
+  Future<void> _onTap() async {
+    if (_loading) return;
+
+    // First tap: initialise and play
+    if (_ctrl == null) {
+      setState(() => _loading = true);
+      final ctrl = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+      _ctrl = ctrl;
+      ctrl.addListener(_onUpdate);
+      await ctrl.initialize();
+      if (!mounted) { ctrl.dispose(); _ctrl = null; return; }
+      setState(() { _ready = true; _loading = false; });
+      ctrl.play();
+      return;
+    }
+
+    // Subsequent taps: toggle play/pause
+    _ctrl!.value.isPlaying ? _ctrl!.pause() : _ctrl!.play();
+  }
+
+  void _onUpdate() { if (mounted) setState(() {}); }
+
+  Future<void> _goFullscreen() async {
+    _ctrl?.pause();
+    if (!mounted) return;
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => _FullscreenVideo(url: widget.url)));
   }
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl?.removeListener(_onUpdate);
+    _ctrl?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 120.h,
-      width: double.infinity,
-      decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(10.r)),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          if (_ready)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10.r),
-              child: AspectRatio(aspectRatio: _ctrl.value.aspectRatio, child: VideoPlayer(_ctrl)),
-            )
-          else
-            const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
-          Container(
-            decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(10.r)),
-          ),
-          const Icon(Icons.play_circle_fill, color: Colors.white, size: 44),
-        ],
+    final isPlaying = _ctrl?.value.isPlaying ?? false;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10.r),
+      child: Container(
+        height: 180.h,
+        width: double.infinity,
+        color: Colors.black,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Video (only after init)
+            if (_ready && _ctrl != null)
+              Center(
+                child: AspectRatio(
+                  aspectRatio: _ctrl!.value.aspectRatio,
+                  child: VideoPlayer(_ctrl!),
+                ),
+              ),
+
+            // Tap anywhere to play/pause
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: _onTap,
+                child: Container(color: Colors.transparent),
+              ),
+            ),
+
+            // Loading spinner
+            if (_loading)
+              const SizedBox(
+                width: 28, height: 28,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              ),
+
+            // Play icon (shown when not playing and not loading)
+            if (!_loading && !isPlaying)
+              IgnorePointer(
+                child: Icon(Icons.play_circle_fill, color: Colors.white, size: 48.sp),
+              ),
+
+            // Fullscreen button (shown once video is ready)
+            if (_ready)
+              Positioned(
+                top: 6.h,
+                right: 6.w,
+                child: GestureDetector(
+                  onTap: _goFullscreen,
+                  child: Container(
+                    padding: EdgeInsets.all(4.w),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(4.r),
+                    ),
+                    child: Icon(Icons.fullscreen, color: Colors.white, size: 22.sp),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -444,29 +501,37 @@ class _FullscreenVideoState extends State<_FullscreenVideo> {
   @override
   void initState() {
     super.initState();
-    _ctrl = VideoPlayerController.networkUrl(Uri.parse(widget.url))
-      ..initialize().then((_) {
-        if (mounted) { setState(() => _ready = true); _ctrl.play(); }
-      });
+    _ctrl = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+    _ctrl.addListener(_onUpdate);
+    _ctrl.initialize().then((_) {
+      if (mounted) { setState(() => _ready = true); _ctrl.play(); }
+    });
+  }
+
+  void _onUpdate() { if (mounted) setState(() {}); }
+
+  @override
+  void dispose() {
+    _ctrl.removeListener(_onUpdate);
+    _ctrl.dispose();
+    super.dispose();
   }
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
-
-  @override
   Widget build(BuildContext context) {
+    final isPlaying = _ctrl.value.isPlaying;
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(backgroundColor: Colors.black, foregroundColor: Colors.white),
       body: Center(
         child: _ready
             ? GestureDetector(
-                onTap: () { _ctrl.value.isPlaying ? _ctrl.pause() : _ctrl.play(); setState(() {}); },
+                onTap: () => isPlaying ? _ctrl.pause() : _ctrl.play(),
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     AspectRatio(aspectRatio: _ctrl.value.aspectRatio, child: VideoPlayer(_ctrl)),
-                    if (!_ctrl.value.isPlaying)
+                    if (!isPlaying)
                       const Icon(Icons.play_circle_fill, color: Colors.white70, size: 64),
                   ],
                 ),

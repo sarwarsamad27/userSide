@@ -89,8 +89,8 @@ class GetAllProductProvider extends ChangeNotifier {
           // For now: keep same behavior (append)
           filteredProducts.addAll(newProducts);
         } else {
-          allProducts = newProducts;
-          filteredProducts = List.from(newProducts);
+          allProducts = newProducts..shuffle();
+          filteredProducts = List.from(allProducts);
           isFetchedOnce = true;
         }
 

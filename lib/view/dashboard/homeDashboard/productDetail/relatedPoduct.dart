@@ -24,10 +24,7 @@ class RelatedProductsSection extends StatelessWidget {
         if (rp.relatedModel == null ||
             rp.relatedModel!.relatedProducts == null ||
             rp.relatedModel!.relatedProducts!.isEmpty) {
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: const EmptyStateText(text: "No related products"),
-          );
+          return SizedBox.shrink();
         }
 
         return Padding(
@@ -35,7 +32,7 @@ class RelatedProductsSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SectionHeader(title: "Related Products"),
+              SectionHeader(title: "Related Products"),
               SizedBox(height: 10.h),
               SizedBox(
                 height: 270.h,

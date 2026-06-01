@@ -58,34 +58,32 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _initDeepLinks();
-    final appLinks = AppLinks();
-    appLinks.uriLinkStream.listen((uri) {
-      if (uri.pathSegments.length >= 2 && uri.pathSegments[0] == 'p') {
-        final productId = uri.pathSegments[1];
-        // Product detail screen pe navigate karo
-        Navigator.pushNamed(context, '/product', arguments: productId);
-      }
-    });
   }
 
   Future<void> _initDeepLinks() async {
+    // Cold start — app was not running when link was tapped
     final Uri? initialUri = await _appLinks.getInitialLink();
     if (initialUri != null) {
-      _handleDeepLink(initialUri);
+      // Delay so navigator is ready after splash
+      Future.delayed(const Duration(milliseconds: 800), () => _handleDeepLink(initialUri));
     }
-    _sub = _appLinks.uriLinkStream.listen((Uri uri) {
-      _handleDeepLink(uri);
-    }, onError: (_) {});
+
+    // App already running — link tapped while app is open/background
+    _sub = _appLinks.uriLinkStream.listen(_handleDeepLink, onError: (_) {});
   }
 
   void _handleDeepLink(Uri uri) {
-    if (uri.scheme != "shookoo" || uri.host != "product") return;
+    // Handles: shookoo://p/<productId>/<slug>?profileId=xxx&categoryId=yyy
+    if (uri.scheme != "shookoo" || uri.host != "p") return;
 
-    final productId = uri.queryParameters["productId"];
-    final categoryId = uri.queryParameters["categoryId"];
-    final profileId = uri.queryParameters["profileId"];
+    final segments   = uri.pathSegments; // [productId, slug]
+    if (segments.isEmpty) return;
 
-    if (productId == null || categoryId == null || profileId == null) return;
+    final productId  = segments[0];
+    final profileId  = uri.queryParameters["profileId"] ?? '';
+    final categoryId = uri.queryParameters["categoryId"] ?? '';
+
+    if (productId.isEmpty || profileId.isEmpty || categoryId.isEmpty) return;
 
     NotificationRouter.navigatorKey.currentState?.push(
       MaterialPageRoute(

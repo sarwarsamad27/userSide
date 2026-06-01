@@ -26,6 +26,10 @@ class HelpCenterScreen extends StatelessWidget {
       q: 'How long does delivery take?',
       a: 'Standard delivery takes 3–7 business days depending on your location.',
     ),
+    (
+      q: 'How Can I give review?',
+      a: 'Go to "Order History" in your profile, select the delivered order, and tap "Add Review" to share your feedback. And you are able to give only one review for each order. If you want to update your review, please contact our support team through the "Contact Us" section in the Help Center.',
+    ),
   ];
 
   @override
@@ -37,14 +41,16 @@ class HelpCenterScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Color(0xFF1E1E2D)),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Help Center',
           style: TextStyle(
-            color:  Colors.white,
+            color: Colors.white,
             fontWeight: FontWeight.w700,
             fontSize: 17.sp,
           ),
@@ -358,10 +364,7 @@ class _FaqTileState extends State<_FaqTile>
                   ),
                   if (_expanded) ...[
                     SizedBox(height: 10.h),
-                    Container(
-                      height: 1,
-                      color: Colors.grey.shade100,
-                    ),
+                    Container(height: 1, color: Colors.grey.shade100),
                     SizedBox(height: 10.h),
                     Text(
                       widget.answer,

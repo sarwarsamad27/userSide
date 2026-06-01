@@ -43,7 +43,8 @@ class PopularCategoryProvider extends ChangeNotifier {
 
       if (response.success == true) {
 
-        allCategories = response.categories ?? [];
+        allCategories = response.categories ?? []
+          ..shuffle();
 
 
         categoryData = PopularCategoryModel(

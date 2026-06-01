@@ -31,10 +31,7 @@ class OtherProductsSection extends StatelessWidget {
             if (op.otherModel == null ||
                 op.otherModel!.otherProducts == null ||
                 op.otherModel!.otherProducts!.isEmpty) {
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                child: const EmptyStateText(text: "No other products"),
-              );
+              return SizedBox.shrink();
             }
 
             return GridView.builder(

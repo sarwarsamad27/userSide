@@ -33,8 +33,9 @@ class PopularProductProvider extends ChangeNotifier {
         if (loadMore && popularProducts != null) {
           popularProducts!.products!.addAll(response.products ?? []);
         } else {
+          response.products?.shuffle();
           popularProducts = response;
-          isFetchedOnce = true; // Mark as fetched
+          isFetchedOnce = true;
         }
 
         // Pagination check
