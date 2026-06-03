@@ -1,8 +1,9 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:user_side/resources/global.dart';
-import 'package:user_side/view/dashboard/homeDashboard/productDetail/full_imageScreen.dart';
+import 'package:user_side/view/dashboard/homeDashboard/productDetail/MediaFullscreenViewer.dart';
 import 'package:video_player/video_player.dart';
 
 class ProductImage extends StatefulWidget {
@@ -110,17 +111,44 @@ class _ProductImageState extends State<ProductImage> {
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => FullScreenImageGallery(
-                          images: processedUrls,
+                        builder: (_) => MediaFullscreenViewer(
+                          imageUrls: processedUrls,
+                          videoUrl: widget.videoUrl,
                           initialIndex: index,
+                          existingVideoController: _videoCtrl,
                         ),
                       ),
                     ),
-                    child: Image.network(
-                      processedUrls[index],
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      errorBuilder: (_, __, ___) => const _NoImagePlaceholder(),
+                    child: Hero(
+                      tag: processedUrls[index],
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // Background shade (blurred version of the same image)
+                          Image.network(
+                            processedUrls[index],
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const SizedBox(),
+                          ),
+                          // Blur effect
+                          ClipRect(
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                              child: Container(
+                                color: Colors.black.withOpacity(0.2),
+                              ),
+                            ),
+                          ),
+                          // Foreground image (full image)
+                          Image.network(
+                            processedUrls[index],
+                            fit: BoxFit.contain,
+                            width: double.infinity,
+                            errorBuilder: (_, __, ___) =>
+                                const _NoImagePlaceholder(),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 } else {
@@ -128,6 +156,22 @@ class _ProductImageState extends State<ProductImage> {
                   return _NetworkVideoPlayer(
                     controller: _videoCtrl,
                     isReady: _videoReady,
+                    backgroundUrl: processedUrls.isNotEmpty
+                        ? processedUrls.first
+                        : null,
+                    onFullScreen: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => MediaFullscreenViewer(
+                            imageUrls: processedUrls,
+                            videoUrl: widget.videoUrl,
+                            initialIndex: index,
+                            existingVideoController: _videoCtrl,
+                          ),
+                        ),
+                      );
+                    },
                   );
                 }
               },
@@ -165,7 +209,10 @@ class _ProductImageState extends State<ProductImage> {
                   children: [
                     Icon(Icons.videocam, color: Colors.white, size: 14.sp),
                     SizedBox(width: 4.w),
-                    Text("Video", style: TextStyle(color: Colors.white, fontSize: 11.sp)),
+                    Text(
+                      "Video",
+                      style: TextStyle(color: Colors.white, fontSize: 11.sp),
+                    ),
                   ],
                 ),
               ),
@@ -180,8 +227,15 @@ class _ProductImageState extends State<ProductImage> {
 class _NetworkVideoPlayer extends StatefulWidget {
   final VideoPlayerController? controller;
   final bool isReady;
+  final VoidCallback onFullScreen;
+  final String? backgroundUrl;
 
-  const _NetworkVideoPlayer({required this.controller, required this.isReady});
+  const _NetworkVideoPlayer({
+    required this.controller,
+    required this.isReady,
+    required this.onFullScreen,
+    this.backgroundUrl,
+  });
 
   @override
   State<_NetworkVideoPlayer> createState() => _NetworkVideoPlayerState();
@@ -233,15 +287,28 @@ class _NetworkVideoPlayerState extends State<_NetworkVideoPlayer> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          SizedBox.expand(
-            child: FittedBox(
-              fit: BoxFit.cover,
-              child: SizedBox(
-                width: ctrl.value.size.width,
-                height: ctrl.value.size.height,
-                child: VideoPlayer(ctrl),
+          if (widget.backgroundUrl != null)
+            Positioned.fill(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    widget.backgroundUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const SizedBox(),
+                  ),
+                  ClipRect(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(color: Colors.black.withOpacity(0.2)),
+                    ),
+                  ),
+                ],
               ),
             ),
+          AspectRatio(
+            aspectRatio: ctrl.value.aspectRatio,
+            child: VideoPlayer(ctrl),
           ),
           if (!isPlaying)
             Container(
@@ -250,8 +317,32 @@ class _NetworkVideoPlayerState extends State<_NetworkVideoPlayer> {
                 color: Colors.black38,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.play_arrow, color: Colors.white, size: 36),
+              child: const Icon(
+                Icons.play_arrow,
+                color: Colors.white,
+                size: 36,
+              ),
             ),
+          // Full screen button
+          Positioned(
+            bottom: 10,
+            right: 10,
+            child: GestureDetector(
+              onTap: widget.onFullScreen,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.black45,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Icon(
+                  Icons.fullscreen,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
