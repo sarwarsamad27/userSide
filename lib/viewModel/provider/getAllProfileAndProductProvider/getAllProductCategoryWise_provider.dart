@@ -8,8 +8,14 @@ class GetAllProductCategoryWiseProvider with ChangeNotifier {
 
   bool isLoading = false;
   GetAllProductCategoryWiseModel? data;
+  String? _cachedKey; // ✅ "{profileId}_{categoryId}"
 
   Future<void> fetchProducts(String profileId, String categoryId) async {
+    final key = '${profileId}_$categoryId';
+
+    // ✅ Skip if same combination already loaded
+    if (_cachedKey == key && data != null) return;
+
     isLoading = true;
     notifyListeners();
 
@@ -19,11 +25,13 @@ class GetAllProductCategoryWiseProvider with ChangeNotifier {
         profileId,
       );
       data = response;
+      _cachedKey = key; // ✅ Cache on success
     } catch (e) {
       data = GetAllProductCategoryWiseModel(
         message: e.toString(),
         products: [],
       );
+      _cachedKey = null; // ❌ Don't cache errors
     }
 
     isLoading = false;

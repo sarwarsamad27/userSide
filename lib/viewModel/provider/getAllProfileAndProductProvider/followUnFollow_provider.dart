@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:user_side/viewModel/repository/homeProfileAndProductRepository/followUnFollow_repository.dart';
 import 'package:user_side/resources/local_storage.dart';
+import 'package:user_side/resources/socketServices.dart';
 
 class FollowProvider with ChangeNotifier {
   final FollowRepository _repository = FollowRepository();
@@ -17,6 +18,9 @@ class FollowProvider with ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  String? _cachedProfileId;
+  bool _isListening = false;
+
   Future<bool> _isLoggedIn() async {
     final userId = await LocalStorage.getUserId();
     return userId != null && userId.isNotEmpty;
@@ -24,12 +28,18 @@ class FollowProvider with ChangeNotifier {
 
   /// ✅ Public: Guest can also see followersCount
   Future<void> getFollowStatus(String profileId) async {
+    _bindSocket(); // ✅ Ensure we are listening
+
+    // ✅ Skip if already fetched for this profile
+    if (_cachedProfileId == profileId) return;
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       final response = await _repository.getFollowStatus(profileId);
+      _cachedProfileId = profileId; // ✅ Cache successful ID
 
       // ✅ Always update followersCount if provided
       if (response.followersCount != null) {
@@ -71,7 +81,8 @@ class FollowProvider with ChangeNotifier {
 
       if (response.message == "You are not login") {
         _errorMessage = "You are not login";
-      } else if (response.isFollowing != null && response.followersCount != null) {
+      } else if (response.isFollowing != null &&
+          response.followersCount != null) {
         _isFollowing = response.isFollowing!;
         _followersCount = response.followersCount!.clamp(0, 999999999);
         _errorMessage = null;
@@ -92,6 +103,42 @@ class FollowProvider with ChangeNotifier {
     _isFollowing = false;
     _followersCount = 0;
     _errorMessage = null;
+    _cachedProfileId = null;
+    _isListening = false; // ✅ Allow re-binding next time
     notifyListeners();
+  }
+
+  /// ✅ Real-time socket updates — safe even if socket connects later
+  void _bindSocket() {
+    if (_isListening) return;
+    final s = SocketService().socket;
+
+    if (s == null) return;
+
+    if (!s.connected) {
+      // Socket connects later — bind listener on connect event
+      s.on("connect", (_) => _attachListener(s));
+      return;
+    }
+
+    _attachListener(s);
+  }
+
+  void _attachListener(dynamic s) {
+    if (_isListening) return;
+    _isListening = true;
+
+    s.on("follow:update", (data) {
+      if (data is Map) {
+        final pId = data["profileId"]?.toString();
+        final count = data["followersCount"];
+
+        // ✅ Only update if it's the profile currently being viewed
+        if (pId != null && pId == _cachedProfileId && count is int) {
+          _followersCount = count;
+          notifyListeners();
+        }
+      }
+    });
   }
 }
