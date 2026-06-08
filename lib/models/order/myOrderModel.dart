@@ -65,6 +65,7 @@ class Orders {
   String? slipLink;
   String? leopardsStatus;
   String? cnNumber;
+  String? deliveredAt; // ✅ NEW
 
   // ✅ Cancel fields
   String? cancelReason;
@@ -92,6 +93,7 @@ class Orders {
     this.cancelReason,
     this.cancelledBy,
     this.cancelledAt,
+    this.deliveredAt, // ✅
   });
 
   Orders.fromJson(Map<String, dynamic> json) {
@@ -106,7 +108,9 @@ class Orders {
     buyerDetails = json['buyerDetails'] != null
         ? BuyerDetails.fromJson(json['buyerDetails'])
         : null;
-    product = json['product'] != null ? Product.fromJson(json['product']) : null;
+    product = json['product'] != null
+        ? Product.fromJson(json['product'])
+        : null;
     exchangeRequest = json['exchangeRequest'] != null
         ? ExchangeRequestData.fromJson(json['exchangeRequest'])
         : null;
@@ -120,6 +124,7 @@ class Orders {
     slipLink = json['slipLink'];
     leopardsStatus = json['leopardsStatus'];
     cnNumber = json['cnNumber'];
+    deliveredAt = json['deliveredAt']; // ✅
 
     // ✅ Cancel fields
     cancelReason = json['cancelReason'];
@@ -144,6 +149,7 @@ class Orders {
     data['slipLink'] = slipLink;
     data['leopardsStatus'] = leopardsStatus;
     data['cnNumber'] = cnNumber;
+    data['deliveredAt'] = deliveredAt; // ✅
     return data;
   }
 }
@@ -189,14 +195,14 @@ class ExchangeRequestData {
         resolutionType: json['resolutionType']?.toString(),
         courierPaidBy: json['courierPaidBy']?.toString(),
         returnTrackingNumber: json['returnTrackingNumber']?.toString(),
-        replacementTrackingNumber: json['replacementTrackingNumber']?.toString(),
+        replacementTrackingNumber: json['replacementTrackingNumber']
+            ?.toString(),
         replacementSlipLink: json['replacementSlipLink']?.toString(), // ✅
         refundAmount: (json['refundAmount'] as num?)?.toDouble(),
         createdAt: json['createdAt']?.toString(),
         pdfPath: json['pdfPath']?.toString(),
       );
 }
-
 
 // ── Refund Request Data ────────────────────────────────────────────────────
 class RefundRequestData {

@@ -47,6 +47,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       slipLink: widget.order.slipLink,
       leopardsStatus: widget.order.leopardsStatus,
       cnNumber: widget.order.cnNumber,
+      deliveredAt: widget.order.deliveredAt, // ✅
       exchangeRequest: null,
       refundRequest: null,
     );
@@ -102,6 +103,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         slipLink: _order.slipLink,
         leopardsStatus: _order.leopardsStatus,
         cnNumber: _order.cnNumber,
+        deliveredAt: _order.deliveredAt, // ✅
         exchangeRequest: myExchange != null
             ? ExchangeRequestData(
                 id: myExchange.id,
@@ -194,6 +196,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         trackNumber: refreshedOrder?.trackNumber ?? _order.trackNumber,
         slipLink: refreshedOrder?.slipLink ?? _order.slipLink,
         leopardsStatus: refreshedOrder?.leopardsStatus ?? _order.leopardsStatus,
+        deliveredAt: refreshedOrder?.deliveredAt ?? _order.deliveredAt, // ✅
         exchangeRequest: myExchange != null
             ? ExchangeRequestData(
                 id: myExchange.id,
@@ -236,11 +239,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
-  bool canExchangeOrRefund(String? status, String? createdAt) {
+  bool canExchangeOrRefund(String? status, String? deliveredAt) {
     if (status != "Delivered") return false;
-    if (createdAt == null) return false;
+    if (deliveredAt == null) return false;
     try {
-      final delivered = DateTime.parse(createdAt);
+      final delivered = DateTime.parse(deliveredAt);
+      // Return true if current time is before delivery + 10 days
       return DateTime.now().isBefore(delivered.add(const Duration(days: 10)));
     } catch (_) {
       return false;
@@ -249,7 +253,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final eligible = canExchangeOrRefund(_order.status, _order.createdAt);
+    final eligible = canExchangeOrRefund(
+      _order.status,
+      _order.deliveredAt,
+    ); // ✅
     final List<Product> products = [];
     if (_order.product != null) products.add(_order.product!);
     final exReq = _order.exchangeRequest;

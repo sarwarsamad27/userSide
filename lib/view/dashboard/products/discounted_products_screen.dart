@@ -13,7 +13,8 @@ class DiscountedProductsScreen extends StatefulWidget {
   const DiscountedProductsScreen({super.key, this.minDiscount = 50});
 
   @override
-  State<DiscountedProductsScreen> createState() => _DiscountedProductsScreenState();
+  State<DiscountedProductsScreen> createState() =>
+      _DiscountedProductsScreenState();
 }
 
 class _DiscountedProductsScreenState extends State<DiscountedProductsScreen> {
@@ -33,11 +34,14 @@ class _DiscountedProductsScreenState extends State<DiscountedProductsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColor.primaryColor,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1E1E2D)),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -45,7 +49,7 @@ class _DiscountedProductsScreenState extends State<DiscountedProductsScreen> {
           style: TextStyle(
             fontSize: 17.sp,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF1E1E2D),
+            color: Colors.white,
           ),
         ),
       ),
@@ -64,11 +68,18 @@ class _DiscountedProductsScreenState extends State<DiscountedProductsScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.local_offer_outlined, size: 64.sp, color: Colors.grey.shade300),
+                  Icon(
+                    Icons.local_offer_outlined,
+                    size: 64.sp,
+                    color: Colors.grey.shade300,
+                  ),
                   SizedBox(height: 16.h),
                   Text(
                     'No ${widget.minDiscount}% off deals right now',
-                    style: TextStyle(fontSize: 14.sp, color: Colors.grey.shade500),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.grey.shade500,
+                    ),
                   ),
                 ],
               ),
@@ -88,17 +99,20 @@ class _DiscountedProductsScreenState extends State<DiscountedProductsScreen> {
                 SliverToBoxAdapter(
                   child: Container(
                     margin: EdgeInsets.all(16.w),
-                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.w,
+                      vertical: 16.h,
+                    ),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFFEF4444), Color(0xFFFF6B6B)],
+                        colors: [AppColor.appimagecolor, AppColor.primaryColor],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(16.r),
                     ),
                     child: Row(
-                      children: [
+                      children: [ 
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,12 +128,19 @@ class _DiscountedProductsScreenState extends State<DiscountedProductsScreen> {
                               SizedBox(height: 4.h),
                               Text(
                                 '${discounted.length} products at ${widget.minDiscount}%+ off',
-                                style: TextStyle(fontSize: 12.sp, color: Colors.white70),
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: Colors.white70,
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        Icon(Icons.flash_on_rounded, color: Colors.white, size: 40.sp),
+                        Icon(
+                          Icons.flash_on_rounded,
+                          color: Colors.white,
+                          size: 40.sp,
+                        ),
                       ],
                     ),
                   ),
@@ -127,39 +148,39 @@ class _DiscountedProductsScreenState extends State<DiscountedProductsScreen> {
                 SliverPadding(
                   padding: EdgeInsets.symmetric(horizontal: 8.w),
                   sliver: SliverGrid(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final p = discounted[index];
-                        final imageUrl = (p.images != null && p.images!.isNotEmpty)
-                            ? p.images!.first
-                            : '';
-                        return ProductCard(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ProductDetailScreen(
-                                profileId: p.profileId ?? '',
-                                categoryId: p.categoryId ?? '',
-                                productId: p.productId ?? '',
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final p = discounted[index];
+                      final imageUrl =
+                          (p.images != null && p.images!.isNotEmpty)
+                          ? p.images!.first
+                          : '';
+                      return ProductCard(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProductDetailScreen(
+                                  profileId: p.profileId ?? '',
+                                  categoryId: p.categoryId ?? '',
+                                  productId: p.productId ?? '',
+                                ),
                               ),
                             ),
-                          ),
-                          imageUrl: imageUrl.isNotEmpty
-                              ? (imageUrl.startsWith('http') ? Global.getImageUrl(imageUrl) : imageUrl)
-                              : '',
-                          price: '${p.afterDiscountPrice ?? 0}',
-                          name: p.name ?? '',
-                          description: p.description ?? '',
-                          saveText: '${p.discountPercentage ?? 0}% OFF',
-                          originalPrice: '${p.beforeDiscountPrice ?? 0}',
-                          averageRating: p.averageRating ?? 0.0,
-                        )
-                            .animate()
-                            .fadeIn(delay: (index * 40).ms)
-                            .slideY(begin: 0.1, curve: Curves.easeOutQuad);
-                      },
-                      childCount: discounted.length,
-                    ),
+                            imageUrl: imageUrl.isNotEmpty
+                                ? (imageUrl.startsWith('http')
+                                      ? Global.getImageUrl(imageUrl)
+                                      : imageUrl)
+                                : '',
+                            price: '${p.afterDiscountPrice ?? 0}',
+                            name: p.name ?? '',
+                            description: p.description ?? '',
+                            saveText: '${p.discountPercentage ?? 0}% OFF',
+                            originalPrice: '${p.beforeDiscountPrice ?? 0}',
+                            averageRating: p.averageRating ?? 0.0,
+                          )
+                          .animate()
+                          .fadeIn(delay: (index * 40).ms)
+                          .slideY(begin: 0.1, curve: Curves.easeOutQuad);
+                    }, childCount: discounted.length),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       mainAxisSpacing: 12.h,
