@@ -176,6 +176,7 @@ class _DiscountedProductsScreenState extends State<DiscountedProductsScreen> {
                             saveText: '${p.discountPercentage ?? 0}% OFF',
                             originalPrice: '${p.beforeDiscountPrice ?? 0}',
                             averageRating: p.averageRating ?? 0.0,
+                            quantity: p.quantity,
                           )
                           .animate()
                           .fadeIn(delay: (index * 40).ms)

@@ -52,6 +52,7 @@ class Data {
   List<String>? size;
   List<String>? color;
   String? stock;
+  int? quantity;
   String? createdAt;
   String? updatedAt;
   int? iV;
@@ -71,6 +72,7 @@ class Data {
     this.size,
     this.color,
     this.stock,
+    this.quantity,
     this.createdAt,
     this.updatedAt,
     this.iV,
@@ -91,6 +93,7 @@ class Data {
     size = json['size'].cast<String>();
     color = json['color'].cast<String>();
     stock = json['stock'];
+    quantity = json['quantity'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     iV = json['__v'];
@@ -119,6 +122,7 @@ class Data {
     data['size'] = this.size;
     data['color'] = this.color;
     data['stock'] = this.stock;
+    data['quantity'] = this.quantity;
     data['createdAt'] = this.createdAt;
     data['updatedAt'] = this.updatedAt;
     data['__v'] = this.iV;

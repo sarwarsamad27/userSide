@@ -14,7 +14,8 @@ class BuyerAdminMessagesScreen extends StatefulWidget {
   const BuyerAdminMessagesScreen({super.key});
 
   @override
-  State<BuyerAdminMessagesScreen> createState() => _BuyerAdminMessagesScreenState();
+  State<BuyerAdminMessagesScreen> createState() =>
+      _BuyerAdminMessagesScreenState();
 }
 
 class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
@@ -45,15 +46,24 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
       final buyerId = AuthSession.instance.userId ?? '';
       // markRead=true marks all messages as read so unread badge resets after restart
       final res = await http.get(
-        Uri.parse('${Global.BuyerGetAdminMessages}?buyerId=$buyerId&markRead=true'),
-        headers: {'Authorization': 'Bearer ${token ?? ''}', 'Content-Type': 'application/json'},
+        Uri.parse(
+          '${Global.BuyerGetAdminMessages}?buyerId=$buyerId&markRead=true',
+        ),
+        headers: {
+          'Authorization': 'Bearer ${token ?? ''}',
+          'Content-Type': 'application/json',
+        },
       );
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         setState(() {
           _messages
             ..clear()
-            ..addAll((data['messages'] as List? ?? []).map((e) => Map<String, dynamic>.from(e)));
+            ..addAll(
+              (data['messages'] as List? ?? []).map(
+                (e) => Map<String, dynamic>.from(e),
+              ),
+            );
         });
         _scrollToBottom();
       }
@@ -93,7 +103,10 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
       final token = await LocalStorage.getToken();
       final res = await http.post(
         Uri.parse(Global.BuyerContactAdmin),
-        headers: {'Authorization': 'Bearer ${token ?? ''}', 'Content-Type': 'application/json'},
+        headers: {
+          'Authorization': 'Bearer ${token ?? ''}',
+          'Content-Type': 'application/json',
+        },
         body: jsonEncode({'message': text}),
       );
       if (res.statusCode == 201) {
@@ -135,16 +148,32 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
               borderRadius: BorderRadius.circular(8.r),
               child: Image.asset(
                 'assets/images/shookoo_image.png',
-                width: 32.w, height: 32.w, fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(LucideIcons.shieldCheck, color: Colors.white, size: 22.sp),
+                width: 32.w,
+                height: 32.w,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Icon(
+                  LucideIcons.shieldCheck,
+                  color: Colors.white,
+                  size: 22.sp,
+                ),
               ),
             ),
             SizedBox(width: 10.w),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('SHOOKOO Admin', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14.sp)),
-                Text('Official Support', style: TextStyle(color: Colors.white70, fontSize: 10.sp)),
+                Text(
+                  'SHOOKOO Admin',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14.sp,
+                  ),
+                ),
+                Text(
+                  'Official Support',
+                  style: TextStyle(color: Colors.white70, fontSize: 10.sp),
+                ),
               ],
             ),
           ],
@@ -157,24 +186,33 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : _messages.isEmpty
-                    ? _emptyState()
-                    : RefreshIndicator(
-                        color: AppColor.primaryColor,
-                        onRefresh: _fetchMessages,
-                        child: ListView.builder(
-                          controller: _scrollCtrl,
-                          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                          itemCount: _messages.length,
-                          itemBuilder: (_, i) => _bubble(_messages[i]),
-                        ),
+                ? _emptyState()
+                : RefreshIndicator(
+                    color: AppColor.primaryColor,
+                    onRefresh: _fetchMessages,
+                    child: ListView.builder(
+                      controller: _scrollCtrl,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 12.h,
                       ),
+                      itemCount: _messages.length,
+                      itemBuilder: (_, i) => _bubble(_messages[i]),
+                    ),
+                  ),
           ),
 
           // Input bar
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, -2))],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, -2),
+                ),
+              ],
             ),
             child: SafeArea(
               child: Padding(
@@ -188,16 +226,21 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
                           color: const Color(0xFFF0F0F0),
                           borderRadius: BorderRadius.circular(25.r),
                         ),
-                        child: TextField(
-                          controller: _inputCtrl,
-                          decoration: InputDecoration(
-                            hintText: "Message SHOOKOO Admin...",
-                            hintStyle: TextStyle(fontSize: 14.sp, color: Colors.black38),
-                            border: InputBorder.none,
+                        child: Center(
+                          child: TextField(
+                            controller: _inputCtrl,
+                            decoration: InputDecoration(
+                              hintText: "Message SHOOKOO Admin...",
+                              hintStyle: TextStyle(
+                                fontSize: 14.sp,
+                                color: Colors.black38,
+                              ),
+                              border: InputBorder.none,
+                            ),
+                            maxLines: 3,
+                            minLines: 1,
+                            textCapitalization: TextCapitalization.sentences,
                           ),
-                          maxLines: 3,
-                          minLines: 1,
-                          textCapitalization: TextCapitalization.sentences,
                         ),
                       ),
                     ),
@@ -211,8 +254,19 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
                           shape: BoxShape.circle,
                         ),
                         child: _sending
-                            ? SizedBox(width: 18.w, height: 18.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                            : Icon(Icons.send, color: Colors.white, size: 20.sp),
+                            ? SizedBox(
+                                width: 18.w,
+                                height: 18.w,
+                                child: const CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Icon(
+                                Icons.send,
+                                color: Colors.white,
+                                size: 20.sp,
+                              ),
                       ),
                     ),
                   ],
@@ -231,7 +285,9 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
     final isMe = fromType == 'buyer';
     final isBroadcast = msg['toType'] == 'all_buyers';
     final time = msg['createdAt'] != null
-        ? DateFormat('hh:mm a').format(DateTime.tryParse(msg['createdAt'].toString()) ?? DateTime.now())
+        ? DateFormat('hh:mm a').format(
+            DateTime.tryParse(msg['createdAt'].toString()) ?? DateTime.now(),
+          )
         : '';
 
     if (isMe) {
@@ -244,7 +300,9 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.72,
+                ),
                 padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
                 decoration: BoxDecoration(
                   color: const Color(0xFFDCF8C6),
@@ -255,10 +313,16 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
                     bottomRight: Radius.circular(14.r),
                   ),
                 ),
-                child: Text(text, style: TextStyle(fontSize: 13.sp, color: Colors.black87)),
+                child: Text(
+                  text,
+                  style: TextStyle(fontSize: 13.sp, color: Colors.black87),
+                ),
               ),
               SizedBox(height: 3.h),
-              Text(time, style: TextStyle(fontSize: 10.sp, color: Colors.grey[400])),
+              Text(
+                time,
+                style: TextStyle(fontSize: 10.sp, color: Colors.grey[400]),
+              ),
             ],
           ),
         ),
@@ -275,14 +339,21 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
             borderRadius: BorderRadius.circular(10.r),
             child: Image.asset(
               'assets/images/shookoo_image.png',
-              width: 36.w, height: 36.w, fit: BoxFit.cover,
+              width: 36.w,
+              height: 36.w,
+              fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
-                width: 36.w, height: 36.w,
+                width: 36.w,
+                height: 36.w,
                 decoration: BoxDecoration(
                   color: AppColor.primaryColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10.r),
                 ),
-                child: Icon(LucideIcons.shieldCheck, size: 18.sp, color: AppColor.primaryColor),
+                child: Icon(
+                  LucideIcons.shieldCheck,
+                  size: 18.sp,
+                  color: AppColor.primaryColor,
+                ),
               ),
             ),
           ),
@@ -293,24 +364,46 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
               children: [
                 Row(
                   children: [
-                    Text('SHOOKOO Admin', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700, color: AppColor.primaryColor)),
+                    Text(
+                      'SHOOKOO Admin',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AppColor.primaryColor,
+                      ),
+                    ),
                     if (isBroadcast) ...[
                       SizedBox(width: 6.w),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 1.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 6.w,
+                          vertical: 1.h,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColor.primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4.r),
                         ),
-                        child: Text('📢 Announcement', style: TextStyle(fontSize: 9.sp, color: AppColor.primaryColor, fontWeight: FontWeight.w600)),
+                        child: Text(
+                          '📢 Announcement',
+                          style: TextStyle(
+                            fontSize: 9.sp,
+                            color: AppColor.primaryColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ],
                 ),
                 SizedBox(height: 4.h),
                 Container(
-                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
-                  padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.72,
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 14.w,
+                    vertical: 10.h,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.only(
@@ -318,12 +411,24 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
                       bottomLeft: Radius.circular(14.r),
                       bottomRight: Radius.circular(14.r),
                     ),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2))],
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  child: Text(text, style: TextStyle(fontSize: 13.sp, color: Colors.black87)),
+                  child: Text(
+                    text,
+                    style: TextStyle(fontSize: 13.sp, color: Colors.black87),
+                  ),
                 ),
                 SizedBox(height: 3.h),
-                Text(time, style: TextStyle(fontSize: 10.sp, color: Colors.grey[400])),
+                Text(
+                  time,
+                  style: TextStyle(fontSize: 10.sp, color: Colors.grey[400]),
+                ),
               ],
             ),
           ),
@@ -333,22 +438,38 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
   }
 
   Widget _emptyState() => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16.r),
-              child: Image.asset(
-                'assets/images/shookoo_image.png',
-                width: 80.w, height: 80.w, fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(LucideIcons.shieldCheck, size: 64.sp, color: Colors.grey[300]),
-              ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(16.r),
+          child: Image.asset(
+            'assets/images/shookoo_image.png',
+            width: 80.w,
+            height: 80.w,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Icon(
+              LucideIcons.shieldCheck,
+              size: 64.sp,
+              color: Colors.grey[300],
             ),
-            SizedBox(height: 16.h),
-            Text('Chat with Admin', style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w600, color: Colors.black87)),
-            SizedBox(height: 6.h),
-            Text('Ask questions or report issues below', style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
-          ],
+          ),
         ),
-      );
+        SizedBox(height: 16.h),
+        Text(
+          'Chat with Admin',
+          style: TextStyle(
+            fontSize: 15.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        SizedBox(height: 6.h),
+        Text(
+          'Ask questions or report issues below',
+          style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+        ),
+      ],
+    ),
+  );
 }

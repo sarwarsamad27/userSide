@@ -26,6 +26,7 @@ class RecommendedProduct {
   String description;
   List<String> images;
   num afterDiscountPrice;
+  int? quantity;
 
   // ✅ ADDED
   double averageRating;
@@ -39,6 +40,7 @@ class RecommendedProduct {
     required this.description,
     required this.images,
     required this.afterDiscountPrice,
+    this.quantity,
     required this.averageRating, // ✅
     required this.profile,
     required this.category,
@@ -51,6 +53,7 @@ class RecommendedProduct {
       description: json["description"] ?? "",
       images: json["images"] == null ? [] : List<String>.from(json["images"]),
       afterDiscountPrice: json["afterDiscountPrice"] ?? 0,
+      quantity: json["quantity"],
 
       averageRating: json['averageRating'] != null
           ? (json['averageRating'] as num).toDouble()

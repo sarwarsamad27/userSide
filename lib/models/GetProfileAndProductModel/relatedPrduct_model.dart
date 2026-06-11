@@ -56,6 +56,7 @@ class RelatedProducts {
   List<String> size;
   List<String> color;
   String? stock;
+  int? quantity;
   String? createdAt;
   String? updatedAt;
   int? v;
@@ -75,6 +76,7 @@ class RelatedProducts {
     this.size = const [],
     this.color = const [],
     this.stock,
+    this.quantity,
     this.createdAt,
     this.updatedAt,
     this.v,
@@ -99,6 +101,7 @@ class RelatedProducts {
             ? List<String>.from(json['color'])
             : [],
         stock = json['stock'],
+        quantity = json['quantity'],
         createdAt = json['createdAt'],
         updatedAt = json['updatedAt'],
         v = json['__v'],
@@ -119,6 +122,7 @@ class RelatedProducts {
       'size': size,
       'color': color,
       'stock': stock,
+      'quantity': quantity,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
       '__v': v,

@@ -21,10 +21,13 @@ class ProductScreen extends StatefulWidget {
 class _ProductScreenState extends State<ProductScreen> {
   bool _initialFetchDone = false;
   final ValueNotifier<String> _selectedCategoryNotifier = ValueNotifier("All");
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
+
+    _scrollController.addListener(_onScroll);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!_initialFetchDone) {
@@ -36,8 +39,26 @@ class _ProductScreenState extends State<ProductScreen> {
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     _selectedCategoryNotifier.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_selectedCategoryNotifier.value != "All") return;
+    if (!_scrollController.hasClients) return;
+
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 300) {
+      final allProvider = context.read<GetAllProductProvider>();
+      if (allProvider.searchQuery.isEmpty &&
+          allProvider.hasMore &&
+          !allProvider.loading &&
+          !allProvider.loadMore) {
+        allProvider.fetchProducts(loadMoreRequest: true);
+      }
+    }
   }
 
   Future<void> _fetchAll() async {
@@ -81,6 +102,7 @@ class _ProductScreenState extends State<ProductScreen> {
             valueListenable: _selectedCategoryNotifier,
             builder: (context, selectedCategory, _) {
               return CustomScrollView(
+                controller: _scrollController,
                 physics: const BouncingScrollPhysics(),
                 slivers: [
                   SliverPersistentHeader(

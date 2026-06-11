@@ -43,6 +43,7 @@ class Global {
   static var ChatMessages = "${BaseUrl}/buyer/chat/messages";
   static var BuyerGetAdminMessages = "${BaseUrl}/buyer/admin/messages";
   static var BuyerContactAdmin = "${BaseUrl}/buyer/contact/admin";
+  static var BuyerAiAssistant = "${BaseUrl}/buyer/ai-assistant";
   static var ChatThreads = "${BaseUrl}/buyer/chat/threads";
   static var ChatUploadImage = "${imageUrl}/api/chat/upload-image";
   static String downloadSlip(String trackNumber) =>

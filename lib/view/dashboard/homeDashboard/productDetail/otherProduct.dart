@@ -63,6 +63,7 @@ class OtherProductsSection extends StatelessWidget {
                   imageUrl: (item.images != null && item.images!.isNotEmpty)
                       ? item.images!.first
                       : "",
+                  quantity: item.quantity,
                   onTap: () {
                     Navigator.push(
                       context,

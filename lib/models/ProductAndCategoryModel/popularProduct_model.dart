@@ -52,6 +52,7 @@ class Products {
   int? afterDiscountPrice;
   int? discountPercentage;
   int? discountAmount;
+  int? quantity;
 
   Products(
       {this.productId,
@@ -62,7 +63,8 @@ class Products {
       this.beforeDiscountPrice,
       this.afterDiscountPrice,
       this.discountPercentage,
-      this.discountAmount});
+      this.discountAmount,
+      this.quantity});
 
   Products.fromJson(Map<String, dynamic> json) {
     productId = json['productId'];
@@ -74,6 +76,7 @@ class Products {
     afterDiscountPrice = json['afterDiscountPrice'];
     discountPercentage = json['discountPercentage'];
     discountAmount = json['discountAmount'];
+    quantity = json['quantity'];
   }
 
   Map<String, dynamic> toJson() {
@@ -87,6 +90,7 @@ class Products {
     data['afterDiscountPrice'] = this.afterDiscountPrice;
     data['discountPercentage'] = this.discountPercentage;
     data['discountAmount'] = this.discountAmount;
+    data['quantity'] = this.quantity;
     return data;
   }
 }

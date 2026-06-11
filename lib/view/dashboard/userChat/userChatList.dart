@@ -16,9 +16,11 @@ import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/resources/socketServices.dart';
 import 'package:user_side/view/auth/AuthLoginGate.dart';
+import 'package:user_side/view/dashboard/aiAssistant/aiAssistantScreen.dart';
 import 'package:user_side/view/dashboard/userChat/admin_messages_screen.dart';
 import 'package:user_side/view/dashboard/userChat/userChatScreen.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/chatThread_provider.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class UserChatListScreen extends StatefulWidget {
   const UserChatListScreen({super.key});
@@ -228,19 +230,53 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
               },
               child: ListView.separated(
                 padding: EdgeInsets.zero,
-                // +1 for pinned admin tile at index 0
-                itemCount: threads.length + 1,
+                // +2 for pinned AI assistant + admin tiles at index 0/1
+                itemCount: threads.length + 2,
                 separatorBuilder: (_, __) =>
                     Divider(height: 1.h, indent: 80.w, color: Colors.black12),
                 itemBuilder: (context, i) {
-                  if (i == 0) return _buildAdminTile(context);
-                  final thread = threads[i - 1];
+                  if (i == 0) return _buildAiAssistantTile(context);
+                  if (i == 1) return _buildAdminTile(context);
+                  final thread = threads[i - 2];
                   return _buildChatTile(
                     thread,
                   ).animate().fadeIn(delay: (i * 30).ms).slideX(begin: 0.1);
                 },
               ),
             ),
+    );
+  }
+
+  Widget _buildAiAssistantTile(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AiAssistantScreen()),
+        );
+      },
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        leading: CircleAvatar(
+          radius: 28.r,
+          backgroundColor: AppColor.primaryColor.withValues(alpha: 0.15),
+          child: Icon(LucideIcons.bot, color: AppColor.primaryColor, size: 26.sp),
+        ),
+        title: Text(
+          'AI Assistant',
+          style: TextStyle(
+            fontSize: 15.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        subtitle: Text(
+          'Ask me anything about your shopping',
+          style: TextStyle(fontSize: 13.sp, color: Colors.black54),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
     );
   }
 

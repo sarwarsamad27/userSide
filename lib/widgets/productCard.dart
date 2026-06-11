@@ -19,6 +19,9 @@ class ProductCard extends StatelessWidget {
   /// Optional original price (cut wali)
   final String? originalPrice; // e.g. "Rs. 2000"
 
+  /// Optional stock count — when <= 0, an "Out of Stock" overlay is shown.
+  final int? quantity;
+
   const ProductCard({
     Key? key,
     required this.name,
@@ -29,8 +32,11 @@ class ProductCard extends StatelessWidget {
     this.saveText,
     this.averageRating,
     this.originalPrice,
+    this.quantity,
     required this.description,
   }) : super(key: key);
+
+  bool get _isOutOfStock => quantity != null && quantity! <= 0;
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +102,43 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
                 ),
+
+                if (_isOutOfStock)
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(18.r),
+                        topRight: Radius.circular(18.r),
+                      ),
+                      child: Container(
+                        color: Colors.black.withOpacity(0.45),
+                        alignment: Alignment.center,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 6.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEE2E2),
+                            borderRadius: BorderRadius.circular(10.r),
+                            border: Border.all(
+                              color: const Color(0xFFFCA5A5),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            "Out of Stock",
+                            style: TextStyle(
+                              color: const Color(0xFFB91C1C),
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
 
                 if (discountText != null)
                   Positioned(

@@ -102,6 +102,7 @@ class _ProductBelowCategoryState extends State<ProductBelowCategory> {
               averageRating: p.averageRating ?? 0.0,
               originalPrice: p.beforeDiscountPrice?.toString() ?? "0",
               discountText: "$discountPercent% OFF",
+              quantity: p.quantity,
               onTap: () {
                 Navigator.push(
                   context,

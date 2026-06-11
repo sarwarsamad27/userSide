@@ -66,6 +66,7 @@ class Products {
   List<String>? size;
   List<String>? color;
   String? stock;
+  int? quantity;
   double? averageRating; // ⭐ NEW
   String? createdAt;
 
@@ -83,6 +84,7 @@ class Products {
     this.size,
     this.color,
     this.stock,
+    this.quantity,
     this.averageRating,
     this.createdAt,
   });
@@ -101,6 +103,7 @@ class Products {
     size = json['size'].cast<String>();
     color = json['color'].cast<String>();
     stock = json['stock'];
+    quantity = json['quantity'];
     createdAt = json['createdAt'];
     averageRating = json['averageRating'] != null
         ? (json['averageRating'] as num).toDouble()
@@ -122,6 +125,7 @@ class Products {
     data['size'] = this.size;
     data['color'] = this.color;
     data['stock'] = this.stock;
+    data['quantity'] = this.quantity;
     data['averageRating'] = this.averageRating;
     data['createdAt'] = this.createdAt;
     return data;

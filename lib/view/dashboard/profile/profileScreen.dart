@@ -600,6 +600,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                                       : "",
                                   averageRating: product.averageRating,
                                   description: product.description,
+                                  quantity: product.quantity,
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -709,7 +710,6 @@ class _ProfilescreenState extends State<Profilescreen> {
                         ),
                       ],
                     ),
-
                     SizedBox(height: 90.h),
                   ],
                 ),

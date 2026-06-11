@@ -117,6 +117,7 @@ class _CategoryWiseProductsWidgetState
               description: product.description ?? "",
               discountText: "${product.discountPercentage ?? 0}% OFF",
               originalPrice: "${product.beforeDiscountPrice ?? 0}",
+              quantity: product.quantity,
             );
           },
         );
