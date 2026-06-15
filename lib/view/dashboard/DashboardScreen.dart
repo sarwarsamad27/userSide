@@ -163,7 +163,7 @@ class _PremiumUserNavBar extends StatelessWidget {
                 _slot(
                   child: _NavItem(
                     lottiePath: "assets/gif/home.json",
-                    label: "Home",
+                    label: "Stores",
                     selected: currentIndex == 0,
                     onTap: () => onTap(0),
                   ),
