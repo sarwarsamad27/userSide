@@ -8,7 +8,8 @@ class GetPopularProductRepository {
 
   Future<PopularProductModel> getPopularProduct() async {
     try {
-      final response = await apiServices.getApi(apiUrl);
+      final response =
+          await apiServices.cachedGetApi('popular_products', apiUrl);
       return PopularProductModel.fromJson(response);
     } catch (e) {
       return PopularProductModel(success: false, products: []);

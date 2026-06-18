@@ -5,8 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:user_side/exception/exceptions.dart';
 import 'package:user_side/network/base_api_services.dart';
+import 'package:user_side/resources/cache_service.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/resources/premium_toast.dart';
+import 'package:user_side/viewModel/provider/connectivity_provider.dart';
 
 class NetworkApiServices extends BaseApiServices {
   // ✅ Existing headers (WITH token if available) - unchanged
@@ -91,6 +93,25 @@ class NetworkApiServices extends BaseApiServices {
     } catch (e) {
       return _handleError(e);
     }
+  }
+
+  /// Cache-first GET. When offline, returns cached data immediately.
+  /// When online, hits the network, updates cache on success, falls back to
+  /// cache on failure. If no cache exists at all, returns the original error.
+  Future<Map<String, dynamic>> cachedGetApi(String cacheKey, String url) async {
+    if (!ConnectivityProvider.online) {
+      final cached = await CacheService.getData(cacheKey);
+      if (cached != null) return Map<String, dynamic>.from(cached as Map);
+      return {'code_status': false, 'message': 'No internet connection'};
+    }
+    final response = await getApi(url);
+    if (response['code_status'] != false) {
+      await CacheService.save(cacheKey, response);
+      return response;
+    }
+    final cached = await CacheService.getData(cacheKey);
+    if (cached != null) return Map<String, dynamic>.from(cached as Map);
+    return response;
   }
 
   // ✅ Existing PUT - unchanged

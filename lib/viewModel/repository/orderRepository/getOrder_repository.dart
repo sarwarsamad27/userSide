@@ -8,8 +8,10 @@ class GetMyOrderRepository {
 
   Future<MyOrderModel> getMyOrder(String buyerId, int limit, int page) async {
     try {
-      final response = await apiServices
-          .getApi("$apiUrl?buyerId=$buyerId&page=$page&limit=$limit");
+      final response = await apiServices.cachedGetApi(
+        'orders_${buyerId}_p${page}_l$limit',
+        "$apiUrl?buyerId=$buyerId&page=$page&limit=$limit",
+      );
       return MyOrderModel.fromJson(response);
     } catch (e) {
       return MyOrderModel(success: false, orders: []);

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:user_side/models/order/createOrder_model.dart';
 import 'package:user_side/resources/local_storage.dart';
+import 'package:user_side/resources/offline_queue.dart';
+import 'package:user_side/viewModel/provider/connectivity_provider.dart';
 import 'package:user_side/viewModel/repository/orderRepository/createOrder_repository.dart';
 
 /// ══════════════════════════════════════════════════════════
@@ -49,6 +51,10 @@ class CreateOrderProvider with ChangeNotifier {
   // ──────────────────────────────────────────────────────────────────────────
   // STEP: Place Order (COD / after wallet OTP / after jazzcash confirm)
   // ──────────────────────────────────────────────────────────────────────────
+  /// true when a COD order was saved offline and is waiting to sync
+  bool _orderQueued = false;
+  bool get orderQueued => _orderQueued;
+
   Future<void> placeOrder({
     required String name,
     required String email,
@@ -62,12 +68,35 @@ class CreateOrderProvider with ChangeNotifier {
   }) async {
     _loading = true;
     _errorMessage = null;
+    _orderQueued = false;
     notifyListeners();
 
     try {
       final String? buyerId = await LocalStorage.getUserId();
       if (buyerId == null) {
         _errorMessage = 'User not logged in';
+        _loading = false;
+        notifyListeners();
+        return;
+      }
+
+      // Offline COD — queue the order and show queued state
+      if (!ConnectivityProvider.online && paymentMethod == 'cod') {
+        await OfflineQueue.enqueue(
+          type: 'cod_order',
+          data: {
+            'buyerId': buyerId,
+            'name': name,
+            'email': email,
+            'phone': phone,
+            'address': address,
+            'buyerCity': buyerCity,
+            'additionalNote': additionalNote ?? '',
+            'products': products,
+            'shipmentCharges': shipmentCharges,
+          },
+        );
+        _orderQueued = true;
         _loading = false;
         notifyListeners();
         return;
@@ -84,12 +113,10 @@ class CreateOrderProvider with ChangeNotifier {
         products: products,
         shipmentCharges: shipmentCharges,
         paymentMethod: paymentMethod,
-        // Attach pre-verified payment refs
         walletTxnId: paymentMethod == 'wallet' ? _walletTxnId : null,
         jazzcashTxnRef: paymentMethod == 'jazzcash' ? _jazzcashTxnRef : null,
       );
 
-      // Clear payment refs after successful order
       if (_orderData?.order != null ||
           (_orderData?.orders != null && _orderData!.orders!.isNotEmpty)) {
         _walletTxnId = null;
@@ -104,6 +131,36 @@ class CreateOrderProvider with ChangeNotifier {
 
     _loading = false;
     notifyListeners();
+  }
+
+  /// Process queued COD orders — called by ConnectivityProvider on reconnect.
+  Future<void> processOfflineQueue() async {
+    final items = await OfflineQueue.getAll();
+    final codItems =
+        items.where((e) => e['type'] == 'cod_order').toList();
+    if (codItems.isEmpty) return;
+
+    for (final item in codItems) {
+      try {
+        final d = item['data'] as Map<String, dynamic>;
+        final result = await repository.createOrder(
+          buyerId: d['buyerId'] as String,
+          name: d['name'] as String,
+          email: d['email'] as String,
+          phone: d['phone'] as String,
+          address: d['address'] as String,
+          buyerCity: d['buyerCity'] as String,
+          additionalNote: d['additionalNote'] as String?,
+          products: List<Map<String, dynamic>>.from(d['products'] as List),
+          shipmentCharges: (d['shipmentCharges'] as num).toInt(),
+          paymentMethod: 'cod',
+        );
+        if (result.order != null ||
+            (result.orders != null && result.orders!.isNotEmpty)) {
+          await OfflineQueue.remove(item['id'] as String);
+        }
+      } catch (_) {}
+    }
   }
 
   // ──────────────────────────────────────────────────────────────────────────

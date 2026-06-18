@@ -8,8 +8,10 @@ class GetFavouriteListRepository {
 
   Future<FavouriteListModel> getFavouriteList(String userId) async {
     try {
-      final url = '$apiUrl/?userId=$userId';
-      final response = await apiServices.getApi(url);
+      final response = await apiServices.cachedGetApi(
+        'favourites_$userId',
+        '$apiUrl/?userId=$userId',
+      );
       return FavouriteListModel.fromJson(response);
     } catch (e) {
       return FavouriteListModel(success: false, favourites: []);

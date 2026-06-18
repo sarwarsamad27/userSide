@@ -11,9 +11,10 @@ import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/view/auth/splashView.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/notificationScreen/notification_route.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
-import 'package:user_side/viewModel/provider/multiProvider/multiProvider.dart';
-import 'package:user_side/view/common/no_internet_screen.dart';
 import 'package:user_side/viewModel/provider/connectivity_provider.dart';
+import 'package:user_side/viewModel/provider/favouriteProvider/getFavourite_provider.dart';
+import 'package:user_side/viewModel/provider/multiProvider/multiProvider.dart';
+import 'package:user_side/viewModel/provider/orderProvider/createOrder_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
@@ -39,8 +40,39 @@ class AppWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppMultiProvider(child: const MyApp());
+    return AppMultiProvider(
+      child: _OfflineSyncRegistrar(child: const MyApp()),
+    );
   }
+}
+
+/// Registers offline-queue flush callbacks with ConnectivityProvider once
+/// the full provider tree is available.
+class _OfflineSyncRegistrar extends StatefulWidget {
+  final Widget child;
+  const _OfflineSyncRegistrar({required this.child});
+  @override
+  State<_OfflineSyncRegistrar> createState() => _OfflineSyncRegistrarState();
+}
+
+class _OfflineSyncRegistrarState extends State<_OfflineSyncRegistrar> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final connectivity = context.read<ConnectivityProvider>();
+      connectivity.addReconnectCallback(
+        context.read<FavouriteProvider>().processOfflineQueue,
+      );
+      connectivity.addReconnectCallback(
+        context.read<CreateOrderProvider>().processOfflineQueue,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 class MyApp extends StatefulWidget {
@@ -112,17 +144,41 @@ class _MyAppState extends State<MyApp> {
         return Consumer<ConnectivityProvider>(
           builder: (context, connectivity, child) {
             return MaterialApp(
-              navigatorKey: NotificationRouter.navigatorKey, // ✅ single key
+              navigatorKey: NotificationRouter.navigatorKey,
               debugShowCheckedModeBanner: false,
               title: 'SHOOKOO',
               theme: AppTheme.lightTheme,
-              home: !connectivity.isConnected
-                  ? NoInternetScreen(
-                      onRetry: () {
-                        // Handled by provider
-                      },
-                    )
-                  : SplashScreen(),
+              home: SplashScreen(),
+              builder: (context, child) => Column(
+                children: [
+                  if (!connectivity.isConnected)
+                    Material(
+                      child: SafeArea(
+                        bottom: false,
+                        child: Container(
+                          width: double.infinity,
+                          color: const Color(0xFFE65100),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 6, horizontal: 16),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.wifi_off,
+                                  color: Colors.white, size: 14),
+                              SizedBox(width: 6),
+                              Text(
+                                'No internet — cached data',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  Expanded(child: child!),
+                ],
+              ),
             );
           },
         );

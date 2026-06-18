@@ -10,8 +10,9 @@ class GetPopularCategoryRepository {
 
   Future<PopularCategoryModel> getPopularCategory() async {
     try {
-      final response = await apiServices.getApi(apiUrl);
-      log("repo" + response.toString());
+      final response =
+          await apiServices.cachedGetApi('popular_categories', apiUrl);
+      log("repo $response");
       return PopularCategoryModel.fromJson(response);
     } catch (e) {
       log("Error in Popular Category Repository: $e");
