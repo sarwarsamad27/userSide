@@ -105,10 +105,20 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _handleDeepLink(Uri uri) {
-    // Handles: shookoo://p/<productId>/<slug>?profileId=xxx&categoryId=yyy
-    if (uri.scheme != "shookoo" || uri.host != "p") return;
+    // Handles both:
+    //   shookoo://p/<productId>/<slug>?profileId=xxx&categoryId=yyy   (custom scheme)
+    //   https://<host>/p/<productId>/<slug>?profileId=xxx&categoryId=yyy (App Links)
+    List<String> segments;
+    if (uri.scheme == "shookoo" && uri.host == "p") {
+      segments = uri.pathSegments; // [productId, slug]
+    } else if ((uri.scheme == "https" || uri.scheme == "http") &&
+        uri.pathSegments.isNotEmpty &&
+        uri.pathSegments.first == "p") {
+      segments = uri.pathSegments.skip(1).toList(); // drop leading "p"
+    } else {
+      return;
+    }
 
-    final segments   = uri.pathSegments; // [productId, slug]
     if (segments.isEmpty) return;
 
     final productId  = segments[0];

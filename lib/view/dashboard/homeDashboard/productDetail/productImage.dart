@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:user_side/resources/global.dart';
+import 'package:user_side/resources/media_cache_service.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/MediaFullscreenViewer.dart';
+import 'package:user_side/widgets/cached_image.dart';
 import 'package:video_player/video_player.dart';
 
 class ProductImage extends StatefulWidget {
@@ -39,12 +41,25 @@ class _ProductImageState extends State<ProductImage> {
   Future<void> _initVideo() async {
     final url = widget.videoUrl?.trim();
     if (url == null || url.isEmpty) return;
-    _videoCtrl = VideoPlayerController.networkUrl(Uri.parse(url));
+
+    // Cache-first: play from local disk if already downloaded, else stream
+    // from network and cache it in the background for next time.
+    final cached = await MediaCacheService.getCachedFile(url);
     try {
+      _videoCtrl = cached != null
+          ? VideoPlayerController.file(cached)
+          : VideoPlayerController.networkUrl(Uri.parse(url));
       await _videoCtrl!.initialize();
       _videoCtrl!.setLooping(true);
       if (mounted) setState(() => _videoReady = true);
-    } catch (_) {}
+    } catch (_) {
+      return;
+    }
+
+    if (cached == null) {
+      // Not cached yet — download in the background so next view is offline-ready
+      MediaCacheService.getOrDownloadStreamed(url);
+    }
   }
 
   @override
@@ -125,9 +140,10 @@ class _ProductImageState extends State<ProductImage> {
                         fit: StackFit.expand,
                         children: [
                           // Background shade (blurred version of the same image)
-                          Image.network(
-                            processedUrls[index],
+                          CachedImage(
+                            url: processedUrls[index],
                             fit: BoxFit.cover,
+                            placeholderBuilder: (_) => const SizedBox(),
                             errorBuilder: (_, __, ___) => const SizedBox(),
                           ),
                           // Blur effect
@@ -140,8 +156,8 @@ class _ProductImageState extends State<ProductImage> {
                             ),
                           ),
                           // Foreground image (full image)
-                          Image.network(
-                            processedUrls[index],
+                          CachedImage(
+                            url: processedUrls[index],
                             fit: BoxFit.contain,
                             width: double.infinity,
                             errorBuilder: (_, __, ___) =>
@@ -292,9 +308,10 @@ class _NetworkVideoPlayerState extends State<_NetworkVideoPlayer> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    widget.backgroundUrl!,
+                  CachedImage(
+                    url: widget.backgroundUrl!,
                     fit: BoxFit.cover,
+                    placeholderBuilder: (_) => const SizedBox(),
                     errorBuilder: (_, __, ___) => const SizedBox(),
                   ),
                   ClipRect(

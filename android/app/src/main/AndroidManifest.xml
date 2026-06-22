@@ -48,14 +48,14 @@
             android:host="p" />
     </intent-filter>
 
-    <!-- ✅ HTTPS: https://shookoo.pk/p/productId/slug -->
+    <!-- ✅ HTTPS: https://seller-and-buyer-backend.onrender.com/p/productId/slug -->
     <intent-filter android:autoVerify="true">
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data
             android:scheme="https"
-            android:host="shookoo.pk"
+            android:host="seller-and-buyer-backend.onrender.com"
             android:pathPrefix="/p/" />
     </intent-filter>
 

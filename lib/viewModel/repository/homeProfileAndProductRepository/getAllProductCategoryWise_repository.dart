@@ -10,7 +10,10 @@ class GetAllProductCategoryWiseRepository {
       String profileId) async {
     try {
       final url = '$apiUrl?profileId=$profileId&categoryId=$categoryId';
-      final response = await apiServices.getApi(url);
+      final response = await apiServices.cachedGetApi(
+        'products_profile_${profileId}_cat_$categoryId',
+        url,
+      );
       return GetAllProductCategoryWiseModel.fromJson(response);
     } catch (e) {
       return GetAllProductCategoryWiseModel(

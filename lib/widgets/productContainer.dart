@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lottie/lottie.dart';
 import 'dart:math'; // ✅ ADD THIS IMPORT
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
+import 'package:user_side/widgets/cached_image.dart';
 
 class CategoryTile extends StatefulWidget {
   final String name;
@@ -96,8 +96,8 @@ class _CategoryTileState extends State<CategoryTile>
                   Positioned.fill(
                     child: finalImageUrl.isEmpty
                         ? buildPlaceholder()
-                        : Image.network(
-                            finalImageUrl,
+                        : CachedImage(
+                            url: finalImageUrl,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
                                 buildPlaceholder(),

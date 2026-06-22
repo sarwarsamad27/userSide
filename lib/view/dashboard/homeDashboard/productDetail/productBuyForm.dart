@@ -14,6 +14,7 @@ import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart'
 import 'package:user_side/viewModel/provider/deliveryProvider/delivery_settings_provider.dart';
 import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/local_storage.dart';
+import 'package:user_side/widgets/cached_image.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 import 'package:user_side/widgets/customButton.dart';
 import 'package:user_side/widgets/customContainer.dart';
@@ -391,6 +392,40 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
   // Handle order result
   // ──────────────────────────────────────────────────────────────────────────
   void _handleOrderResult(CreateOrderProvider provider) {
+    // Offline COD: order was queued locally and will sync automatically once
+    // internet returns — treat this as success, not failure.
+    if (provider.orderQueued) {
+      _saveFormData();
+
+      try {
+        context.read<GetSingleProductProvider>().decrementStock(
+          _quantityNotifier.value,
+        );
+      } catch (_) {}
+
+      if (mounted) {
+        Utils.showOrderSuccessLottie(
+          context,
+          message:
+              "No internet — order saved! It will be placed automatically once you're back online.",
+        );
+      }
+
+      final List<String> orderedProductIds = [];
+      if (widget.favouriteItems != null && widget.favouriteItems!.isNotEmpty) {
+        for (var item in widget.favouriteItems!) {
+          final pid = item['productId'];
+          if (pid != null) orderedProductIds.add(pid.toString());
+        }
+      } else {
+        orderedProductIds.addAll(widget.productId);
+      }
+      context.read<FavouriteProvider>().deleteOrderedFavourites(
+        orderedProductIds,
+      );
+      return;
+    }
+
     final data = provider.orderData;
     if (data != null &&
         (data.order != null ||
@@ -517,8 +552,8 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                   children: [
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(8.r),
-                                      child: Image.network(
-                                        Global.getImageUrl(item['imageUrl']),
+                                      child: CachedImage(
+                                        url: Global.getImageUrl(item['imageUrl']),
                                         height: 60.h,
                                         width: 60.w,
                                         fit: BoxFit.cover,
@@ -581,8 +616,8 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(10.r),
-                              child: Image.network(
-                                widget.imageUrl!,
+                              child: CachedImage(
+                                url: widget.imageUrl!,
                                 height: 60.h,
                                 width: 60.w,
                                 fit: BoxFit.cover,

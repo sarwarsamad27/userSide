@@ -10,7 +10,10 @@ class GetAllCategoryProfileWiseRepository {
       String profileId) async {
     try {
       final url = '$apiUrl?profileId=$profileId';
-      final response = await apiServices.getApi(url);
+      final response = await apiServices.cachedGetApi(
+        'categories_profile_$profileId',
+        url,
+      );
       return GetAllCategoryProfileWiseModel.fromJson(response);
     } catch (e) {
       return GetAllCategoryProfileWiseModel(

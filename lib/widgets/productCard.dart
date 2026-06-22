@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
-import 'package:user_side/resources/utiles.dart';
+import 'package:user_side/widgets/cached_image.dart';
 
 class ProductCard extends StatelessWidget {
   final String name;
@@ -63,13 +63,9 @@ class ProductCard extends StatelessWidget {
                   ),
                   child: AspectRatio(
                     aspectRatio: 1.2,
-                    child: Image.network(
-                      Global.getImageUrl(imageUrl),
+                    child: CachedImage(
+                      url: Global.getImageUrl(imageUrl),
                       fit: BoxFit.cover,
-                      loadingBuilder: (context, child, progress) {
-                        if (progress == null) return child;
-                        return Utils.loadingLottie(size: 40);
-                      },
                       errorBuilder: (context, error, stackTrace) => Container(
                         color: Colors.grey[100],
                         alignment: Alignment.center,

@@ -14,7 +14,8 @@ class GetAllProfileRepository {
   }) async {
     try {
       final deviceId = await LocalStorage.getOrCreateDeviceId();
-      final response = await apiServices.getApi(
+      final response = await apiServices.cachedGetApi(
+        'profiles_p${page}_l$limit',
         "$apiUrl?deviceId=$deviceId&page=$page&limit=$limit",
       );
       return GetAllProfileModel.fromJson(response);

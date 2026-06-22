@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:user_side/resources/media_cache_service.dart';
 import 'package:video_player/video_player.dart';
 
 class MediaFullscreenViewer extends StatefulWidget {
@@ -67,22 +69,32 @@ class _MediaFullscreenViewerState extends State<MediaFullscreenViewer> {
             },
             itemBuilder: (context, index) {
               if (index < widget.imageUrls.length) {
+                final url = widget.imageUrls[index];
                 return GestureDetector(
                   onTap: _toggleAppBar,
-                  child: PhotoView(
-                    imageProvider: NetworkImage(widget.imageUrls[index]),
-                    minScale: PhotoViewComputedScale.contained,
-                    maxScale: PhotoViewComputedScale.covered * 4.0,
-                    onScaleEnd: (context, details, value) {
-                      if (value.scale! <= 1.0) {
-                        if (!_canScroll) setState(() => _canScroll = true);
-                      } else {
-                        if (_canScroll) setState(() => _canScroll = false);
-                      }
+                  child: FutureBuilder<File?>(
+                    future: MediaCacheService.getCachedFile(url),
+                    builder: (context, snapshot) {
+                      final ImageProvider imageProvider =
+                          snapshot.data != null
+                              ? FileImage(snapshot.data!)
+                              : NetworkImage(url);
+                      return PhotoView(
+                        imageProvider: imageProvider,
+                        minScale: PhotoViewComputedScale.contained,
+                        maxScale: PhotoViewComputedScale.covered * 4.0,
+                        onScaleEnd: (context, details, value) {
+                          if (value.scale! <= 1.0) {
+                            if (!_canScroll) setState(() => _canScroll = true);
+                          } else {
+                            if (_canScroll) setState(() => _canScroll = false);
+                          }
+                        },
+                        loadingBuilder: (context, progress) => const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        ),
+                      );
                     },
-                    loadingBuilder: (context, progress) => const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
-                    ),
                   ),
                 );
               } else {
@@ -158,7 +170,7 @@ class _FullScreenVideoPlayer extends StatefulWidget {
 }
 
 class _FullScreenVideoPlayerState extends State<_FullScreenVideoPlayer> {
-  late VideoPlayerController _ctrl;
+  VideoPlayerController? _ctrl;
   bool _isLocalController = false;
 
   @override
@@ -166,25 +178,44 @@ class _FullScreenVideoPlayerState extends State<_FullScreenVideoPlayer> {
     super.initState();
     if (widget.controller != null) {
       _ctrl = widget.controller!;
+      _ctrl!.play();
     } else {
-      _ctrl = VideoPlayerController.networkUrl(Uri.parse(widget.url));
-      _isLocalController = true;
-      _ctrl.initialize().then((_) => setState(() {}));
+      _initOwnController();
     }
-    _ctrl.play();
+  }
+
+  Future<void> _initOwnController() async {
+    final cached = await MediaCacheService.getCachedFile(widget.url);
+    final ctrl = cached != null
+        ? VideoPlayerController.file(cached)
+        : VideoPlayerController.networkUrl(Uri.parse(widget.url));
+    _isLocalController = true;
+    try {
+      await ctrl.initialize();
+    } catch (_) {
+      return;
+    }
+    if (!mounted) {
+      ctrl.dispose();
+      return;
+    }
+    setState(() => _ctrl = ctrl);
+    ctrl.play();
+    if (cached == null) MediaCacheService.getOrDownloadStreamed(widget.url);
   }
 
   @override
   void dispose() {
     if (_isLocalController) {
-      _ctrl.dispose();
+      _ctrl?.dispose();
     }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_ctrl.value.isInitialized) {
+    final ctrl = _ctrl;
+    if (ctrl == null || !ctrl.value.isInitialized) {
       return const Center(
         child: CircularProgressIndicator(color: Colors.white),
       );
@@ -192,17 +223,17 @@ class _FullScreenVideoPlayerState extends State<_FullScreenVideoPlayer> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          _ctrl.value.isPlaying ? _ctrl.pause() : _ctrl.play();
+          ctrl.value.isPlaying ? ctrl.pause() : ctrl.play();
         });
       },
       child: Stack(
         alignment: Alignment.center,
         children: [
           AspectRatio(
-            aspectRatio: _ctrl.value.aspectRatio,
-            child: VideoPlayer(_ctrl),
+            aspectRatio: ctrl.value.aspectRatio,
+            child: VideoPlayer(ctrl),
           ),
-          if (!_ctrl.value.isPlaying)
+          if (!ctrl.value.isPlaying)
             const CircleAvatar(
               radius: 30,
               backgroundColor: Colors.black45,
@@ -213,7 +244,7 @@ class _FullScreenVideoPlayerState extends State<_FullScreenVideoPlayer> {
             left: 20,
             right: 20,
             child: VideoProgressIndicator(
-              _ctrl,
+              ctrl,
               allowScrubbing: true,
               colors: const VideoProgressColors(
                 playedColor: Colors.white,

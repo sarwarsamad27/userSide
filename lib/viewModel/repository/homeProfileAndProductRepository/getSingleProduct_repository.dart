@@ -12,7 +12,10 @@ class GetSingleProductRepository {
       ) async {
     try {
       final url = '$apiUrl?profileId=$profileId&categoryId=$categoryId&productId=$productId';
-      final response = await apiServices.getApi(url);
+      final response = await apiServices.cachedGetApi(
+        'product_$productId',
+        url,
+      );
       return GetSingleProductModel.fromJson(response);
     } catch (e) {
       return GetSingleProductModel(

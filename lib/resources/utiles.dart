@@ -152,7 +152,10 @@ class Utils {
     });
   }
 
-  static void showOrderSuccessLottie(BuildContext context) {
+  static void showOrderSuccessLottie(
+    BuildContext context, {
+    String message = "Order Placed Successfully",
+  }) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -174,7 +177,7 @@ class Utils {
     );
     Future.delayed(const Duration(milliseconds: 2500), () {
       if (Navigator.canPop(context)) {
-        PremiumToast.success(context, "Order Placed Successfully");
+        PremiumToast.success(context, message);
         Navigator.pop(context);
         Navigator.pop(context);
       }

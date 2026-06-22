@@ -8,7 +8,10 @@ class OtherProductRepository {
 
   Future<OtherProductModel> otherProduct(int page , String productId , int limit) async {
     try {
-      final response = await apiServices.getApi("$apiUrl?productId=$productId&page=$page&limit=$limit");
+      final response = await apiServices.cachedGetApi(
+        'other_products_${productId}_p${page}_l$limit',
+        "$apiUrl?productId=$productId&page=$page&limit=$limit",
+      );
       return OtherProductModel.fromJson(response);
     } catch (e) {
       return OtherProductModel(otherProducts: [], message: "Error: $e");
