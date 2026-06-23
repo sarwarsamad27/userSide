@@ -288,6 +288,17 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
     final provider = context.read<CreateOrderProvider>();
 
     final productTotal = _getProductsTotal();
+    final isFromFavourite =
+        widget.favouriteItems != null && widget.favouriteItems!.isNotEmpty;
+    final displayName = isFromFavourite
+        ? (widget.favouriteItems!.length == 1
+            ? widget.favouriteItems!.first['name']?.toString()
+            : '${widget.favouriteItems!.length} items')
+        : widget.name;
+    final displayImage = isFromFavourite
+        ? widget.favouriteItems!.first['imageUrl']?.toString()
+        : widget.imageUrl;
+
     await provider.placeOrder(
       name: _nameController.text.trim(),
       email: _emailController.text.trim(),
@@ -298,6 +309,9 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
       products: _buildProductList(),
       shipmentCharges: _delivery.getShipmentCharges(productTotal).toInt(),
       paymentMethod: 'cod',
+      displayName: displayName,
+      displayImage: displayImage,
+      displayProductTotal: productTotal,
     );
 
     _loadingNotifier.value = false;

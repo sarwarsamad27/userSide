@@ -99,7 +99,7 @@ class NetworkApiServices extends BaseApiServices {
   /// When online, hits the network, updates cache on success, falls back to
   /// cache on failure. If no cache exists at all, returns the original error.
   Future<Map<String, dynamic>> cachedGetApi(String cacheKey, String url) async {
-    if (!ConnectivityProvider.online) {
+    if (!ConnectivityProvider.hasNetworkInterface) {
       final cached = await CacheService.getData(cacheKey);
       if (cached != null) return Map<String, dynamic>.from(cached as Map);
       return {'code_status': false, 'message': 'No internet connection'};

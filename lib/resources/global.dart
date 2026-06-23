@@ -3,10 +3,10 @@
 class Global {
   // static var imageUrl = "http://192.168.88.59:5000";
   // static var BaseUrl = "http://192.168.88.59:5000/api/auth";
-  // static var imageUrl = "http://10.0.2.2:5000";
-  // static var BaseUrl = "http://10.0.2.2:5000/api/auth";
-  static var BaseUrl = "https://seller-and-buyer-backend.onrender.com/api/auth";
-  static var imageUrl = "https://seller-and-buyer-backend.onrender.com";
+  static var imageUrl = "http://10.0.2.2:5000";
+  static var BaseUrl = "http://10.0.2.2:5000/api/auth";
+//   static var BaseUrl = "https://seller-and-buyer-backend.onrender.com/api/auth";
+//   static var imageUrl = "https://seller-and-buyer-backend.onrender.com";
   static var SignUp = "${BaseUrl}/buyer/signup";
   static var Login = "${BaseUrl}/buyer/login";
   static var GoogleLogin = "${BaseUrl}/buyer/google/login";
@@ -49,12 +49,6 @@ class Global {
   static String downloadSlip(String trackNumber) =>
       "${imageUrl}/api/chat/download-slip/$trackNumber";
   static var WalletBalance = "${BaseUrl}/buyer/wallet/balance";
-  // static var AddMoneySendOtp = "${BaseUrl}/buyer/wallet/add-money/send-otp";
-  // static var AddMoneyVerifyOtp = "${BaseUrl}/buyer/wallet/add-money/verify-otp";
-  static var AddMoneySendOtp =
-      "${BaseUrl}/buyer/wallet/jazzcash/mwallet/initiate";
-  static var AddMoneyVerifyOtp =
-      "${BaseUrl}/buyer/wallet/jazzcash/mwallet/confirm";
   static var SendMoneySendOtp = "${BaseUrl}/buyer/wallet/send-money/send-otp";
   static var SendMoneyVerifyOtp =
       "${BaseUrl}/buyer/wallet/send-money/verify-otp";
@@ -66,8 +60,7 @@ class Global {
   static var DeletePaymentMethod =
       "${BaseUrl}/buyer/wallet/payment-methods/delete";
   static var SafepayCheckout = "${BaseUrl}/buyer/wallet/safepay/checkout";
-  static var JazzcashInitiate = "${BaseUrl}/jazzcash-initiate";
-  static var JazzcashBuyerStart = "${BaseUrl}/buyer/jazzcash/start";
+  static var SafepayStatus = "${BaseUrl}/buyer/wallet/safepay/status";
 
   // ── Exchange (Buyer) ──────────────────────────────────────────
   static var createExchangeRequest = "${BaseUrl}/buyer/create/exchange/request";

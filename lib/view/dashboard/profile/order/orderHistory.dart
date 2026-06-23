@@ -16,6 +16,7 @@ import 'package:user_side/view/dashboard/profile/order/reviewScreen.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/exchange_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/getMyOrder_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/review_provider.dart';
+import 'package:user_side/viewModel/provider/syncCoordinator_provider.dart';
 import 'package:user_side/models/order/myOrderModel.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
@@ -29,6 +30,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  int _lastSeenSyncVersion = -1;
 
   @override
   void initState() {
@@ -36,7 +38,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     final provider = Provider.of<GetMyOrderProvider>(context, listen: false);
     if (provider.orderList.isEmpty) {
       provider.fetchMyOrders(isRefresh: true);
+    } else {
+      provider.refreshPendingOrders();
     }
+    _lastSeenSyncVersion = context.read<SyncCoordinator>().syncVersion;
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
               _scrollController.position.maxScrollExtent - 200 &&
@@ -395,6 +400,16 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   }
 
   Widget _buildScaffold(BuildContext context) {
+    final sync = context.watch<SyncCoordinator>();
+    if (sync.syncVersion != _lastSeenSyncVersion) {
+      _lastSeenSyncVersion = sync.syncVersion;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Provider.of<GetMyOrderProvider>(context, listen: false)
+            .fetchMyOrders(isRefresh: true);
+      });
+    }
+
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
@@ -430,6 +445,40 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
             return Column(
               children: [
+                if (sync.isSyncing)
+                  Container(
+                    width: double.infinity,
+                    color: Colors.orange.shade50,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 8.h,
+                    ),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 14.w,
+                          height: 14.w,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.orange.shade800,
+                          ),
+                        ),
+                        SizedBox(width: 10.w),
+                        Expanded(
+                          child: Text(
+                            "Syncing offline orders — ${sync.completed}/${sync.total} (${(sync.percent * 100).round()}%)",
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: Colors.orange.shade800,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (provider.pendingOrders.isNotEmpty)
+                  ..._buildPendingOrderCards(provider.pendingOrders),
                 // ── SEARCH BAR ──────────────────────────────────────────
                 Container(
                   color: AppColor.primaryColor,
@@ -511,6 +560,92 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         ),
       ),
     );
+  }
+
+  // ── Pending (offline-queued) order cards ───────────────────────────────────
+  // Simple summary cards — deliberately not routed through _buildOrderCard,
+  // which assumes a real backend order id (cancel/exchange/review actions).
+  List<Widget> _buildPendingOrderCards(List<Map<String, dynamic>> pending) {
+    return pending.map((item) {
+      final data = item['data'] as Map<String, dynamic>;
+      final name = data['displayName']?.toString() ?? 'Order';
+      final image = data['displayImage']?.toString();
+      final grandTotal = (data['grandTotal'] as num?)?.toDouble() ?? 0;
+
+      return Container(
+        margin: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 0),
+        padding: EdgeInsets.all(12.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(color: Colors.orange.shade200),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8.r),
+              child: image != null && image.isNotEmpty
+                  ? Image.network(
+                      Global.getImageUrl(image),
+                      height: 48.h,
+                      width: 48.w,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 48.h,
+                        width: 48.w,
+                        color: Colors.grey[200],
+                      ),
+                    )
+                  : Container(
+                      height: 48.h,
+                      width: 48.w,
+                      color: Colors.grey[200],
+                    ),
+            ),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    "Rs ${grandTotal.toStringAsFixed(0)} — waiting for internet",
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade100,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Text(
+                "Syncing…",
+                style: TextStyle(
+                  fontSize: 10.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.orange.shade800,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList();
   }
 
   // ── Order List Builder ─────────────────────────────────────────────────────

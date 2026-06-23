@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:user_side/models/walletModel/walletModel.dart';
 import 'package:user_side/resources/appColor.dart';
-import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/premium_toast.dart';
 import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
 
@@ -17,86 +19,66 @@ class AddMoneyScreen extends StatefulWidget {
 
 class _AddMoneyScreenState extends State<AddMoneyScreen> {
   final _amountCtrl = TextEditingController();
-  final _phoneCtrl  = TextEditingController();
-  final _otpCtrl    = TextEditingController();
-
-  bool _otpSent   = false;
-  String? _txnRef;
   String? _error;
 
-  static const Color _jcRed = Color(0xFFCC0000);
+  static const Color _spBlue = Color(0xFF1E5AFF);
 
   final List<int> _quickAmounts = [500, 1000, 2000, 5000];
-
-  String get _userId => context.read<AuthSession>().userId ?? '';
 
   @override
   void dispose() {
     _amountCtrl.dispose();
-    _phoneCtrl.dispose();
-    _otpCtrl.dispose();
     super.dispose();
   }
 
-  // ── Step 1: send request to backend → backend calls JazzCash → JazzCash sends OTP ──
-  Future<void> _sendOtp() async {
+  Future<void> _startCheckout() async {
     setState(() => _error = null);
-    final phone = _phoneCtrl.text.trim();
-    final amt   = double.tryParse(_amountCtrl.text.trim()) ?? 0;
+    final amt = double.tryParse(_amountCtrl.text.trim()) ?? 0;
 
-    if (!RegExp(r'^03[0-9]{9}$').hasMatch(phone)) {
-      setState(() => _error = 'Valid number enter karein (03XXXXXXXXX)');
-      return;
-    }
     if (amt < 100) {
       setState(() => _error = 'Minimum Rs 100');
       return;
     }
-
-    final ok = await context.read<WalletProvider>().sendAddMoneyOtp(
-      buyerId:     _userId,
-      amount:      amt,
-      method:      'jazzcash_mwallet',
-      phoneNumber: phone,
-    );
-
-    if (!mounted) return;
-    if (ok) {
-      setState(() {
-        _txnRef  = context.read<WalletProvider>().lastTxnRefNo;
-        _otpSent = true;
-      });
-    } else {
-      final err = context.read<WalletProvider>().errorMessage;
-      setState(() => _error = err.isNotEmpty ? err : 'OTP send karne mein error. Dobara try karein.');
-    }
-  }
-
-  // ── Step 2: send OTP to backend → backend confirms with JazzCash → wallet credited ──
-  Future<void> _verify() async {
-    setState(() => _error = null);
-    final otp = _otpCtrl.text.trim();
-    if (otp.length < 4) {
-      setState(() => _error = 'OTP enter karein');
+    if (amt > 50000) {
+      setState(() => _error = 'Maximum Rs 50,000');
       return;
     }
 
     final provider = context.read<WalletProvider>();
-    final result = await provider.verifyAddMoneyOtp(
-      buyerId:     _userId,
-      phoneNumber: _phoneCtrl.text.trim(),
-      otp:         otp,
-      txnRefNo:    _txnRef ?? '',
-    );
+    final checkout = await provider.initSafepayCheckout(amount: amt);
 
     if (!mounted) return;
-    if (result != null) {
-      PremiumToast.success(context, 'Rs ${_amountCtrl.text} wallet mein add ho gaye!');
-      Navigator.pop(context, true);
-    } else {
-      final err = provider.errorMessage;
-      setState(() => _error = err.isNotEmpty ? err : 'OTP galat ya expire ho gaya');
+    if (!checkout.success) {
+      setState(() => _error = provider.errorMessage.isNotEmpty
+          ? provider.errorMessage
+          : 'Could not start payment. Try again.');
+      return;
     }
+
+    final result = await Navigator.push<SafepayStatusModel>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => _SafepayCheckoutScreen(
+          checkoutUrl: checkout.url,
+          trackId: checkout.trackId,
+          amount: amt,
+        ),
+      ),
+    );
+
+    if (!mounted || result == null) return;
+
+    if (result.isSuccess) {
+      PremiumToast.success(context, 'Rs ${amt.toStringAsFixed(0)} wallet mein add ho gaye!');
+      Navigator.pop(context, true);
+    } else if (!result.isPending) {
+      setState(() => _error = result.message.isNotEmpty
+          ? result.message
+          : 'Payment could not be confirmed.');
+    }
+    // isPending (timed out while polling) — leave the user on this screen;
+    // the webhook will still credit the wallet once Safepay confirms, and
+    // the balance will simply update next time they check it.
   }
 
   @override
@@ -113,9 +95,9 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
               color: Color(0xFF1A1A2E), size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Add Money via JazzCash',
-            style: TextStyle(color:  Colors.white,
-                fontSize: 17.sp, fontWeight: FontWeight.w700)),
+        title: Text('Add Money',
+            style: TextStyle(
+                color: Colors.white, fontSize: 17.sp, fontWeight: FontWeight.w700)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -125,203 +107,98 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
           children: [
             SizedBox(height: 8.h),
 
-            // ── JazzCash header ───────────────────────────────────────────
             Center(
               child: Column(children: [
                 Container(
-                  width: 72.r, height: 72.r,
+                  width: 72.r,
+                  height: 72.r,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF0F0),
+                    color: const Color(0xFFEAF0FF),
                     shape: BoxShape.circle,
                     border: Border.all(
-                        color: _jcRed.withValues(alpha: 0.3), width: 2),
+                        color: _spBlue.withValues(alpha: 0.3), width: 2),
                   ),
-                  child: ClipOval(
-                    child: Image.asset('assets/images/JazzCashLogo.jpg',
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(
-                            Icons.account_balance_wallet_rounded,
-                            color: _jcRed, size: 36.sp)),
-                  ),
+                  child: Icon(Icons.shield_outlined, color: _spBlue, size: 34.sp),
                 ),
                 SizedBox(height: 12.h),
-                if (!_otpSent)
-                  Text('JazzCash se payment karein',
-                      style: TextStyle(fontSize: 14.sp,
-                          color: Colors.grey.shade600))
-                else
-                  Text('OTP aapke JazzCash number pe bheja gaya',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14.sp,
-                          color: Colors.grey.shade700)),
+                Text('Secure payment via Safepay',
+                    style:
+                        TextStyle(fontSize: 14.sp, color: Colors.grey.shade600)),
               ]),
             ),
             SizedBox(height: 28.h),
 
-            if (!_otpSent) ...[
-              // ── Amount ─────────────────────────────────────────────────
-              _label('Amount'),
-              SizedBox(height: 8.h),
-              TextField(
-                controller: _amountCtrl,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.w700),
-                decoration: InputDecoration(
-                  prefixText: 'Rs  ',
-                  prefixStyle: TextStyle(fontSize: 18.sp,
-                      fontWeight: FontWeight.w500, color: Colors.grey),
-                  hintText: '100',
-                  filled: true, fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14.r),
-                      borderSide: BorderSide.none),
-                  contentPadding: EdgeInsets.all(16.r),
-                ),
+            _label('Amount'),
+            SizedBox(height: 8.h),
+            TextField(
+              controller: _amountCtrl,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.w700),
+              decoration: InputDecoration(
+                prefixText: 'Rs  ',
+                prefixStyle: TextStyle(
+                    fontSize: 18.sp, fontWeight: FontWeight.w500, color: Colors.grey),
+                hintText: '100',
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14.r),
+                    borderSide: BorderSide.none),
+                contentPadding: EdgeInsets.all(16.r),
               ),
-              SizedBox(height: 10.h),
-              Wrap(
-                spacing: 8.w, runSpacing: 8.h,
-                children: _quickAmounts.map((a) => GestureDetector(
-                  onTap: () => setState(() => _amountCtrl.text = '$a'),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
-                    decoration: BoxDecoration(
-                      color: _amountCtrl.text == '$a'
-                          ? const Color(0xFF1A1A2E)
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(20.r),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Text('Rs $a',
-                        style: TextStyle(fontSize: 13.sp,
-                            fontWeight: FontWeight.w600,
+              onChanged: (_) => setState(() {}),
+            ),
+            SizedBox(height: 10.h),
+            Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              children: _quickAmounts
+                  .map((a) => GestureDetector(
+                        onTap: () => setState(() => _amountCtrl.text = '$a'),
+                        child: Container(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
+                          decoration: BoxDecoration(
                             color: _amountCtrl.text == '$a'
-                                ? Colors.white
-                                : const Color(0xFF1A1A2E))),
-                  ),
-                )).toList(),
-              ),
-              SizedBox(height: 20.h),
+                                ? const Color(0xFF1A1A2E)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(20.r),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Text('Rs $a',
+                              style: TextStyle(
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: _amountCtrl.text == '$a'
+                                      ? Colors.white
+                                      : const Color(0xFF1A1A2E))),
+                        ),
+                      ))
+                  .toList(),
+            ),
+            SizedBox(height: 28.h),
 
-              // ── Phone ──────────────────────────────────────────────────
-              _label('JazzCash Number'),
-              SizedBox(height: 8.h),
-              TextField(
-                controller: _phoneCtrl,
-                keyboardType: TextInputType.phone,
-                style: TextStyle(fontSize: 16.sp),
-                decoration: InputDecoration(
-                  hintText: '03XXXXXXXXX',
-                  prefixIcon: const Icon(Icons.phone_android_rounded),
-                  filled: true, fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14.r),
-                      borderSide: BorderSide.none),
-                  contentPadding: EdgeInsets.all(16.r),
+            SizedBox(
+              width: double.infinity,
+              height: 54.h,
+              child: ElevatedButton(
+                onPressed: provider.otpLoading ? null : _startCheckout,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _spBlue,
+                  shape:
+                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
                 ),
+                child: provider.otpLoading
+                    ? SpinKitThreeBounce(color: Colors.white, size: 22.sp)
+                    : Text('Continue to Payment',
+                        style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white)),
               ),
-              SizedBox(height: 28.h),
+            ),
 
-              SizedBox(
-                width: double.infinity, height: 54.h,
-                child: ElevatedButton(
-                  onPressed: provider.otpLoading ? null : _sendOtp,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _jcRed,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14.r)),
-                  ),
-                  child: provider.otpLoading
-                      ? SpinKitThreeBounce(color: Colors.white, size: 22.sp)
-                      : Text('OTP Bhejo',
-                          style: TextStyle(fontSize: 16.sp,
-                              fontWeight: FontWeight.w700, color: Colors.white)),
-                ),
-              ),
-            ] else ...[
-              // ── OTP Step ───────────────────────────────────────────────
-              Container(
-                padding: EdgeInsets.all(16.r),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16.r),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Row(children: [
-                  Icon(Icons.phone_android_rounded,
-                      color: _jcRed, size: 20.sp),
-                  SizedBox(width: 10.w),
-                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('JazzCash Number',
-                        style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
-                    Text(_phoneCtrl.text,
-                        style: TextStyle(fontSize: 15.sp,
-                            fontWeight: FontWeight.w700)),
-                  ]),
-                  const Spacer(),
-                  Text('Rs ${_amountCtrl.text}',
-                      style: TextStyle(fontSize: 15.sp,
-                          fontWeight: FontWeight.w700, color: _jcRed)),
-                ]),
-              ),
-              SizedBox(height: 24.h),
-
-              _label('6-Digit OTP'),
-              SizedBox(height: 8.h),
-              TextField(
-                controller: _otpCtrl,
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.w700,
-                    letterSpacing: 8),
-                decoration: InputDecoration(
-                  hintText: '------',
-                  hintStyle: TextStyle(letterSpacing: 8, color: Colors.grey.shade300),
-                  prefixIcon: const Icon(Icons.lock_outline_rounded),
-                  filled: true, fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14.r),
-                      borderSide: BorderSide.none),
-                  contentPadding: EdgeInsets.all(16.r),
-                  counterText: '',
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 28.h),
-
-              SizedBox(
-                width: double.infinity, height: 54.h,
-                child: ElevatedButton(
-                  onPressed: provider.verifyLoading ? null : _verify,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _jcRed,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14.r)),
-                  ),
-                  child: provider.verifyLoading
-                      ? SpinKitThreeBounce(color: Colors.white, size: 22.sp)
-                      : Text('Verify & Add Money',
-                          style: TextStyle(fontSize: 16.sp,
-                              fontWeight: FontWeight.w700, color: Colors.white)),
-                ),
-              ),
-              SizedBox(height: 12.h),
-              Center(
-                child: TextButton(
-                  onPressed: () => setState(() {
-                    _otpSent = false;
-                    _txnRef  = null;
-                    _otpCtrl.clear();
-                    _error   = null;
-                  }),
-                  child: Text('Number change karein',
-                      style: TextStyle(color: Colors.grey, fontSize: 13.sp)),
-                ),
-              ),
-            ],
-
-            // ── Error ───────────────────────────────────────────────────
             if (_error != null) ...[
               SizedBox(height: 14.h),
               Container(
@@ -334,8 +211,10 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
                 child: Row(children: [
                   Icon(Icons.error_outline, color: Colors.red, size: 18.sp),
                   SizedBox(width: 8.w),
-                  Expanded(child: Text(_error!,
-                      style: TextStyle(fontSize: 13.sp, color: Colors.red.shade700))),
+                  Expanded(
+                      child: Text(_error!,
+                          style:
+                              TextStyle(fontSize: 13.sp, color: Colors.red.shade700))),
                 ]),
               ),
             ],
@@ -347,6 +226,163 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
   }
 
   Widget _label(String t) => Text(t,
-      style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700,
-          color: const Color(0xFF1A1A2E)));
+      style: TextStyle(
+          fontSize: 14.sp, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A2E)));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Safepay Checkout WebView — shows the hosted checkout page while polling
+//  the backend for the webhook-confirmed payment status. The wallet is only
+//  ever credited server-side once Safepay's webhook confirms the payment —
+//  this screen just watches for that to happen.
+// ─────────────────────────────────────────────────────────────────────────────
+class _SafepayCheckoutScreen extends StatefulWidget {
+  final String checkoutUrl;
+  final String trackId;
+  final double amount;
+
+  const _SafepayCheckoutScreen({
+    required this.checkoutUrl,
+    required this.trackId,
+    required this.amount,
+  });
+
+  @override
+  State<_SafepayCheckoutScreen> createState() => _SafepayCheckoutScreenState();
+}
+
+class _SafepayCheckoutScreenState extends State<_SafepayCheckoutScreen> {
+  late final WebViewController _controller;
+  bool _loading = true;
+  bool _verifying = false;
+  bool _resolved = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (_) {
+            if (mounted) setState(() => _loading = true);
+          },
+          onPageFinished: (_) {
+            if (mounted) setState(() => _loading = false);
+          },
+          // Safepay redirects here once the checkout flow ends. We never
+          // need this page's actual content (the webhook is the source of
+          // truth for whether the payment succeeded) — only the fact that
+          // a redirect happened, so we check status immediately instead of
+          // waiting for the next poll tick. Intercepting this also avoids
+          // the WebView failing to load a plain-http page on some Android
+          // setups (ERR_CLEARTEXT_NOT_PERMITTED).
+          onNavigationRequest: (request) {
+            final path = Uri.tryParse(request.url)?.path ?? '';
+            if (path.contains('/safepay/success') ||
+                path.contains('/safepay/cancel')) {
+              _checkStatusNow();
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
+          },
+        ),
+      );
+
+    _enableThirdPartyCookies();
+    _controller.loadRequest(Uri.parse(widget.checkoutUrl));
+
+    _startPolling();
+  }
+
+  // Android WebView blocks third-party cookies by default. Safepay's 3D
+  // Secure step (Cardinal Commerce device fingerprinting + step-up iframe)
+  // is hosted on a different domain and relies on them to signal back to
+  // the parent page — without this, the checkout silently hangs at
+  // "Transaction submitted" and never proceeds to success/failure.
+  Future<void> _enableThirdPartyCookies() async {
+    final platform = _controller.platform;
+    if (platform is AndroidWebViewController) {
+      final cookieManager = WebViewCookieManager();
+      if (cookieManager.platform is AndroidWebViewCookieManager) {
+        await (cookieManager.platform as AndroidWebViewCookieManager)
+            .setAcceptThirdPartyCookies(platform, true);
+      }
+    }
+  }
+
+  Future<void> _checkStatusNow() async {
+    if (_resolved) return;
+    final provider = context.read<WalletProvider>();
+    final result = await provider.pollSafepayStatus(
+      widget.trackId,
+      maxAttempts: 1,
+    );
+    if (!mounted || result.isPending) return;
+    await _finish(result);
+  }
+
+  Future<void> _startPolling() async {
+    final provider = context.read<WalletProvider>();
+    final result = await provider.pollSafepayStatus(widget.trackId);
+    if (!mounted) return;
+
+    if (result.isPending) {
+      // Stopped polling without a terminal result (timeout) — let the user
+      // decide whether to keep waiting or leave; the webhook may still land.
+      return;
+    }
+
+    await _finish(result);
+  }
+
+  Future<void> _finish(SafepayStatusModel result) async {
+    if (_resolved || !mounted) return;
+    _resolved = true;
+    setState(() => _verifying = true);
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (mounted) Navigator.pop(context, result);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: AppColor.appimagecolor,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: Colors.white),
+          onPressed: () =>
+              Navigator.pop(context, SafepayStatusModel.error('Cancelled')),
+        ),
+        title: Text('Rs ${widget.amount.toStringAsFixed(0)}',
+            style: TextStyle(
+                color: Colors.white, fontSize: 17.sp, fontWeight: FontWeight.w700)),
+        centerTitle: true,
+      ),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _controller),
+          if (_loading)
+            const Center(child: CircularProgressIndicator()),
+          if (_verifying)
+            Container(
+              color: Colors.black.withValues(alpha: 0.6),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(color: Colors.white),
+                    SizedBox(height: 16.h),
+                    Text('Confirming payment…',
+                        style: TextStyle(color: Colors.white, fontSize: 14.sp)),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }

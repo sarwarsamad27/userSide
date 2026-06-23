@@ -44,7 +44,7 @@ class FavouriteProvider extends ChangeNotifier {
     required bool currentlyFavourited,
     required int index,
   }) async {
-    if (!ConnectivityProvider.online) {
+    if (!ConnectivityProvider.hasNetworkInterface) {
       // Optimistic: remove or add locally
       if (currentlyFavourited && index >= 0) {
         favouriteList?.favourites?.removeAt(index);
@@ -82,39 +82,30 @@ class FavouriteProvider extends ChangeNotifier {
     }
   }
 
-  /// Called by ConnectivityProvider when internet is restored — flushes the
-  /// favourite add/remove queue.
-  Future<void> processOfflineQueue() async {
-    final items = await OfflineQueue.getAll();
-    final favItems = items
-        .where((e) =>
-            e['type'] == 'favourite_add' || e['type'] == 'favourite_remove')
-        .toList();
-    if (favItems.isEmpty) return;
+  bool isFavouriteQueueType(String? type) =>
+      type == 'favourite_add' || type == 'favourite_remove';
 
-    final userId = await LocalStorage.getUserId() ?? '';
-
-    for (final item in favItems) {
-      try {
-        final data = item['data'] as Map<String, dynamic>;
-        if (item['type'] == 'favourite_add') {
-          await addRepo.addToFavourite(
-            productId: data['productId'] as String,
-            userId: userId,
-            selectedColors: List<String>.from(data['selectedColors'] ?? []),
-            selectedSizes: List<String>.from(data['selectedSizes'] ?? []),
-          );
-        } else {
-          await deleteRepo.deleteFavourite(
-            userId,
-            data['productId'] as String,
-          );
-        }
-        await OfflineQueue.remove(item['id'] as String);
-      } catch (_) {}
+  /// Submits one queued favourite add/remove. Returns true on success
+  /// (removing it from the queue). Driven by SyncCoordinator on reconnect.
+  Future<bool> syncOne(Map<String, dynamic> item) async {
+    try {
+      final data = item['data'] as Map<String, dynamic>;
+      final userId = await LocalStorage.getUserId() ?? '';
+      if (item['type'] == 'favourite_add') {
+        await addRepo.addToFavourite(
+          productId: data['productId'] as String,
+          userId: userId,
+          selectedColors: List<String>.from(data['selectedColors'] ?? []),
+          selectedSizes: List<String>.from(data['selectedSizes'] ?? []),
+        );
+      } else {
+        await deleteRepo.deleteFavourite(userId, data['productId'] as String);
+      }
+      await OfflineQueue.remove(item['id'] as String);
+      return true;
+    } catch (_) {
+      return false;
     }
-
-    await getFavourites();
   }
 
   Future<void> deleteAllFavourites() async {

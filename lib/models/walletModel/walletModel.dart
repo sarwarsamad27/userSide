@@ -220,6 +220,75 @@ factory PaymentVerifyModel.error(String msg) => PaymentVerifyModel(
 );
 }
 
+// ─── Safepay Checkout Model ───────────────────────────────────────────────────
+class SafepayCheckoutModel {
+  final bool success;
+  final String url;
+  final String trackId;
+  final String message;
+
+  SafepayCheckoutModel({
+    required this.success,
+    required this.url,
+    required this.trackId,
+    required this.message,
+  });
+
+  factory SafepayCheckoutModel.fromJson(Map<String, dynamic> json) {
+    final url = json['url']?.toString() ?? '';
+    return SafepayCheckoutModel(
+      success: url.isNotEmpty,
+      url: url,
+      trackId: json['trackId']?.toString() ?? '',
+      message: json['message']?.toString() ?? '',
+    );
+  }
+
+  factory SafepayCheckoutModel.error(String msg) => SafepayCheckoutModel(
+        success: false,
+        url: '',
+        trackId: '',
+        message: msg,
+      );
+}
+
+// ─── Safepay Status Model ─────────────────────────────────────────────────────
+class SafepayStatusModel {
+  final bool success;
+  final String status; // "pending" | "success" | "failed"
+  final double amount;
+  final double? newBalance;
+  final String message;
+
+  bool get isSuccess => status == 'success';
+  bool get isPending => status == 'pending';
+
+  SafepayStatusModel({
+    required this.success,
+    required this.status,
+    required this.amount,
+    this.newBalance,
+    required this.message,
+  });
+
+  factory SafepayStatusModel.fromJson(Map<String, dynamic> json) {
+    return SafepayStatusModel(
+      success: true,
+      status: json['status']?.toString() ?? 'pending',
+      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
+      newBalance: (json['newBalance'] as num?)?.toDouble(),
+      message: json['message']?.toString() ?? '',
+    );
+  }
+
+  factory SafepayStatusModel.error(String msg) => SafepayStatusModel(
+        success: false,
+        status: 'failed',
+        amount: 0,
+        message: msg,
+      );
+}
+
 // ─── Saved Payment Method Model ───────────────────────────────────────────────
 class SavedPaymentMethodModel {
   final String id;

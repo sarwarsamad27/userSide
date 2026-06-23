@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:user_side/models/order/myOrderModel.dart';
 import 'package:user_side/resources/local_storage.dart';
+import 'package:user_side/resources/offline_queue.dart';
 import 'package:user_side/viewModel/repository/orderRepository/getOrder_repository.dart';
 
 class GetMyOrderProvider with ChangeNotifier {
@@ -16,6 +17,18 @@ class GetMyOrderProvider with ChangeNotifier {
   bool hasMore = true;
 
   List<Orders> orderList = [];
+
+  /// COD orders queued offline, not yet synced to the server. Kept as raw
+  /// queue data (not converted to Orders) so they render in their own
+  /// simple summary card rather than flowing through the full order-card
+  /// logic (cancel/exchange/review), which assumes a real backend order id.
+  List<Map<String, dynamic>> pendingOrders = [];
+
+  Future<void> refreshPendingOrders() async {
+    final items = await OfflineQueue.getAll();
+    pendingOrders = items.where((e) => e['type'] == 'cod_order').toList();
+    notifyListeners();
+  }
 
   // Called from socket — update a single order's status in-place, no API hit
   void updateOrderStatus(
@@ -38,6 +51,8 @@ class GetMyOrderProvider with ChangeNotifier {
     // Prevent concurrent fetches — the scroll listener can fire many times
     if (_isFetching) return;
     _isFetching = true;
+
+    await refreshPendingOrders();
 
     try {
       final buyerId = await LocalStorage.getUserId();

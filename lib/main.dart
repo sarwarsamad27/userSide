@@ -12,9 +12,8 @@ import 'package:user_side/view/auth/splashView.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/notificationScreen/notification_route.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/viewModel/provider/connectivity_provider.dart';
-import 'package:user_side/viewModel/provider/favouriteProvider/getFavourite_provider.dart';
 import 'package:user_side/viewModel/provider/multiProvider/multiProvider.dart';
-import 'package:user_side/viewModel/provider/orderProvider/createOrder_provider.dart';
+import 'package:user_side/viewModel/provider/syncCoordinator_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
@@ -63,10 +62,7 @@ class _OfflineSyncRegistrarState extends State<_OfflineSyncRegistrar> {
       if (!mounted) return;
       final connectivity = context.read<ConnectivityProvider>();
       connectivity.addReconnectCallback(
-        context.read<FavouriteProvider>().processOfflineQueue,
-      );
-      connectivity.addReconnectCallback(
-        context.read<CreateOrderProvider>().processOfflineQueue,
+        context.read<SyncCoordinator>().syncAll,
       );
     });
   }

@@ -63,67 +63,51 @@ class WalletProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // // ── Add Money: Send OTP ────────────────────────────────────────────────────
-  // // method is always 'jazzcash'
-  String lastTxnRefNo = '';
-  Future<bool> sendAddMoneyOtp({
-    required String buyerId,
+  // ── Add Money: Safepay Checkout ─────────────────────────────────────────────
+  String? lastTrackId;
+
+  Future<SafepayCheckoutModel> initSafepayCheckout({
     required double amount,
-    required String method, // always 'jazzcash'
-    required String phoneNumber,
   }) async {
     otpLoading = true;
     errorMessage = '';
     notifyListeners();
 
-    final result = await _repo.sendAddMoneyOtp(
-      buyerId: buyerId,
-      amount: amount,
-      method: method,
-      phoneNumber: phoneNumber,
-    );
+    final result = await _repo.initSafepayCheckout(amount: amount);
 
     otpLoading = false;
     if (!result.success) {
-      errorMessage = result.message;
+      errorMessage = result.message.isNotEmpty
+          ? result.message
+          : 'Failed to start payment. Try again.';
     } else {
-      lastTxnRefNo = result.txnRefNo; // ✅ backend se aayega
+      lastTrackId = result.trackId;
     }
     notifyListeners();
-    return result.success;
-  }
-
-  // ── Add Money: Verify OTP → credit balance ─────────────────────────────────
-// walletProvider.dart mein verifyAddMoneyOtp:
-Future<PaymentVerifyModel?> verifyAddMoneyOtp({
-  required String buyerId,
-  required String phoneNumber,
-  required String otp,
-  String txnRefNo = '',
-}) async {
-  verifyLoading = true;
-  errorMessage = '';
-  notifyListeners();
-
-  final result = await _repo.verifyAddMoneyOtp(
-    buyerId: buyerId,
-    phoneNumber: phoneNumber,
-    otp: otp,
-    txnRefNo: txnRefNo,
-  );
-
-  verifyLoading = false;
-
-  if (result.success) {
-    balance = result.newBalance;
-    notifyListeners();
     return result;
-  } else {
-    errorMessage = result.message;  // ✅ backend ka error message show hoga
-    notifyListeners();
-    return null;
   }
-}
+
+  /// Polls the backend for the webhook-driven completion of a Safepay
+  /// checkout. Returns the terminal status once it's no longer "pending",
+  /// or a "pending" result if [maxAttempts] is reached first.
+  Future<SafepayStatusModel> pollSafepayStatus(
+    String trackId, {
+    Duration interval = const Duration(seconds: 3),
+    int maxAttempts = 40, // ~2 minutes
+  }) async {
+    for (int i = 0; i < maxAttempts; i++) {
+      final result = await _repo.getSafepayStatus(trackId);
+      if (!result.isPending) {
+        if (result.isSuccess && result.newBalance != null) {
+          balance = result.newBalance!;
+          notifyListeners();
+        }
+        return result;
+      }
+      await Future.delayed(interval);
+    }
+    return SafepayStatusModel.error('Payment confirmation timed out');
+  }
 
   // ── Send Money: Send OTP ───────────────────────────────────────────────────
   Future<bool> sendMoneyOtp({
@@ -242,6 +226,5 @@ Future<PaymentVerifyModel?> verifyAddMoneyOtp({
   //  - addPaymentMethod()      → Payment Methods screen removed
   //  - setDefaultMethod()      → Payment Methods screen removed
   //  - deleteMethod()          → Payment Methods screen removed
-  //  - initSafepayCheckout()   → Safepay removed
   // ═══════════════════════════════════════════════════════════════════════════
 }

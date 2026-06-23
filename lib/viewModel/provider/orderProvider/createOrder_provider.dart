@@ -65,6 +65,12 @@ class CreateOrderProvider with ChangeNotifier {
     required List<Map<String, dynamic>> products,
     required int shipmentCharges,
     String paymentMethod = 'cod',
+    // Display-only — shown for the pending order in order history while it
+    // waits to sync. Never sent to the server (createOrder looks up real
+    // product data from productId).
+    String? displayName,
+    String? displayImage,
+    double? displayProductTotal,
   }) async {
     _loading = true;
     _errorMessage = null;
@@ -81,7 +87,7 @@ class CreateOrderProvider with ChangeNotifier {
       }
 
       // Offline COD — queue the order and show queued state
-      if (!ConnectivityProvider.online && paymentMethod == 'cod') {
+      if (!ConnectivityProvider.hasNetworkInterface && paymentMethod == 'cod') {
         await OfflineQueue.enqueue(
           type: 'cod_order',
           data: {
@@ -94,6 +100,10 @@ class CreateOrderProvider with ChangeNotifier {
             'additionalNote': additionalNote ?? '',
             'products': products,
             'shipmentCharges': shipmentCharges,
+            if (displayName != null) 'displayName': displayName,
+            if (displayImage != null) 'displayImage': displayImage,
+            'grandTotal':
+                (displayProductTotal ?? 0) + shipmentCharges,
           },
         );
         _orderQueued = true;
@@ -133,34 +143,30 @@ class CreateOrderProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Process queued COD orders — called by ConnectivityProvider on reconnect.
-  Future<void> processOfflineQueue() async {
-    final items = await OfflineQueue.getAll();
-    final codItems =
-        items.where((e) => e['type'] == 'cod_order').toList();
-    if (codItems.isEmpty) return;
-
-    for (final item in codItems) {
-      try {
-        final d = item['data'] as Map<String, dynamic>;
-        final result = await repository.createOrder(
-          buyerId: d['buyerId'] as String,
-          name: d['name'] as String,
-          email: d['email'] as String,
-          phone: d['phone'] as String,
-          address: d['address'] as String,
-          buyerCity: d['buyerCity'] as String,
-          additionalNote: d['additionalNote'] as String?,
-          products: List<Map<String, dynamic>>.from(d['products'] as List),
-          shipmentCharges: (d['shipmentCharges'] as num).toInt(),
-          paymentMethod: 'cod',
-        );
-        if (result.order != null ||
-            (result.orders != null && result.orders!.isNotEmpty)) {
-          await OfflineQueue.remove(item['id'] as String);
-        }
-      } catch (_) {}
-    }
+  /// Submits one queued COD order. Returns true on success (removing it
+  /// from the queue). Driven by SyncCoordinator on reconnect.
+  Future<bool> syncOne(Map<String, dynamic> item) async {
+    try {
+      final d = item['data'] as Map<String, dynamic>;
+      final result = await repository.createOrder(
+        buyerId: d['buyerId'] as String,
+        name: d['name'] as String,
+        email: d['email'] as String,
+        phone: d['phone'] as String,
+        address: d['address'] as String,
+        buyerCity: d['buyerCity'] as String,
+        additionalNote: d['additionalNote'] as String?,
+        products: List<Map<String, dynamic>>.from(d['products'] as List),
+        shipmentCharges: (d['shipmentCharges'] as num).toInt(),
+        paymentMethod: 'cod',
+      );
+      if (result.order != null ||
+          (result.orders != null && result.orders!.isNotEmpty)) {
+        await OfflineQueue.remove(item['id'] as String);
+        return true;
+      }
+    } catch (_) {}
+    return false;
   }
 
   // ──────────────────────────────────────────────────────────────────────────

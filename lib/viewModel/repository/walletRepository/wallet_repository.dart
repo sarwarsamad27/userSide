@@ -17,46 +17,6 @@ class WalletRepository {
     }
   }
 
-  // ── Add Money: Send OTP ─────────────────────────────────────────────────────
-  Future<OtpResponseModel> sendAddMoneyOtp({
-    required String buyerId,
-    required double amount,
-    required String method,
-    required String phoneNumber,
-  }) async {
-    try {
-      final response = await _api.postApi(Global.AddMoneySendOtp, {
-        'buyerId': buyerId,
-        'amount': amount,
-        'method': method,
-        'mobileNumber': phoneNumber,
-      });
-      return OtpResponseModel.fromJson(response);
-    } catch (e) {
-      return OtpResponseModel.error(e.toString());
-    }
-  }
-
-  // ── Add Money: Verify OTP ───────────────────────────────────────────────────
-Future<PaymentVerifyModel> verifyAddMoneyOtp({
-  required String buyerId,
-  required String phoneNumber,
-  required String otp,
-  String txnRefNo = '',   // ✅
-}) async {
-  try {
-    final response = await _api.postApi(Global.AddMoneyVerifyOtp, {
-      'buyerId':   buyerId,
-      'phoneNumber': phoneNumber,
-      'otp':       otp,
-      'txnRefNo':  txnRefNo,   // ✅
-    });
-    return PaymentVerifyModel.fromJson(response);
-  } catch (e) {
-    return PaymentVerifyModel.error(e.toString());
-  }
-}
-
   // ── Send Money: Send OTP ────────────────────────────────────────────────────
   Future<OtpResponseModel> sendMoneyOtp({
     required String buyerId,
@@ -210,19 +170,29 @@ Future<PaymentVerifyModel> verifyBuyerWithdrawOtp({
       return false;
     }
   }
-  // ── Safepay Checkout ────────────────────────────────────────────────────────
-  Future<String?> initSafepayCheckout({
-    required String buyerId,
+  // ── Safepay: Create Checkout ────────────────────────────────────────────────
+  Future<SafepayCheckoutModel> initSafepayCheckout({
     required double amount,
   }) async {
     try {
       final response = await _api.postApi(Global.SafepayCheckout, {
-        'buyerId': buyerId,
         'amount': amount,
       });
-      return response['url'] as String?;
+      return SafepayCheckoutModel.fromJson(response);
     } catch (e) {
-      return null;
+      return SafepayCheckoutModel.error(e.toString());
+    }
+  }
+
+  // ── Safepay: Poll Status (while checkout WebView is open) ──────────────────
+  Future<SafepayStatusModel> getSafepayStatus(String trackId) async {
+    try {
+      final response = await _api.getApi(
+        '${Global.SafepayStatus}?trackId=$trackId',
+      );
+      return SafepayStatusModel.fromJson(response);
+    } catch (e) {
+      return SafepayStatusModel.error(e.toString());
     }
   }
 }
