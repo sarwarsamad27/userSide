@@ -59,6 +59,16 @@
             android:pathPrefix="/p/" />
     </intent-filter>
 
+    <!-- ✅ Admin "Account Visit" impersonation: shookoo://impersonate?token=...&userId=...&email=... -->
+    <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data
+            android:scheme="shookoo"
+            android:host="impersonate" />
+    </intent-filter>
+
 </activity>
 
         <meta-data

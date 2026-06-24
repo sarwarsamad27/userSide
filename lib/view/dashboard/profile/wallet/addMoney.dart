@@ -253,6 +253,7 @@ class _SafepayCheckoutScreen extends StatefulWidget {
 
 class _SafepayCheckoutScreenState extends State<_SafepayCheckoutScreen> {
   late final WebViewController _controller;
+  late final WalletProvider _provider;
   bool _loading = true;
   bool _verifying = false;
   bool _resolved = false;
@@ -260,6 +261,7 @@ class _SafepayCheckoutScreenState extends State<_SafepayCheckoutScreen> {
   @override
   void initState() {
     super.initState();
+    _provider = context.read<WalletProvider>();
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
@@ -311,10 +313,15 @@ class _SafepayCheckoutScreenState extends State<_SafepayCheckoutScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    _provider.cancelPolling(widget.trackId);
+    super.dispose();
+  }
+
   Future<void> _checkStatusNow() async {
     if (_resolved) return;
-    final provider = context.read<WalletProvider>();
-    final result = await provider.pollSafepayStatus(
+    final result = await _provider.pollSafepayStatus(
       widget.trackId,
       maxAttempts: 1,
     );
@@ -323,8 +330,7 @@ class _SafepayCheckoutScreenState extends State<_SafepayCheckoutScreen> {
   }
 
   Future<void> _startPolling() async {
-    final provider = context.read<WalletProvider>();
-    final result = await provider.pollSafepayStatus(widget.trackId);
+    final result = await _provider.pollSafepayStatus(widget.trackId);
     if (!mounted) return;
 
     if (result.isPending) {

@@ -66,6 +66,13 @@ class WalletProvider with ChangeNotifier {
   // ── Add Money: Safepay Checkout ─────────────────────────────────────────────
   String? lastTrackId;
 
+  // trackIds whose checkout screen was closed before the poll resolved —
+  // without this, the loop below keeps hitting the backend every few
+  // seconds for up to ~2 minutes after the user has already left the screen.
+  final Set<String> _cancelledTrackIds = {};
+
+  void cancelPolling(String trackId) => _cancelledTrackIds.add(trackId);
+
   Future<SafepayCheckoutModel> initSafepayCheckout({
     required double amount,
   }) async {
@@ -96,6 +103,9 @@ class WalletProvider with ChangeNotifier {
     int maxAttempts = 40, // ~2 minutes
   }) async {
     for (int i = 0; i < maxAttempts; i++) {
+      if (_cancelledTrackIds.remove(trackId)) {
+        return SafepayStatusModel.error('cancelled');
+      }
       final result = await _repo.getSafepayStatus(trackId);
       if (!result.isPending) {
         if (result.isSuccess && result.newBalance != null) {
@@ -106,6 +116,7 @@ class WalletProvider with ChangeNotifier {
       }
       await Future.delayed(interval);
     }
+    _cancelledTrackIds.remove(trackId);
     return SafepayStatusModel.error('Payment confirmation timed out');
   }
 

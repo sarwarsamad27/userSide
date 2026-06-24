@@ -8,7 +8,9 @@ import 'package:user_side/models/notification_services/notification_services.dar
 
 import 'package:user_side/resources/appTheme.dart';
 import 'package:user_side/resources/authSession.dart';
+import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/view/auth/splashView.dart';
+import 'package:user_side/view/dashboard/DashboardScreen.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/notificationScreen/notification_route.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/viewModel/provider/connectivity_provider.dart';
@@ -101,6 +103,12 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _handleDeepLink(Uri uri) {
+    // Admin "Account Visit": shookoo://impersonate?token=...&userId=...&email=...
+    if (uri.scheme == "shookoo" && uri.host == "impersonate") {
+      _handleImpersonation(uri);
+      return;
+    }
+
     // Handles both:
     //   shookoo://p/<productId>/<slug>?profileId=xxx&categoryId=yyy   (custom scheme)
     //   https://<host>/p/<productId>/<slug>?profileId=xxx&categoryId=yyy (App Links)
@@ -131,6 +139,27 @@ class _MyAppState extends State<MyApp> {
           productId: productId,
         ),
       ),
+    );
+  }
+
+  // Saves the impersonation token/userId/email exactly like a normal login
+  // would, then jumps straight to the dashboard — bypassing the splash
+  // screen and AuthGate entirely, since they only gate on userId presence,
+  // not token validity (the backend enforces the 1-hour expiry per-request).
+  Future<void> _handleImpersonation(Uri uri) async {
+    final token = uri.queryParameters['token'];
+    final userId = uri.queryParameters['userId'];
+    final email = uri.queryParameters['email'];
+    if (token == null || token.isEmpty || userId == null || userId.isEmpty) {
+      return;
+    }
+
+    await LocalStorage.saveToken(token);
+    await AuthSession.instance.setUser(userId, email: email);
+
+    NotificationRouter.navigatorKey.currentState?.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const HomeNavBarScreen()),
+      (route) => false,
     );
   }
 
