@@ -21,19 +21,11 @@ class GetSingleProductProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchSingleProduct(
-    String profileId,
-    String categoryId,
-    String productId,
-  ) async {
+  Future<void> fetchSingleProduct(String productId) async {
     loading = true;
     notifyListeners();
 
-    productData = await _repo.getSingleProduct(
-      categoryId,
-      profileId,
-      productId,
-    );
+    productData = await _repo.getSingleProduct(productId);
 
     loading = false;
     notifyListeners();

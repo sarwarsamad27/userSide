@@ -16,14 +16,19 @@ import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/pro
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/relatedProduct_provider.dart';
 
 class ProductDetailScreen extends StatefulWidget {
-  final String profileId;
-  final String categoryId;
+  // Optional — historically came from the share link's query params, but
+  // both are stored on the product itself, so the backend (and this screen)
+  // resolve them via productId alone once the product fetch completes.
+  // Kept accepting them for any caller that still has them on hand, but
+  // never relied upon directly.
+  final String? profileId;
+  final String? categoryId;
   final String productId;
 
   const ProductDetailScreen({
     super.key,
-    required this.profileId,
-    required this.categoryId,
+    this.profileId,
+    this.categoryId,
     required this.productId,
   });
 
@@ -36,13 +41,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      /// ───────── Existing APIs (NO CHANGE) ─────────
-      context.read<GetSingleProductProvider>().fetchSingleProduct(
-        widget.profileId,
-        widget.categoryId,
-        widget.productId,
-      );
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      /// ───────── Fetch the product first — profileId/categoryId for the
+      /// follow-status + tracking calls below are resolved from its
+      /// response, never required up front. ─────────
+      final provider = context.read<GetSingleProductProvider>();
+      await provider.fetchSingleProduct(widget.productId);
+      if (!mounted) return;
+
+      final resolvedProfileId =
+          provider.productData?.product?.profileId ?? widget.profileId ?? '';
+      final resolvedCategoryId =
+          provider.productData?.product?.categoryId ?? widget.categoryId ?? '';
 
       context.read<RelatedProductProvider>().fetchRelatedProducts(
         widget.productId,
@@ -51,23 +61,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       context.read<OtherProductProvider>().fetchOtherProducts(widget.productId);
 
       /// ───────── Fetch Follow status for Follower count ─────────
-      context.read<FollowProvider>().getFollowStatus(widget.profileId);
+      if (resolvedProfileId.isNotEmpty) {
+        context.read<FollowProvider>().getFollowStatus(resolvedProfileId);
+      }
 
       /// ───────── Track product view ─────────
-      _trackProductView();
+      _trackProductView(resolvedProfileId, resolvedCategoryId);
     });
   }
 
   /// 🔥 PRODUCT VIEW TRACKING (login required nahi)
-  Future<void> _trackProductView() async {
+  Future<void> _trackProductView(String profileId, String categoryId) async {
     try {
       final deviceId = await LocalStorage.getOrCreateDeviceId();
 
       await NetworkApiServices().postApi(Global.TrackProduct, {
         "deviceId": deviceId,
         "productId": widget.productId,
-        "categoryId": widget.categoryId,
-        "profileId": widget.profileId,
+        "categoryId": categoryId,
+        "profileId": profileId,
       });
     } catch (e) {
       debugPrint("Product tracking failed: $e");

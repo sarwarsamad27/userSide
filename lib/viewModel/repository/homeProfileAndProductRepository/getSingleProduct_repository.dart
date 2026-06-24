@@ -6,12 +6,9 @@ class GetSingleProductRepository {
   final NetworkApiServices apiServices = NetworkApiServices();
   final String apiUrl = Global.GetSingleProduct;
 
-  Future<GetSingleProductModel> getSingleProduct(String categoryId,
-      String profileId,
-      String productId,
-      ) async {
+  Future<GetSingleProductModel> getSingleProduct(String productId) async {
     try {
-      final url = '$apiUrl?profileId=$profileId&categoryId=$categoryId&productId=$productId';
+      final url = '$apiUrl?productId=$productId';
       final response = await apiServices.cachedGetApi(
         'product_$productId',
         url,

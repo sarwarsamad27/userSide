@@ -126,10 +126,13 @@ class _MyAppState extends State<MyApp> {
     if (segments.isEmpty) return;
 
     final productId  = segments[0];
-    final profileId  = uri.queryParameters["profileId"] ?? '';
-    final categoryId = uri.queryParameters["categoryId"] ?? '';
+    // Optional — older links (or the web landing page's internal app-link)
+    // may still carry these, but ProductDetailScreen resolves them itself
+    // from the product if absent, so only productId is required here.
+    final profileId  = uri.queryParameters["profileId"];
+    final categoryId = uri.queryParameters["categoryId"];
 
-    if (productId.isEmpty || profileId.isEmpty || categoryId.isEmpty) return;
+    if (productId.isEmpty) return;
 
     NotificationRouter.navigatorKey.currentState?.push(
       MaterialPageRoute(
