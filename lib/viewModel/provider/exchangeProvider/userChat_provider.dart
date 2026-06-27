@@ -72,6 +72,12 @@ class UserChatProvider extends ChangeNotifier {
   final Map<String, DateTime> _recentMsgKeys = {};
   bool _listenersBound = false;
 
+  // Unsubscribe callbacks returned by socket.on() — called on dispose so
+  // this provider's handlers are removed by reference, not via a blanket
+  // socket.off(event) (which would also wipe any other screen's handler
+  // for the same event, e.g. the chat list's "chat:message" listener).
+  final List<void Function()> _socketUnsubscribers = [];
+
   bool _disposed = false;
   bool _productSent = false;
 
@@ -414,17 +420,14 @@ class UserChatProvider extends ChangeNotifier {
 
     _listenersBound = true; // Set AFTER confirming socket exists
 
-    socket.off("chat:message");
-    socket.off("exchange:new");
-    socket.off("exchange:status"); // ✅ add
-    socket.off("refund:new");
-    socket.off("refund:status");
-    socket.off("chat:typing");
-    socket.off("chat:status");
-    socket.off("chat:status_bulk");
+    // Each handler is registered by reference (not a blanket socket.off,
+    // which would also remove any other screen's listener for the same
+    // event — e.g. the chat list's "chat:message" handler) and unbound
+    // individually in dispose() via the unsubscribe callback socket.on()
+    // returns.
 
     // ------- refund:new -------
-    socket.on("refund:new", (data) {
+    _socketUnsubscribers.add(socket.on("refund:new", (data) {
       if (data is! Map) return;
       if (data["threadId"]?.toString() != threadId) return;
 
@@ -439,26 +442,26 @@ class UserChatProvider extends ChangeNotifier {
       _registerFingerprint(refundMessage);
 
       _safeNotify();
-    });
+    }));
 
     // ------- refund:status -------
-    socket.on("refund:status", (data) {
+    _socketUnsubscribers.add(socket.on("refund:status", (data) {
       if (data is! Map) return;
       final refundId = (data["refundId"] ?? data["refundRequestId"])
           ?.toString();
       final newStatus = data["status"]?.toString();
       if (refundId == null || newStatus == null) return;
       _updateRefundStatusLocally(refundId, newStatus, data);
-    });
+    }));
 
-    socket.on("exchange:status", (data) {
+    _socketUnsubscribers.add(socket.on("exchange:status", (data) {
       if (data is! Map) return;
       final exchangeId = data["exchangeRequestId"]?.toString();
       final newStatus = data["status"]?.toString();
       if (exchangeId == null || newStatus == null) return;
       _updateExchangeStatusLocally(exchangeId, newStatus, data);
-    });
-    socket.on("chat:message", (data) {
+    }));
+    _socketUnsubscribers.add(socket.on("chat:message", (data) {
       if (data is! Map) return;
 
       final messageThreadId = data["threadId"]?.toString();
@@ -539,16 +542,16 @@ class UserChatProvider extends ChangeNotifier {
       }
 
       _safeNotify();
-    });
+    }));
 
-    socket.on("chat:typing", (data) {
+    _socketUnsubscribers.add(socket.on("chat:typing", (data) {
       if (data is Map && data["threadId"] == threadId) {
         isTyping = (data["isTyping"] ?? false) == true;
         _safeNotify();
       }
-    });
+    }));
 
-    socket.on("chat:status", (data) {
+    _socketUnsubscribers.add(socket.on("chat:status", (data) {
       if (data is! Map) return;
       final messageId = data["messageId"]?.toString();
       if (messageId == null) return;
@@ -581,9 +584,9 @@ class UserChatProvider extends ChangeNotifier {
         }
       }
       _safeNotify();
-    });
+    }));
 
-    socket.on("chat:status_bulk", (data) {
+    _socketUnsubscribers.add(socket.on("chat:status_bulk", (data) {
       if (data is! Map) return;
 
       final List<dynamic> messageIds = data["messageIds"] ?? [];
@@ -614,7 +617,7 @@ class UserChatProvider extends ChangeNotifier {
         }
       }
       _safeNotify();
-    });
+    }));
   }
 
   // ==============================
@@ -1089,6 +1092,12 @@ class UserChatProvider extends ChangeNotifier {
     _disposed = true;
     _typingTimer?.cancel();
     SocketService().leaveThread(threadId);
+
+    for (final unsubscribe in _socketUnsubscribers) {
+      unsubscribe();
+    }
+    _socketUnsubscribers.clear();
+
     super.dispose();
   }
 }

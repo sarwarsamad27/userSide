@@ -37,10 +37,27 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
   String _adminLastMsg = 'Official support & announcements';
   DateTime? _adminLastTime;
 
+  // Guard: only register socket listeners once per screen lifetime — they
+  // stay bound the whole time this screen is mounted (even while a chat
+  // thread is pushed on top of it), since each handler is now unbound by
+  // reference in dispose(), not via a blanket socket.off(event) that would
+  // wipe it out from elsewhere.
+  bool _socketListenersBound = false;
+  final List<void Function()> _socketUnsubscribers = [];
+
   @override
   void initState() {
     super.initState();
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    for (final unsubscribe in _socketUnsubscribers) {
+      unsubscribe();
+    }
+    _socketUnsubscribers.clear();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -91,6 +108,8 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
   }
 
   void _setupSocketListeners() async {
+    if (_socketListenersBound) return;
+
     // Must use buyerId auth — backend sets role:"buyer" only from buyerId
     // Using token auth can assign wrong role → fromType:"seller" on buyer msgs
     final uid = buyerId ?? AuthSession.instance.userId ?? await LocalStorage.getUserId();
@@ -100,16 +119,16 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
       baseUrl: Global.imageUrl,
       auth: {'buyerId': uid},
     );
-    if (socket == null || !mounted) return;
+    if (socket == null || !mounted || _socketListenersBound) return;
+    _socketListenersBound = true;
 
-    // Clear first to avoid duplicate handlers
-    socket.off("chat:message");
-    socket.off("exchange:new");
-    socket.off("admin:message");
-    socket.off("admin:broadcast");
+    // Each handler is registered by reference (not a blanket socket.off,
+    // which would also remove any other screen's listener for the same
+    // event — e.g. an open chat thread's listener) and unbound individually
+    // in dispose() via the unsubscribe callback socket.on() returns.
 
     // In-memory update — no API call needed
-    socket.on("chat:message", (data) {
+    _socketUnsubscribers.add(socket.on("chat:message", (data) {
       if (!mounted || data is! Map) return;
       final tId = data["threadId"]?.toString();
       final text = (data["text"] ?? "").toString();
@@ -138,9 +157,9 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
         // New thread: fetch once to discover it
         if (buyerId != null) provider.fetchThreads(buyerId!);
       }
-    });
+    }));
 
-    socket.on("exchange:new", (data) {
+    _socketUnsubscribers.add(socket.on("exchange:new", (data) {
       if (!mounted || data is! Map) return;
       final tId = data["threadId"]?.toString();
       if (tId == null) return;
@@ -151,9 +170,9 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
         incrementUnread: true,
         isExchangeRequest: true,
       );
-    });
+    }));
 
-    socket.on("admin:message", (data) {
+    _socketUnsubscribers.add(socket.on("admin:message", (data) {
       if (!mounted) return;
       final msg = (data is Map) ? data : {};
       setState(() {
@@ -161,9 +180,9 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
         _adminLastMsg = msg['message']?.toString() ?? _adminLastMsg;
         _adminLastTime = DateTime.now();
       });
-    });
+    }));
 
-    socket.on("admin:broadcast", (data) {
+    _socketUnsubscribers.add(socket.on("admin:broadcast", (data) {
       if (!mounted) return;
       final msg = (data is Map) ? data : {};
       if (msg['toType'] == 'all_buyers') {
@@ -173,7 +192,7 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
           _adminLastTime = DateTime.now();
         });
       }
-    });
+    }));
   }
 
   String _formatTime(String? timestamp) {
@@ -532,10 +551,7 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
               },
             ),
           ),
-        ).then((_) {
-          // Re-register socket listeners — chat screen may have removed them
-          if (mounted) _setupSocketListeners();
-        });
+        );
       },
     );
   }

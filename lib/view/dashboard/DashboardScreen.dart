@@ -17,6 +17,7 @@ import 'package:user_side/view/dashboard/profile/profileScreen.dart';
 import 'package:user_side/view/dashboard/userChat/userChatList.dart';
 
 import 'package:user_side/viewModel/provider/exchangeProvider/chatThread_provider.dart';
+import 'package:user_side/viewModel/provider/syncCoordinator_provider.dart';
 
 class HomeNavBarScreen extends StatefulWidget {
   final String? productId;
@@ -37,6 +38,23 @@ class _HomeNavBarScreenState extends State<HomeNavBarScreen> {
     FavouriteScreen(), // 3
     Profilescreen(), // 4
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // This screen only mounts once a buyer session is active (cold start or
+    // right after login/impersonation) — the one place guaranteed to run
+    // whether or not the offline→online connectivity transition fired while
+    // the app was closed/backgrounded. Without this, a COD order or
+    // favourite queued offline and never resynced while the app was shut
+    // would sit as "waiting for internet" forever even after reopening
+    // online (ConnectivityProvider only fires its reconnect callback on a
+    // live offline→online transition, not on startup-already-online).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<SyncCoordinator>().syncAll();
+    });
+  }
 
   @override
   void dispose() {

@@ -107,9 +107,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       return Scaffold(
         backgroundColor: const Color(0xFFF6F7F9),
         body: Center(
-          child: Text(
-            "Product not found",
-            style: TextStyle(color: Colors.red, fontSize: 18.sp),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Utils.notFound(size: 300.sp),
+              Text("No product Found"),
+            ],
           ),
         ),
       );
