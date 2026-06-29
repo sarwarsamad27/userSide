@@ -357,7 +357,7 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
           children: [
             Expanded(
               child: Text(
-                'SHOOKOO Admin',
+                'SHOOKOO',
                 style: TextStyle(
                   fontSize: 15.sp,
                   fontWeight: hasUnread ? FontWeight.w700 : FontWeight.w600,

@@ -163,7 +163,7 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'SHOOKOO Admin',
+                  'SHOOKOO',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -230,7 +230,7 @@ class _BuyerAdminMessagesScreenState extends State<BuyerAdminMessagesScreen> {
                           child: TextField(
                             controller: _inputCtrl,
                             decoration: InputDecoration(
-                              hintText: "Message SHOOKOO Admin...",
+                              hintText: "Message SHOOKOO...",
                               hintStyle: TextStyle(
                                 fontSize: 14.sp,
                                 color: Colors.black38,

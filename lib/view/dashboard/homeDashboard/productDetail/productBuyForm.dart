@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
@@ -147,16 +148,9 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
       context.read<DeliverySettingsProvider>();
 
   // ── Grand total ───────────────────────────────────────────────────────────
-  double _getCurrentShipping() {
-    final productTotal = _getProductsTotal();
-    final deliveryCfg = _delivery;
-
-    // Check if free delivery applies
-    if (deliveryCfg.freeDeliveryEnabled &&
-        productTotal >= deliveryCfg.freeDeliveryThreshold) {
-      return 0;
-    }
-
+  // What shipping would cost ignoring the free-delivery threshold — used to
+  // show the struck-through "was Rs X" once free delivery kicks in.
+  double _getBaseShipping() {
     final city = _cityController.text.trim().toLowerCase();
     if (city.isEmpty) return 200;
 
@@ -168,9 +162,136 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
     return 300;
   }
 
+  double _getCurrentShipping() {
+    final productTotal = _getProductsTotal();
+    final deliveryCfg = _delivery;
+
+    // Check if free delivery applies
+    if (deliveryCfg.freeDeliveryEnabled &&
+        deliveryCfg.freeDeliveryThreshold > 0 &&
+        productTotal >= deliveryCfg.freeDeliveryThreshold) {
+      return 0;
+    }
+
+    return _getBaseShipping();
+  }
+
   double _getGrandTotal() {
     final productTotal = _getProductsTotal();
     return productTotal + _getCurrentShipping();
+  }
+
+  // ── Free delivery progress / unlocked banner ────────────────────────────
+  Widget _buildFreeDeliveryPromo(double productTotal) {
+    final deliveryCfg = _delivery;
+    if (!deliveryCfg.freeDeliveryEnabled ||
+        deliveryCfg.freeDeliveryThreshold <= 0) {
+      return const SizedBox.shrink();
+    }
+
+    final threshold = deliveryCfg.freeDeliveryThreshold;
+    final unlocked = productTotal >= threshold;
+    final remaining = (threshold - productTotal).clamp(0.0, threshold);
+    final progress = (productTotal / threshold).clamp(0.0, 1.0);
+
+    return Container(
+      key: ValueKey(unlocked),
+      width: double.infinity,
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: unlocked
+            ? Colors.green.withOpacity(0.08)
+            : AppColor.primaryColor.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(
+          color: unlocked
+              ? Colors.green.withOpacity(0.3)
+              : AppColor.primaryColor.withOpacity(0.25),
+        ),
+      ),
+      child: unlocked
+          ? Row(
+              children: [
+                Icon(
+                      Icons.local_shipping_rounded,
+                      color: Colors.green.shade700,
+                      size: 22.sp,
+                    )
+                    .animate(onPlay: (c) => c.repeat(reverse: true))
+                    .scale(
+                      begin: const Offset(1, 1),
+                      end: const Offset(1.15, 1.15),
+                      duration: 650.ms,
+                      curve: Curves.easeInOut,
+                    ),
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: Text(
+                    "🎉 You've unlocked FREE Delivery!",
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.green.shade800,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.local_shipping_outlined,
+                      color: AppColor.primaryColor,
+                      size: 18.sp,
+                    ),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        'Spend Rs ${remaining.toStringAsFixed(0)} more to get FREE Delivery!',
+                        style: TextStyle(
+                          fontSize: 12.5.sp,
+                          fontWeight: FontWeight.w600,
+                          color: AppColor.textPrimaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8.h),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20.r),
+                  child: Container(
+                    height: 7.h,
+                    color: Colors.grey.shade200,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Stack(
+                          children: [
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeOut,
+                              width: constraints.maxWidth * progress,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColor.primaryColor,
+                                    AppColor.primaryColor.withOpacity(0.75),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+    ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.15, curve: Curves.easeOut);
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -292,8 +413,8 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
         widget.favouriteItems != null && widget.favouriteItems!.isNotEmpty;
     final displayName = isFromFavourite
         ? (widget.favouriteItems!.length == 1
-            ? widget.favouriteItems!.first['name']?.toString()
-            : '${widget.favouriteItems!.length} items')
+              ? widget.favouriteItems!.first['name']?.toString()
+              : '${widget.favouriteItems!.length} items')
         : widget.name;
     final displayImage = isFromFavourite
         ? widget.favouriteItems!.first['imageUrl']?.toString()
@@ -567,7 +688,9 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(8.r),
                                       child: CachedImage(
-                                        url: Global.getImageUrl(item['imageUrl']),
+                                        url: Global.getImageUrl(
+                                          item['imageUrl'],
+                                        ),
                                         height: 60.h,
                                         width: 60.w,
                                         fit: BoxFit.cover,
@@ -875,8 +998,11 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                 final productTotal = isFromFavourite
                                     ? _calculateFavouriteTotal()
                                     : singlePrice * quantity;
+                                final baseShipping = _getBaseShipping();
                                 final shipment = _getCurrentShipping();
                                 final grandTotal = productTotal + shipment;
+                                final isFreeDelivery =
+                                    shipment == 0 && baseShipping > 0;
 
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -888,13 +1014,73 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    SizedBox(height: 8.h),
-                                    Text(
-                                      'Shipment Charges: Rs ${shipment.toStringAsFixed(0)}',
-                                      style: TextStyle(
-                                        fontSize: 14.sp,
-                                        color: Colors.black87,
-                                      ),
+                                    SizedBox(height: 10.h),
+                                    _buildFreeDeliveryPromo(productTotal),
+                                    SizedBox(height: 10.h),
+                                    Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          'Shipment Charges: ',
+                                          style: TextStyle(
+                                            fontSize: 14.sp,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        if (isFreeDelivery) ...[
+                                          Text(
+                                            'Rs ${baseShipping.toStringAsFixed(0)}',
+                                            style: TextStyle(
+                                              fontSize: 14.sp,
+                                              color: Colors.black38,
+                                              decoration:
+                                                  TextDecoration.lineThrough,
+                                            ),
+                                          ),
+                                          SizedBox(width: 6.w),
+                                          Container(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 8.w,
+                                                  vertical: 2.h,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.green
+                                                      .withOpacity(0.12),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        20.r,
+                                                      ),
+                                                ),
+                                                child: Text(
+                                                  'FREE',
+                                                  style: TextStyle(
+                                                    fontSize: 11.5.sp,
+                                                    color:
+                                                        Colors.green.shade700,
+                                                    fontWeight: FontWeight.w800,
+                                                  ),
+                                                ),
+                                              )
+                                              .animate(
+                                                key: ValueKey(
+                                                  'free-badge-$quantity',
+                                                ),
+                                              )
+                                              .fadeIn(duration: 300.ms)
+                                              .scale(
+                                                begin: const Offset(0.6, 0.6),
+                                                curve: Curves.easeOutBack,
+                                              ),
+                                        ] else
+                                          Text(
+                                            'Rs ${shipment.toStringAsFixed(0)}',
+                                            style: TextStyle(
+                                              fontSize: 14.sp,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                     SizedBox(height: 8.h),
                                     Text(

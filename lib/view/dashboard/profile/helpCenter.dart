@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:user_side/resources/appColor.dart';
 
 class HelpCenterScreen extends StatelessWidget {
@@ -31,6 +32,29 @@ class HelpCenterScreen extends StatelessWidget {
       a: 'Go to "Order History" in your profile, select the delivered order, and tap "Add Review" to share your feedback. And you are able to give only one review for each order. If you want to update your review, please contact our support team through the "Contact Us" section in the Help Center.',
     ),
   ];
+
+  static Future<void> _launchWhatsApp(String phone) async {
+    final digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    final uri = Uri.parse('https://wa.me/$digits');
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('Error launching WhatsApp: $e');
+    }
+  }
+
+  static Future<void> _launchEmail(String email) async {
+    final uri = Uri(scheme: 'mailto', path: email);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      }
+    } catch (e) {
+      debugPrint('Error launching email: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -141,23 +165,23 @@ class HelpCenterScreen extends StatelessWidget {
                     label: 'Call Support',
                     value: '+92 300 0000000',
                     color: const Color(0xFF10B981),
-                    onTap: () {},
+                    onTap: () => _launchWhatsApp('+92 300 0000000'),
                   ),
                   SizedBox(height: 10.h),
                   _ContactCard(
                     icon: Icons.email_rounded,
                     label: 'Email Us',
-                    value: 'support@shookoo.com',
+                    value: 'info@shookoo.pk',
                     color: const Color(0xFF3B82F6),
-                    onTap: () {},
+                    onTap: () => _launchEmail('support@shookoo.pk'),
                   ),
                   SizedBox(height: 10.h),
                   _ContactCard(
-                    icon: Icons.chat_bubble_rounded,
-                    label: 'Live Chat',
-                    value: 'Available 9 AM – 9 PM',
+                    icon: Icons.report_problem_rounded,
+                    label: 'For Complaint',
+                    value: 'complaint@shookoo.pk',
                     color: AppColor.primaryColor,
-                    onTap: () {},
+                    onTap: () => _launchEmail('complaint@shookoo.pk'),
                   ),
 
                   SizedBox(height: 28.h),
