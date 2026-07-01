@@ -305,7 +305,7 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
                 validator: (val) {
                   if (val == null || val.isEmpty) return 'Enter amount';
                   final amt = double.tryParse(val) ?? 0;
-                  if (amt < 100) return 'Minimum Rs 100';
+                  if (amt < 300) return 'Minimum Rs 300';
                   if (amt > widget.balance) return 'Insufficient balance';
                   return null;
                 },

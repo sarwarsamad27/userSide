@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:app_links/app_links.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -22,9 +23,12 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
 
   try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (e) {
     if (!e.toString().contains('duplicate-app')) rethrow;
   }
@@ -41,9 +45,7 @@ class AppWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppMultiProvider(
-      child: _OfflineSyncRegistrar(child: const MyApp()),
-    );
+    return AppMultiProvider(child: _OfflineSyncRegistrar(child: const MyApp()));
   }
 }
 
@@ -95,7 +97,10 @@ class _MyAppState extends State<MyApp> {
     final Uri? initialUri = await _appLinks.getInitialLink();
     if (initialUri != null) {
       // Delay so navigator is ready after splash
-      Future.delayed(const Duration(milliseconds: 800), () => _handleDeepLink(initialUri));
+      Future.delayed(
+        const Duration(milliseconds: 800),
+        () => _handleDeepLink(initialUri),
+      );
     }
 
     // App already running — link tapped while app is open/background
@@ -125,11 +130,11 @@ class _MyAppState extends State<MyApp> {
 
     if (segments.isEmpty) return;
 
-    final productId  = segments[0];
+    final productId = segments[0];
     // Optional — older links (or the web landing page's internal app-link)
     // may still carry these, but ProductDetailScreen resolves them itself
     // from the product if absent, so only productId is required here.
-    final profileId  = uri.queryParameters["profileId"];
+    final profileId = uri.queryParameters["profileId"];
     final categoryId = uri.queryParameters["categoryId"];
 
     if (productId.isEmpty) return;
@@ -197,17 +202,24 @@ class _MyAppState extends State<MyApp> {
                           width: double.infinity,
                           color: const Color(0xFFE65100),
                           padding: const EdgeInsets.symmetric(
-                              vertical: 6, horizontal: 16),
+                            vertical: 6,
+                            horizontal: 16,
+                          ),
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.wifi_off,
-                                  color: Colors.white, size: 14),
+                              Icon(
+                                Icons.wifi_off,
+                                color: Colors.white,
+                                size: 14,
+                              ),
                               SizedBox(width: 6),
                               Text(
                                 'No internet — cached data',
                                 style: TextStyle(
-                                    color: Colors.white, fontSize: 12),
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),

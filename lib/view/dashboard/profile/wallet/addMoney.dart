@@ -8,6 +8,7 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:user_side/models/walletModel/walletModel.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/premium_toast.dart';
+import 'package:user_side/view/dashboard/profile/wallet/walletScreen.dart';
 import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
 
 class AddMoneyScreen extends StatefulWidget {
@@ -35,8 +36,8 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
     setState(() => _error = null);
     final amt = double.tryParse(_amountCtrl.text.trim()) ?? 0;
 
-    if (amt < 100) {
-      setState(() => _error = 'Minimum Rs 100');
+    if (amt < 500) {
+      setState(() => _error = 'Minimum Rs 500');
       return;
     }
     if (amt > 50000) {
@@ -70,7 +71,11 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
 
     if (result.isSuccess) {
       PremiumToast.success(context, 'Rs ${amt.toStringAsFixed(0)} wallet mein add ho gaye!');
-      Navigator.pop(context, true);
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const WalletScreen()),
+        (route) => route.isFirst,
+      );
     } else if (!result.isPending) {
       setState(() => _error = result.message.isNotEmpty
           ? result.message
@@ -139,7 +144,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
                 prefixText: 'Rs  ',
                 prefixStyle: TextStyle(
                     fontSize: 18.sp, fontWeight: FontWeight.w500, color: Colors.grey),
-                hintText: '100',
+                hintText: '500',
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(

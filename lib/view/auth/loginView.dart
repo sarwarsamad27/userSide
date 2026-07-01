@@ -265,17 +265,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                         }
                                       },
                                     ),
-                                    SizedBox(width: 25.w),
-                                    socialButton(
-                                      icon: Icons.apple,
-                                      color: Colors.black,
-                                      onTap: () {
-                                        PremiumToast.info(
-                                          context,
-                                          "Apple Login coming soon",
-                                        );
-                                      },
-                                    ),
+                                    // SizedBox(width: 25.w),
+                                    // socialButton(
+                                    //   icon: Icons.apple,
+                                    //   color: Colors.black,
+                                    //   onTap: () {
+                                    //     PremiumToast.info(
+                                    //       context,
+                                    //       "Apple Login coming soon",
+                                    //     );
+                                    //   },
+                                    // ),
                                   ],
                                 );
                               },

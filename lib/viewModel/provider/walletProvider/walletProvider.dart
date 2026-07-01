@@ -117,7 +117,7 @@ class WalletProvider with ChangeNotifier {
       await Future.delayed(interval);
     }
     _cancelledTrackIds.remove(trackId);
-    return SafepayStatusModel.error('Payment confirmation timed out');
+    return SafepayStatusModel.pending('Payment confirmation timed out');
   }
 
   // ── Send Money: Send OTP ───────────────────────────────────────────────────

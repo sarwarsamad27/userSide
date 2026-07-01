@@ -155,7 +155,7 @@ class NetworkApiServices extends BaseApiServices {
         var response = await http.Response.fromStream(streamed);
 
         print("PUT Multipart Response: ${response.body}");
-        return jsonDecode(response.body);
+        return _handleResponse(url, response, body: body);
       } else {
         // Plain JSON PUT
         final response = await http.put(
@@ -224,16 +224,9 @@ class NetworkApiServices extends BaseApiServices {
       var streamed = await request.send();
       var response = await http.Response.fromStream(streamed);
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return jsonDecode(response.body);
-      } else {
-        return {
-          'code_status': false,
-          'message': 'Server Error: ${response.body}',
-        };
-      }
+      return _handleResponse(url, response);
     } catch (e) {
-      return {'code_status': false, 'message': 'Exception: $e'};
+      return _handleError(e);
     }
   }
 
@@ -277,9 +270,9 @@ class NetworkApiServices extends BaseApiServices {
 
       print("Upload Response: ${response.body}");
 
-      return jsonDecode(response.body);
+      return _handleResponse(url, response);
     } catch (e) {
-      return {'code_status': false, 'message': 'Exception: $e'};
+      return _handleError(e);
     }
   }
 
@@ -312,16 +305,9 @@ class NetworkApiServices extends BaseApiServices {
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return jsonDecode(response.body);
-      } else {
-        return {
-          'code_status': false,
-          'message': 'Server Error: ${response.body}',
-        };
-      }
+      return _handleResponse(url, response);
     } catch (e) {
-      return {'code_status': false, 'message': 'Exception: $e'};
+      return _handleError(e);
     }
   }
 
@@ -378,13 +364,20 @@ class NetworkApiServices extends BaseApiServices {
         return {'code_status': true, 'message': response.body};
       }
     } else {
-      String errorMsg = 'Server Error: ${response.body}';
+      // Default to a short, user-facing message. Only the backend's own
+      // 'message' field (if present) overrides it — we never show the raw
+      // response body (e.g. an HTML error page) in a toast.
+      String errorMsg = 'Something went wrong (${response.statusCode}). Please try again.';
       try {
         final decoded = jsonDecode(response.body);
         if (decoded is Map && decoded.containsKey('message')) {
-          errorMsg = decoded['message'];
+          errorMsg = decoded['message'].toString();
         }
       } catch (_) {}
+
+      if (errorMsg.length > 200) {
+        errorMsg = '${errorMsg.substring(0, 200)}...';
+      }
 
       PremiumToast.error(null, errorMsg);
       return {'code_status': false, 'message': errorMsg};
@@ -392,7 +385,7 @@ class NetworkApiServices extends BaseApiServices {
   }
 
   Map<String, dynamic> _handleError(e) {
-    String message = 'Exception: $e';
+    String message = 'Something went wrong. Please try again.';
     if (e is InternetException) {
       message = 'No Internet Connection';
     } else if (e is SocketException) {

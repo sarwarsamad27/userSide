@@ -287,6 +287,17 @@ class SafepayStatusModel {
         amount: 0,
         message: msg,
       );
+
+  // Polling gave up before a terminal answer arrived — not a failure, the
+  // webhook can still land and credit the wallet afterwards. Kept distinct
+  // from .error() so isPending stays true and callers don't show a false
+  // "payment failed" message for what may just be a slow webhook.
+  factory SafepayStatusModel.pending(String msg) => SafepayStatusModel(
+        success: false,
+        status: 'pending',
+        amount: 0,
+        message: msg,
+      );
 }
 
 // ─── Saved Payment Method Model ───────────────────────────────────────────────

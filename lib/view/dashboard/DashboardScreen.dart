@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
+import 'package:user_side/resources/app_version_checker.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/toast.dart';
 import 'package:user_side/resources/local_storage.dart';
@@ -53,6 +54,7 @@ class _HomeNavBarScreenState extends State<HomeNavBarScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<SyncCoordinator>().syncAll();
+      checkAppVersion(context);
     });
   }
 
