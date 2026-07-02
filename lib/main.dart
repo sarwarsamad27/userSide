@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:app_links/app_links.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/models/notification_services/notification_services.dart';
@@ -21,6 +22,21 @@ import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
 
+// Must be a top-level (or static) function with this annotation — Flutter
+// spawns a separate isolate for background/terminated-state FCM messages in
+// release builds, so a class method or closure capturing state silently
+// never runs there.
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    if (!e.toString().contains('duplicate-app')) rethrow;
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
@@ -32,6 +48,7 @@ void main() async {
   } catch (e) {
     if (!e.toString().contains('duplicate-app')) rethrow;
   }
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await NotificationService.init();
 
   await NotificationRouter.init();

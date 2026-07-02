@@ -9,16 +9,18 @@ class NotificationRouter {
     // iOS permission (safe on Android too)
     await FirebaseMessaging.instance.requestPermission();
 
-    // If app opened from terminated state by tapping notification
-    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-    if (initialMessage != null) {
-      _openNotificationScreen();
-    }
-
     // If app in background and opened by tapping notification
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       _openNotificationScreen();
     });
+
+    // If app opened from terminated state by tapping notification. This runs
+    // before runApp(), so the Navigator isn't mounted yet — defer the push
+    // until after the first frame instead of pushing immediately.
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _openNotificationScreen());
+    }
   }
 
   static void _openNotificationScreen() {

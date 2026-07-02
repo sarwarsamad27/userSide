@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/authSession.dart';
+import 'package:user_side/resources/pakistaniBanks.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
 
@@ -21,10 +22,15 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _amountController = TextEditingController();
+  final _accountNumberController = TextEditingController();
+  final _ibanController = TextEditingController();
   final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _otpSent = false;
   String _method = 'JazzCash';
+  String? _selectedBank;
+
+  bool get _isBank => _method == 'Bank';
 
   static const Color _primary = Color(0xFFCC0000);
   static const Color _jcBg = Color(0xFFFFF0F0);
@@ -34,6 +40,8 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
     _nameController.dispose();
     _phoneController.dispose();
     _amountController.dispose();
+    _accountNumberController.dispose();
+    _ibanController.dispose();
     _otpController.dispose();
     super.dispose();
   }
@@ -47,14 +55,24 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
       _showError('Insufficient wallet balance');
       return;
     }
+    if (_isBank &&
+        (_selectedBank == null ||
+            (_accountNumberController.text.trim().isEmpty &&
+                _ibanController.text.trim().isEmpty))) {
+      _showError('Select a bank and enter account number or IBAN');
+      return;
+    }
     FocusScope.of(context).unfocus();
 
     final ok = await context.read<WalletProvider>().sendBuyerWithdrawOtp(
       buyerId: _buyerId,
       amount: amt,
-      method: _method,
+      method: _isBank ? 'bank' : _method,
       name: _nameController.text.trim(),
       phone: _phoneController.text.trim(),
+      bankName: _isBank ? _selectedBank : null,
+      accountNumber: _isBank ? _accountNumberController.text.trim() : null,
+      iban: _isBank ? _ibanController.text.trim() : null,
     );
 
     if (ok) {
@@ -86,6 +104,9 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
           method: _method,
           name: _nameController.text.trim(),
           phone: _phoneController.text.trim(),
+          bankName: _isBank ? _selectedBank : null,
+          accountNumber: _isBank ? _accountNumberController.text.trim() : null,
+          iban: _isBank ? _ibanController.text.trim() : null,
           txnId: result.txnId,
         ),
       );
@@ -222,7 +243,7 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
             _SectionLabel('Withdraw Via'),
             SizedBox(height: 10.h),
             Row(
-              children: ['JazzCash', 'EasyPaisa'].map((m) {
+              children: ['JazzCash', 'EasyPaisa', 'Bank'].map((m) {
                 final isSelected = _method == m;
                 return Expanded(
                   child: GestureDetector(
@@ -349,8 +370,106 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
 
             SizedBox(height: 20.h),
 
+            if (_isBank) ...[
+              // ── Bank Name ───────────────────────────────────────────────
+              _SectionLabel('Bank Name'),
+              SizedBox(height: 10.h),
+              _buildInputBox(
+                child: DropdownButtonFormField<String>(
+                  initialValue: _selectedBank,
+                  isExpanded: true,
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    color: const Color(0xFF1A1A2E),
+                    fontWeight: FontWeight.w600,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Select bank',
+                    hintStyle: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.grey.shade300,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 12.h,
+                    ),
+                  ),
+                  items: kPakistaniBanks
+                      .map((b) => DropdownMenuItem(value: b, child: Text(b)))
+                      .toList(),
+                  onChanged: (v) => setState(() => _selectedBank = v),
+                ),
+              ).animate().fadeIn(delay: 220.ms),
+
+              SizedBox(height: 20.h),
+
+              // ── Account Number ──────────────────────────────────────────
+              _SectionLabel('Account Number'),
+              SizedBox(height: 10.h),
+              _buildInputBox(
+                child: TextFormField(
+                  controller: _accountNumberController,
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    color: const Color(0xFF1A1A2E),
+                    fontWeight: FontWeight.w600,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Enter account number',
+                    hintStyle: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.grey.shade300,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 18.h,
+                    ),
+                  ),
+                ),
+              ).animate().fadeIn(delay: 230.ms),
+
+              SizedBox(height: 20.h),
+
+              // ── IBAN ─────────────────────────────────────────────────────
+              _SectionLabel('IBAN'),
+              SizedBox(height: 10.h),
+              _buildInputBox(
+                child: TextFormField(
+                  controller: _ibanController,
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    color: const Color(0xFF1A1A2E),
+                    fontWeight: FontWeight.w600,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Enter IBAN',
+                    hintStyle: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.grey.shade300,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 18.h,
+                    ),
+                  ),
+                ),
+              ).animate().fadeIn(delay: 240.ms),
+              SizedBox(height: 6.h),
+              Text(
+                'Enter at least one of Account Number or IBAN',
+                style: TextStyle(fontSize: 11.sp, color: Colors.grey[400]),
+              ),
+
+              SizedBox(height: 20.h),
+            ],
+
             // ── Phone Number ───────────────────────────────────────────────
-            _SectionLabel('Account Number / Phone'),
+            _SectionLabel(
+              _isBank ? 'Phone Number (for OTP)' : 'Account Number / Phone',
+            ),
             SizedBox(height: 10.h),
             _buildInputBox(
               child: TextFormField(
@@ -652,6 +771,7 @@ class _SectionLabel extends StatelessWidget {
 class _WithdrawSuccessSheet extends StatelessWidget {
   final double amount;
   final String method, name, phone, txnId;
+  final String? bankName, accountNumber, iban;
 
   const _WithdrawSuccessSheet({
     required this.amount,
@@ -659,7 +779,12 @@ class _WithdrawSuccessSheet extends StatelessWidget {
     required this.name,
     required this.phone,
     required this.txnId,
+    this.bankName,
+    this.accountNumber,
+    this.iban,
   });
+
+  bool get _isBank => bankName != null;
 
   @override
   Widget build(BuildContext context) {
@@ -745,8 +870,21 @@ class _WithdrawSuccessSheet extends StatelessWidget {
                 SizedBox(height: 10.h),
                 _DetailRow('Recipient', name),
                 SizedBox(height: 10.h),
-                _DetailRow('Account', phone),
-                SizedBox(height: 10.h),
+                if (_isBank) ...[
+                  _DetailRow('Bank', bankName!),
+                  SizedBox(height: 10.h),
+                  if (accountNumber != null && accountNumber!.isNotEmpty) ...[
+                    _DetailRow('Account Number', accountNumber!),
+                    SizedBox(height: 10.h),
+                  ],
+                  if (iban != null && iban!.isNotEmpty) ...[
+                    _DetailRow('IBAN', iban!),
+                    SizedBox(height: 10.h),
+                  ],
+                ] else ...[
+                  _DetailRow('Account', phone),
+                  SizedBox(height: 10.h),
+                ],
                 _DetailRow(
                   'Status',
                   '⏳ Pending Approval',

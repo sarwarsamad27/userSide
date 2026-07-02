@@ -61,6 +61,9 @@ Future<OtpResponseModel> sendBuyerWithdrawOtp({
   required String method,
   required String name,
   required String phone,
+  String? bankName,
+  String? accountNumber,
+  String? iban,
 }) async {
   try {
     final response = await _api.postApi(Global.BuyerWithdrawSendOtp, {
@@ -69,6 +72,9 @@ Future<OtpResponseModel> sendBuyerWithdrawOtp({
       'method': method,
       'name': name,
       'phone': phone,
+      if (bankName != null) 'bankName': bankName,
+      if (accountNumber != null) 'accountNumber': accountNumber,
+      if (iban != null) 'iban': iban,
     });
     return OtpResponseModel.fromJson(response);
   } catch (e) {

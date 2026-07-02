@@ -59,8 +59,8 @@ class NotificationService {
       await _showLocal(title: title, body: body, data: message.data);
     });
 
-    // ✅ tap handling (background)
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {});
+    // Tap-to-open navigation is handled by NotificationRouter (see
+    // notification_route.dart) — no listener needed here.
 
     // ✅ token refresh
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
@@ -105,7 +105,22 @@ class NotificationService {
     await _sendTokenToBackend(userId: userId, token: token);
   }
 
-  static Future<void> clearToken() async {
+  /// Call on logout. If [userId] is supplied, first tells the backend to
+  /// unregister this device's token — otherwise a shared/reused device would
+  /// keep receiving this buyer's notifications after signing out — before
+  /// deleting the token locally.
+  static Future<void> clearToken({String? userId}) async {
+    if (userId != null && userId.isNotEmpty) {
+      try {
+        final token = await _fcm.getToken();
+        if (token != null && token.isNotEmpty) {
+          await _removeTokenFromBackend(userId: userId, token: token);
+        }
+      } catch (e) {
+        print("FCM remove-from-server failed (non-fatal): $e");
+      }
+    }
+
     try {
       await _fcm.deleteToken();
       print("FCM token deleted successfully");
@@ -138,5 +153,18 @@ class NotificationService {
     } catch (e) {
       print("FCM save failed: $e");
     }
+  }
+
+  static Future<void> _removeTokenFromBackend({
+    required String userId,
+    required String token,
+  }) async {
+    final uri = Uri.parse("$baseUrl/buyer/remove/fcm-token");
+    final resp = await http.post(
+      uri,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"userId": userId, "token": token}),
+    );
+    print("FCM remove status: ${resp.statusCode} body: ${resp.body}");
   }
 }

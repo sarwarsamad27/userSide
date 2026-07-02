@@ -35,7 +35,6 @@ class WalletTransactionModel {
   final String? phoneNumber;
   final String? note;
   final DateTime createdAt;
-  
 
   bool get isCredit => type == 'credit';
 
@@ -51,7 +50,6 @@ class WalletTransactionModel {
     this.phoneNumber,
     this.note,
     required this.createdAt,
-   
   });
 
   factory WalletTransactionModel.fromJson(Map<String, dynamic> json) {
@@ -107,21 +105,23 @@ class TransactionHistoryModel {
       transactions: json['transactions'] == null
           ? []
           : List<WalletTransactionModel>.from(
-              json['transactions'].map((x) => WalletTransactionModel.fromJson(x)),
+              json['transactions'].map(
+                (x) => WalletTransactionModel.fromJson(x),
+              ),
             ),
     );
   }
 
   factory TransactionHistoryModel.empty() => TransactionHistoryModel(
-        success: false,
-        balance: 0,
-        totalCredit: 0,
-        totalDebit: 0,
-        total: 0,
-        page: 1,
-        pages: 1,
-        transactions: [],
-      );
+    success: false,
+    balance: 0,
+    totalCredit: 0,
+    totalDebit: 0,
+    total: 0,
+    page: 1,
+    pages: 1,
+    transactions: [],
+  );
 }
 
 // ─── OTP Response Model ───────────────────────────────────────────────────────
@@ -137,18 +137,17 @@ class OtpResponseModel {
   });
 
   factory OtpResponseModel.fromJson(Map<String, dynamic> json) {
+    // code_status: false means _handleResponse set an error (non-200 status)
+    final bool ok = json['code_status'] != false;
     return OtpResponseModel(
-      success:   true,
-      message:   json['message'] ?? '',
-      txnRefNo:  json['txnRefNo'] ?? '',  // ✅ backend se aayega
+      success: ok,
+      message: json['message'] ?? '',
+      txnRefNo: json['txnRefNo'] ?? '',
     );
   }
 
-  factory OtpResponseModel.error(String msg) => OtpResponseModel(
-    success:  false,
-    message:  msg,
-    txnRefNo: '', 
-  );
+  factory OtpResponseModel.error(String msg) =>
+      OtpResponseModel(success: false, message: msg, txnRefNo: '');
 }
 
 // ─── Add/Send Money Verify Response ──────────────────────────────────────────
@@ -164,7 +163,6 @@ class PaymentVerifyModel {
   final DateTime? createdAt;
   final String? recipientNumber;
   final String? note;
-  
 
   PaymentVerifyModel({
     required this.success,
@@ -178,46 +176,48 @@ class PaymentVerifyModel {
     this.createdAt,
     this.recipientNumber,
     this.note,
-
   });
 
-factory PaymentVerifyModel.fromJson(Map<String, dynamic> json) {
-  final txn = json['transaction'] ?? {};
-  
-  // ✅ success properly detect karo
-  final bool isSuccess = json['message'] != null && 
-      (json['message'].toString().toLowerCase().contains('success') ||
-       json['message'].toString().toLowerCase().contains('credited') ||
-       json['newBalance'] != null);
+  factory PaymentVerifyModel.fromJson(Map<String, dynamic> json) {
+    final txn = json['transaction'] ?? {};
 
-  return PaymentVerifyModel(
-    success:     isSuccess,
-    message:     json['message'] ?? '',
-    newBalance:  (json['newBalance'] as num?)?.toDouble() ?? 0.0,
-    txnId:       txn['txnId'] ?? json['txnId'] ?? '',
-    amount:      (txn['amount'] as num?)?.toDouble() ?? 
-                 (json['amount'] as num?)?.toDouble() ?? 0.0,
-    method:      txn['method'] ?? json['method'] ?? '',
-    phoneNumber: txn['phoneNumber'] ?? json['phoneNumber'] ?? '',
-    status:      txn['status'] ?? json['status'] ?? 'success',
-    createdAt:   txn['createdAt'] != null
-        ? DateTime.tryParse(txn['createdAt'])
-        : null,
-    recipientNumber: txn['recipientNumber'],
-    note:        txn['note'],
+    // ✅ success properly detect karo
+    final bool isSuccess =
+        json['message'] != null &&
+        (json['message'].toString().toLowerCase().contains('success') ||
+            json['message'].toString().toLowerCase().contains('credited') ||
+            json['newBalance'] != null);
+
+    return PaymentVerifyModel(
+      success: isSuccess,
+      message: json['message'] ?? '',
+      newBalance: (json['newBalance'] as num?)?.toDouble() ?? 0.0,
+      txnId: txn['txnId'] ?? json['txnId'] ?? '',
+      amount:
+          (txn['amount'] as num?)?.toDouble() ??
+          (json['amount'] as num?)?.toDouble() ??
+          0.0,
+      method: txn['method'] ?? json['method'] ?? '',
+      phoneNumber: txn['phoneNumber'] ?? json['phoneNumber'] ?? '',
+      status: txn['status'] ?? json['status'] ?? 'success',
+      createdAt: txn['createdAt'] != null
+          ? DateTime.tryParse(txn['createdAt'])
+          : null,
+      recipientNumber: txn['recipientNumber'],
+      note: txn['note'],
+    );
+  }
+
+  factory PaymentVerifyModel.error(String msg) => PaymentVerifyModel(
+    success: false,
+    message: msg,
+    newBalance: 0,
+    txnId: '',
+    amount: 0,
+    method: '',
+    phoneNumber: '',
+    status: 'failed',
   );
-}
-
-factory PaymentVerifyModel.error(String msg) => PaymentVerifyModel(
-  success:     false,
-  message:     msg,
-  newBalance:  0,
-  txnId:       '',
-  amount:      0,
-  method:      '',
-  phoneNumber: '',
-  status:      'failed',
-);
 }
 
 // ─── Safepay Checkout Model ───────────────────────────────────────────────────
@@ -244,12 +244,8 @@ class SafepayCheckoutModel {
     );
   }
 
-  factory SafepayCheckoutModel.error(String msg) => SafepayCheckoutModel(
-        success: false,
-        url: '',
-        trackId: '',
-        message: msg,
-      );
+  factory SafepayCheckoutModel.error(String msg) =>
+      SafepayCheckoutModel(success: false, url: '', trackId: '', message: msg);
 }
 
 // ─── Safepay Status Model ─────────────────────────────────────────────────────
@@ -282,22 +278,22 @@ class SafepayStatusModel {
   }
 
   factory SafepayStatusModel.error(String msg) => SafepayStatusModel(
-        success: false,
-        status: 'failed',
-        amount: 0,
-        message: msg,
-      );
+    success: false,
+    status: 'failed',
+    amount: 0,
+    message: msg,
+  );
 
   // Polling gave up before a terminal answer arrived — not a failure, the
   // webhook can still land and credit the wallet afterwards. Kept distinct
   // from .error() so isPending stays true and callers don't show a false
   // "payment failed" message for what may just be a slow webhook.
   factory SafepayStatusModel.pending(String msg) => SafepayStatusModel(
-        success: false,
-        status: 'pending',
-        amount: 0,
-        message: msg,
-      );
+    success: false,
+    status: 'pending',
+    amount: 0,
+    message: msg,
+  );
 }
 
 // ─── Saved Payment Method Model ───────────────────────────────────────────────

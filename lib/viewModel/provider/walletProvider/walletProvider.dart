@@ -155,6 +155,9 @@ class WalletProvider with ChangeNotifier {
     required String method,
     required String name,
     required String phone,
+    String? bankName,
+    String? accountNumber,
+    String? iban,
   }) async {
     otpLoading = true;
     errorMessage = '';
@@ -166,6 +169,9 @@ class WalletProvider with ChangeNotifier {
       method: method,
       name: name,
       phone: phone,
+      bankName: bankName,
+      accountNumber: accountNumber,
+      iban: iban,
     );
 
     otpLoading = false;

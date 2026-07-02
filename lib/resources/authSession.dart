@@ -48,7 +48,7 @@ class AuthSession extends ChangeNotifier {
 
   /// call on logout
   Future<void> logout() async {
-    await NotificationService.clearToken();
+    await NotificationService.clearToken(userId: _userId);
     await LocalStorage.clearAuth(); // removes token + userId + email
     _userId = null;
     _userEmail = null;
