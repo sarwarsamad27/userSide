@@ -18,7 +18,8 @@ class BuyerWithdrawScreen extends StatefulWidget {
   State<BuyerWithdrawScreen> createState() => _BuyerWithdrawScreenState();
 }
 
-class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
+class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
+    with WidgetsBindingObserver {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _amountController = TextEditingController();
@@ -36,7 +37,14 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
   static const Color _jcBg = Color(0xFFFFF0F0);
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _nameController.dispose();
     _phoneController.dispose();
     _amountController.dispose();
@@ -44,6 +52,25 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
     _ibanController.dispose();
     _otpController.dispose();
     super.dispose();
+  }
+
+  // WhatsApp OTPs can't be auto-read the way SMS can (no public API for
+  // that), so instead: once the user copies the code from WhatsApp and
+  // comes back to the app, this picks it up from the clipboard and fills
+  // the field for them — they still tap Verify themselves.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _otpSent) {
+      _tryAutofillOtpFromClipboard();
+    }
+  }
+
+  Future<void> _tryAutofillOtpFromClipboard() async {
+    final clip = await Clipboard.getData('text/plain');
+    final code = RegExp(r'\b\d{6}\b').firstMatch(clip?.text?.trim() ?? '')?.group(0);
+    if (code != null && code != _otpController.text && mounted) {
+      setState(() => _otpController.text = code);
+    }
   }
 
   String get _buyerId => context.read<AuthSession>().userId ?? '';
@@ -77,6 +104,7 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen> {
 
     if (ok) {
       setState(() => _otpSent = true);
+      _tryAutofillOtpFromClipboard();
     } else {
       _showError(context.read<WalletProvider>().errorMessage);
     }
