@@ -59,7 +59,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       await categoryProvider.fetchCategories(widget.profileId);
 
       if (categoryProvider.data != null &&
-          categoryProvider.data!.categories!.isNotEmpty) {
+          categoryProvider.data!.categories.isNotEmpty) {
         categoryProvider.selectCategory(0);
       }
 
@@ -508,13 +508,13 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                           );
                         }
                         if (provider.data == null ||
-                            provider.data!.categories!.isEmpty) {
+                            provider.data!.categories.isEmpty) {
                           return const Center(
                             child: Text("No Categories Found"),
                           );
                         }
 
-                        final categoriesData = provider.data!.categories!;
+                        final categoriesData = provider.data!.categories;
                         return ListView.separated(
                           physics: const ClampingScrollPhysics(),
                           padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -579,13 +579,13 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                   Consumer<GetAllCategoryProfileWiseProvider>(
                     builder: (context, provider, child) {
                       if (provider.data == null ||
-                          provider.data!.categories!.isEmpty) {
+                          provider.data!.categories.isEmpty) {
                         return const Center(child: Text("No Products Found"));
                       }
                       final categoryId =
                           provider
                               .data!
-                              .categories![provider.selectedIndex]
+                              .categories[provider.selectedIndex]
                               .sId ??
                           '';
                       return ProductBelowCategory(

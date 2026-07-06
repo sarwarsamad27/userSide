@@ -64,6 +64,7 @@ class GoogleLoginProvider with ChangeNotifier {
         await LocalStorage.saveUserId(_loginData!.user!.id!);
         await AuthSession.instance.setUser(
           _loginData!.user!.id!,
+          email: _loginData!.user!.email,
         ); // ✅ Update global session
       } else {
         _errorMessage = _loginData?.message ?? "Login failed";

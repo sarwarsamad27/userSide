@@ -300,10 +300,17 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
   Future<void> _onPlaceOrderTapped() async {
     // Validate form fields first
     if (_nameController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty ||
         _phoneController.text.trim().isEmpty ||
         _addressController.text.trim().isEmpty ||
         _cityController.text.trim().isEmpty) {
       PremiumToast.error(context, 'Please fill in all required fields');
+      return;
+    }
+
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(_emailController.text.trim())) {
+      PremiumToast.error(context, 'Please enter a valid email address');
       return;
     }
 

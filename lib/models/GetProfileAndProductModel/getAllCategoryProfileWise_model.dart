@@ -1,17 +1,21 @@
 class GetAllCategoryProfileWiseModel {
   String? message;
   int? total;
-  List<Categories>? categories;
+  List<Categories> categories;
 
-  GetAllCategoryProfileWiseModel({this.message, this.total, this.categories});
+  GetAllCategoryProfileWiseModel({
+    this.message,
+    this.total,
+    List<Categories>? categories,
+  }) : categories = categories ?? [];
 
-  GetAllCategoryProfileWiseModel.fromJson(Map<String, dynamic> json) {
+  GetAllCategoryProfileWiseModel.fromJson(Map<String, dynamic> json)
+    : categories = [] {
     message = json['message'];
     total = json['total'];
     if (json['categories'] != null) {
-      categories = <Categories>[];
       json['categories'].forEach((v) {
-        categories!.add(new Categories.fromJson(v));
+        categories.add(new Categories.fromJson(v));
       });
     }
   }
@@ -20,9 +24,7 @@ class GetAllCategoryProfileWiseModel {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['message'] = this.message;
     data['total'] = this.total;
-    if (this.categories != null) {
-      data['categories'] = this.categories!.map((v) => v.toJson()).toList();
-    }
+    data['categories'] = this.categories.map((v) => v.toJson()).toList();
     return data;
   }
 }

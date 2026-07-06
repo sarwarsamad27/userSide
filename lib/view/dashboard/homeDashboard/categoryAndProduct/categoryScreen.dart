@@ -32,7 +32,7 @@ class _CategoryscreenState extends State<Categoryscreen> {
       await provider.fetchCategories(widget.profileId);
 
       if (widget.categoryId != null) {
-        final index = provider.data!.categories!.indexWhere(
+        final index = provider.data!.categories.indexWhere(
           (c) => c.sId == widget.categoryId,
         );
 
@@ -51,9 +51,7 @@ class _CategoryscreenState extends State<Categoryscreen> {
       return Scaffold(body: Utils.shoppingLoadingLottie());
     }
 
-    if (provider.data == null ||
-        provider.data!.categories == null ||
-        provider.data!.categories!.isEmpty) {
+    if (provider.data == null || provider.data!.categories.isEmpty) {
       return Scaffold(
         body: Center(
           child: Column(
@@ -65,7 +63,7 @@ class _CategoryscreenState extends State<Categoryscreen> {
       );
     }
 
-    final categories = provider.data!.categories!;
+    final categories = provider.data!.categories;
     final selectedIndex = provider.selectedIndex;
 
     // 🚀 EXTRA SAFE CHECK – ensure selectedIndex is valid
