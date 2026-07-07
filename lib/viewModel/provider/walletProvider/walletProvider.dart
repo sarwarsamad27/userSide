@@ -21,6 +21,10 @@ class WalletProvider with ChangeNotifier {
   bool verifyLoading = false;
   String errorMessage = '';
 
+  // Set by sendBuyerWithdrawOtp() — the E.164 phone number the backend
+  // expects to be Firebase-verified before it'll finalize this withdrawal.
+  String? pendingWithdrawPhone;
+
   // ── Fetch Balance ─────────────────────────────────────────────────────────
   Future<void> fetchBalance(String buyerId) async {
     balanceLoading = true;
@@ -175,12 +179,19 @@ class WalletProvider with ChangeNotifier {
     );
 
     otpLoading = false;
-    if (!result.success) errorMessage = result.message;
+    if (result.success) {
+      pendingWithdrawPhone = result.phone;
+    } else {
+      errorMessage = result.message;
+    }
     notifyListeners();
     return result.success;
   }
 
-  // ── Buyer Withdraw: Verify OTP ────────────────────────────────────────────
+  // ── Buyer Withdraw: Verify OTP ──────────────────────────────────────────
+  // 💤 Firebase ID token version (restore when Blaze is enabled): change
+  // `otp` -> `idToken` here and in wallet_repository.dart's
+  // verifyBuyerWithdrawOtp().
   Future<PaymentVerifyModel?> verifyBuyerWithdrawOtp({
     required String buyerId,
     required String otp,

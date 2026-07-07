@@ -82,7 +82,7 @@ Future<OtpResponseModel> sendBuyerWithdrawOtp({
   }
 }
 
-// ── Buyer Withdraw: Verify OTP ────────────────────────────────────────────
+// ── Buyer Withdraw: Verify OTP ──────────────────────────────────────────────
 Future<PaymentVerifyModel> verifyBuyerWithdrawOtp({
   required String buyerId,
   required String otp,

@@ -129,11 +129,13 @@ class OtpResponseModel {
   final bool success;
   final String message;
   final String txnRefNo;
+  final String? phone;
 
   OtpResponseModel({
     required this.success,
     required this.message,
     required this.txnRefNo,
+    this.phone,
   });
 
   factory OtpResponseModel.fromJson(Map<String, dynamic> json) {
@@ -143,6 +145,7 @@ class OtpResponseModel {
       success: ok,
       message: json['message'] ?? '',
       txnRefNo: json['txnRefNo'] ?? '',
+      phone: json['phone'],
     );
   }
 

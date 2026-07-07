@@ -1,4 +1,8 @@
 // ignore_for_file: deprecated_member_use
+// 💤 Firebase Phone Auth is not the active OTP provider (see backend's
+// utiles/twilioVerify.js — currently Veevo Tech SMS). Kept commented for a
+// future re-enable rather than deleted.
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -9,6 +13,35 @@ import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/pakistaniBanks.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
+
+// 💤 Maps Firebase Phone Auth's error codes to messages a buyer can
+// actually act on. Unused while Firebase Phone Auth isn't the active
+// provider — kept for when it's re-enabled.
+// String firebaseAuthErrorMessage(FirebaseAuthException e) {
+//   switch (e.code) {
+//     case 'invalid-phone-number':
+//       return 'Invalid phone number. Please check and try again.';
+//     case 'too-many-requests':
+//     case 'quota-exceeded':
+//       return 'Too many attempts. Please try again later.';
+//     case 'invalid-verification-code':
+//       return 'Invalid code. Please check and try again.';
+//     case 'invalid-verification-id':
+//     case 'session-expired':
+//       return 'Verification session expired. Please request a new code.';
+//     case 'network-request-failed':
+//       return 'Network error. Please check your connection.';
+//     case 'user-disabled':
+//       return 'This account has been disabled. Contact support.';
+//     case 'operation-not-allowed':
+//       return 'Phone verification is not enabled. Contact support.';
+//     case 'app-not-authorized':
+//     case 'missing-client-identifier':
+//       return 'App verification failed. Please try again or contact support.';
+//     default:
+//       return e.message ?? 'Verification failed. Please try again.';
+//   }
+// }
 
 class BuyerWithdrawScreen extends StatefulWidget {
   final double balance;
@@ -30,6 +63,8 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
   bool _otpSent = false;
   String _method = 'JazzCash';
   String? _selectedBank;
+  // 💤 Firebase Phone Auth version (restore when Blaze is enabled): add back
+  // `String? _verificationId;`
 
   bool get _isBank => _method == 'Bank';
 
@@ -54,10 +89,9 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
     super.dispose();
   }
 
-  // WhatsApp OTPs can't be auto-read the way SMS can (no public API for
-  // that), so instead: once the user copies the code from WhatsApp and
-  // comes back to the app, this picks it up from the clipboard and fills
-  // the field for them — they still tap Verify themselves.
+  // No SMS Retriever/autofill wired up on this screen, so once the user
+  // copies the OTP and returns to the app (foreground resume), this picks
+  // it up from the clipboard and fills the field for them.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && _otpSent) {
@@ -109,6 +143,12 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
       _showError(context.read<WalletProvider>().errorMessage);
     }
   }
+
+  // 💤 Firebase Phone Auth version (restore when Blaze is enabled): was
+  // _startFirebasePhoneVerification(phone) — called FirebaseAuth
+  // .verifyPhoneNumber to trigger the real SMS send, with callbacks for
+  // auto-complete on Android SMS retrieval, error mapping via
+  // firebaseAuthErrorMessage, and setting _otpSent=true on codeSent.
 
   Future<void> _verifyOtp() async {
     if (_otpController.text.trim().length < 6) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/appColor.dart';
 
@@ -11,6 +12,8 @@ class CustomTextField extends StatefulWidget {
   final IconData? prefixIcon;
   final double? height;
   final bool? readOnly;
+  final List<TextInputFormatter>? inputFormatters;
+  final int? maxLength;
 
   /// ✅ validation
   final String? Function(String?)? validator;
@@ -27,6 +30,8 @@ class CustomTextField extends StatefulWidget {
     this.prefixIcon,
     this.readOnly,
     this.height,
+    this.inputFormatters,
+    this.maxLength,
     this.validator,
     this.onChanged,
     this.autovalidateMode = AutovalidateMode.disabled,
@@ -113,6 +118,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
                     expands: widget.height != null,
                     maxLines: widget.height != null ? null : 1,
                     minLines: widget.height != null ? null : 1,
+                    inputFormatters: widget.inputFormatters,
+                    maxLength: widget.maxLength,
                     style: TextStyle(
                       color: AppColor.textPrimaryColor,
                       fontSize: 15.sp,
@@ -123,6 +130,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                     },
                     decoration: InputDecoration(
                       isCollapsed: true,
+                      counterText: '',
                       contentPadding: EdgeInsets.symmetric(
                         horizontal: 14.w,
                         vertical: 14.h,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -958,6 +959,10 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                               hintText: 'Enter your phone (03XXXXXXXXX)',
                               headerText: 'Phone Number',
                               keyboardType: TextInputType.phone,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(11),
+                              ],
                               validator: (val) {
                                 if (val == null || val.isEmpty)
                                   return "Phone is required";
@@ -1334,7 +1339,12 @@ class _WalletPhoneSheet extends StatelessWidget {
           TextField(
             controller: controller,
             keyboardType: TextInputType.phone,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(11),
+            ],
             decoration: InputDecoration(
+              counterText: '',
               hintText: '03XXXXXXXXX',
               prefixIcon: const Icon(Icons.phone),
               border: OutlineInputBorder(
