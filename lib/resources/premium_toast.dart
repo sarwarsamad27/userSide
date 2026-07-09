@@ -8,6 +8,15 @@ class PremiumToast {
   static OverlayEntry? _overlayEntry;
   static Timer? _timer;
 
+  // Screens along a fast navigation path can each fire their own network
+  // call; on a slow/offline connection several fail within moments of each
+  // other and would otherwise replace/re-flash the same error toast over
+  // and over. Suppress an exact repeat of the same message while one is
+  // still likely visible.
+  static String? _lastMessage;
+  static DateTime? _lastShownAt;
+  static const _dedupeWindow = Duration(seconds: 4);
+
   static void show(
     BuildContext? context,
     String message, {
@@ -18,6 +27,15 @@ class PremiumToast {
     bool isSuccess = false,
     bool isWarning = false,
   }) {
+    final now = DateTime.now();
+    if (_lastMessage == message &&
+        _lastShownAt != null &&
+        now.difference(_lastShownAt!) < _dedupeWindow) {
+      return;
+    }
+    _lastMessage = message;
+    _lastShownAt = now;
+
     _removeToast();
 
     // ✅ NEW: Try to get context from global navigator if not provided
