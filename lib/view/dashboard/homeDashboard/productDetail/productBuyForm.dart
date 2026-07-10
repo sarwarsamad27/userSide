@@ -153,14 +153,16 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
   // show the struck-through "was Rs X" once free delivery kicks in.
   double _getBaseShipping() {
     final city = _cityController.text.trim().toLowerCase();
-    if (city.isEmpty) return 200;
+    final deliveryCfg = _delivery;
+    if (city.isEmpty) return deliveryCfg.sameCityCharge;
 
     // Most sellers likely Karachi (Self/Local)
     // In a real app, we'd compare with specific seller cities if available
-    // For now, Karachi is same city (200), Others (300)
-    if (city == 'karachi') return 200;
+    // For now, Karachi is same city, others pay the other-city rate — both
+    // admin-configurable (Settings → Delivery on the admin app).
+    if (city == 'karachi') return deliveryCfg.sameCityCharge;
 
-    return 300;
+    return deliveryCfg.otherCityCharge;
   }
 
   double _getCurrentShipping() {
@@ -436,7 +438,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
       buyerCity: _cityController.text.trim(),
       additionalNote: _additionalNoteController.text.trim(),
       products: _buildProductList(),
-      shipmentCharges: _delivery.getShipmentCharges(productTotal).toInt(),
+      shipmentCharges: _getCurrentShipping().toInt(),
       paymentMethod: 'cod',
       displayName: displayName,
       displayImage: displayImage,
@@ -480,7 +482,6 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
 
     // ── Step 3: Place order (wallet debit already done) ───────────────────────
     _loadingNotifier.value = true;
-    final productTotalW = _getProductsTotal();
     await provider.placeOrder(
       name: _nameController.text.trim(),
       email: _emailController.text.trim(),
@@ -489,7 +490,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
       buyerCity: _cityController.text.trim(),
       additionalNote: _additionalNoteController.text.trim(),
       products: _buildProductList(),
-      shipmentCharges: _delivery.getShipmentCharges(productTotalW).toInt(),
+      shipmentCharges: _getCurrentShipping().toInt(),
       paymentMethod: 'wallet',
     );
     _loadingNotifier.value = false;

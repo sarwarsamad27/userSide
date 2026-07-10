@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/view/dashboard/products/discounted_products_screen.dart';
+import 'package:user_side/viewModel/provider/deliveryProvider/delivery_settings_provider.dart';
 
 class OffersScreen extends StatelessWidget {
   const OffersScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    Future.microtask(() {
+      context.read<DeliverySettingsProvider>().fetchSettings();
+    });
+    final deliveryCfg = context.watch<DeliverySettingsProvider>();
+
     final offers = [
       _OfferData(
         icon: Icons.workspace_premium_rounded,
@@ -23,13 +30,17 @@ class OffersScreen extends StatelessWidget {
         subtitle: 'Delivered to your wallet automatically — no code needed',
         color: const Color(0xFF10B981),
       ),
-      _OfferData(
-        icon: Icons.local_shipping_rounded,
-        badge: 'FREE',
-        title: 'Spend 10,000 and get free shipping',
-        subtitle: 'No minimum cart value required',
-        color: const Color(0xFF3B82F6),
-      ),
+      // Mirrors whatever the admin sets in Delivery Settings — hidden
+      // entirely if free delivery is turned off there.
+      if (deliveryCfg.freeDeliveryEnabled && deliveryCfg.freeDeliveryThreshold > 0)
+        _OfferData(
+          icon: Icons.local_shipping_rounded,
+          badge: 'FREE',
+          title:
+              'Spend Rs ${deliveryCfg.freeDeliveryThreshold.toStringAsFixed(0)} and get free shipping',
+          subtitle: 'Applied automatically once your cart reaches this amount',
+          color: const Color(0xFF3B82F6),
+        ),
       _OfferData(
         icon: Icons.trending_up_rounded,
         badge: 'TRENDING',
