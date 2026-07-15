@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/toast.dart';
 import 'package:user_side/view/auth/updatepasswordScreen.dart';
+import 'package:user_side/viewModel/provider/authProvider/forgotPassword_provider.dart';
 import 'package:user_side/viewModel/provider/authProvider/verifyCode_provider.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 import 'package:user_side/widgets/customButton.dart';
@@ -10,12 +11,37 @@ import 'package:user_side/widgets/customContainer.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 
-class VerifyCodeScreen extends StatelessWidget {
+class VerifyCodeScreen extends StatefulWidget {
   final String email;
   final VoidCallback? onLoginSuccess;
-  VerifyCodeScreen({super.key, required this.email, this.onLoginSuccess});
+  const VerifyCodeScreen({super.key, required this.email, this.onLoginSuccess});
 
+  @override
+  State<VerifyCodeScreen> createState() => _VerifyCodeScreenState();
+}
+
+class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
   final TextEditingController otpController = TextEditingController();
+  bool resending = false;
+
+  Future<void> _resendCode() async {
+    setState(() => resending = true);
+
+    final provider = Provider.of<ForgotProvider>(context, listen: false);
+    await provider.forgotPassword(email: widget.email);
+
+    if (!mounted) return;
+    setState(() => resending = false);
+
+    if (provider.forgotData != null &&
+        provider.forgotData!.message == "Verification code sent to your email") {
+      AppToast.success(provider.forgotData!.message!);
+    } else {
+      AppToast.error(
+        provider.errorMessage ?? provider.forgotData?.message ?? "Failed to resend code",
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,15 +134,15 @@ class VerifyCodeScreen extends StatelessWidget {
                               ),
                             ),
                             GestureDetector(
-                              onTap: () {
-                                // resend code logic
-                              },
+                              onTap: resending ? null : _resendCode,
                               child: Text(
-                                "Resend",
+                                resending ? "Sending..." : "Resend",
                                 style: TextStyle(
                                   fontSize: 13.sp,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColor.primaryColor,
+                                  color: resending
+                                      ? Colors.grey
+                                      : AppColor.primaryColor,
                                 ),
                               ),
                             ),
@@ -132,7 +158,7 @@ class VerifyCodeScreen extends StatelessWidget {
                             );
 
                             await provider.verifyCode(
-                              email: email,
+                              email: widget.email,
                               verificationCode: otpController.text.trim(),
                             );
 
@@ -145,8 +171,8 @@ class VerifyCodeScreen extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => UpdatePasswordScreen(
-                                    email: email,
-                                    onLoginSuccess: onLoginSuccess,
+                                    email: widget.email,
+                                    onLoginSuccess: widget.onLoginSuccess,
                                   ),
                                 ),
                               );
