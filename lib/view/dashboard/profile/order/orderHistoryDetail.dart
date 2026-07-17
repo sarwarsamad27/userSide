@@ -239,6 +239,59 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
+  // Shows the buyer exactly how many days they have left (or had) so the
+  // eligibility message is never a guess — always backed by real dates.
+  Widget _returnWindowInfo(String deliveredAt, {required bool expired}) {
+    DateTime delivered;
+    try {
+      delivered = DateTime.parse(deliveredAt);
+    } catch (_) {
+      return const SizedBox.shrink();
+    }
+    final expiry = delivered.add(const Duration(days: 10));
+    final daysLeft = expiry.difference(DateTime.now()).inDays;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: (expired ? Colors.grey : AppColor.primaryColor).withOpacity(0.06),
+        borderRadius: BorderRadius.circular(10.r),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.event_available_outlined,
+            size: 14.sp,
+            color: expired ? Colors.grey[400] : AppColor.primaryColor,
+          ),
+          SizedBox(width: 6.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Delivered: ${formatDate(deliveredAt)}",
+                  style: TextStyle(fontSize: 11.sp, color: Colors.grey[600]),
+                ),
+                Text(
+                  expired
+                      ? "Return window expired on ${formatDate(expiry.toIso8601String())}"
+                      : "Return window closes ${formatDate(expiry.toIso8601String())} (${daysLeft >= 0 ? daysLeft : 0} day${daysLeft == 1 ? '' : 's'} left)",
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.w600,
+                    color: expired ? Colors.grey[500] : AppColor.primaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   bool canExchangeOrRefund(String? status, String? deliveredAt) {
     if (status != "Delivered") return false;
     if (deliveredAt == null) return false;
@@ -943,27 +996,34 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ),
                     ],
                   ),
+                  if (_order.deliveredAt != null) ...[
+                    SizedBox(height: 8.h),
+                    _returnWindowInfo(_order.deliveredAt!, expired: false),
+                  ],
                 ] else if (_order.status == "Delivered" &&
                     exReq == null &&
                     refReq == null) ...[
                   SizedBox(height: 10.h),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        size: 14.sp,
-                        color: Colors.grey[400],
-                      ),
-                      SizedBox(width: 6.w),
-                      Text(
-                        "Return window expired (10 days after delivery)",
-                        style: TextStyle(
-                          fontSize: 11.sp,
+                  if (_order.deliveredAt != null)
+                    _returnWindowInfo(_order.deliveredAt!, expired: true)
+                  else
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 14.sp,
                           color: Colors.grey[400],
                         ),
-                      ),
-                    ],
-                  ),
+                        SizedBox(width: 6.w),
+                        Text(
+                          "Delivery date unavailable",
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ],
+                    ),
                 ],
 
                 // ✅ Cancelled status message
