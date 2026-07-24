@@ -109,4 +109,12 @@ class ReviewProvider extends ChangeNotifier {
     _reviewedOrderIds.add(orderId);
     notifyListeners();
   }
+
+  // Rolls back an optimistic markReviewed() when the review submission
+  // that triggered it actually fails.
+  Future<void> unmarkReviewed(String orderId) async {
+    await LocalStorage.unmarkOrderReviewed(orderId);
+    _reviewedOrderIds.remove(orderId);
+    notifyListeners();
+  }
 }

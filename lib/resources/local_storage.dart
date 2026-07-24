@@ -153,6 +153,17 @@ class LocalStorage {
     }
   }
 
+  // Rolls back an optimistic markOrderReviewed() when the review submission
+  // that triggered it actually fails — lets the buyer retry instead of
+  // being permanently locked out of reviewing that order.
+  static Future<void> unmarkOrderReviewed(String orderId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_reviewedOrdersKey) ?? <String>[];
+    if (list.remove(orderId)) {
+      await prefs.setStringList(_reviewedOrdersKey, list);
+    }
+  }
+
   static Future<void> clearReviewedProducts() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_reviewedProductsKey);

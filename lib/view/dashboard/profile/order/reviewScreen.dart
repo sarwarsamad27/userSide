@@ -379,9 +379,13 @@ class ReviewScreen extends StatelessWidget {
                                   final sizeBytes = await file.length();
                                   if (sizeBytes > 50 * 1024 * 1024) {
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         const SnackBar(
-                                          content: Text('Video must be under 50 MB'),
+                                          content: Text(
+                                            'Video must be under 50 MB',
+                                          ),
                                           backgroundColor: Colors.red,
                                         ),
                                       );
@@ -434,115 +438,130 @@ class ReviewScreen extends StatelessWidget {
 
                               final uploadManager =
                                   Provider.of<BackgroundUploadManager>(
-                                context,
-                                listen: false,
-                              );
+                                    context,
+                                    listen: false,
+                                  );
                               final getProductProvider =
                                   Provider.of<GetSingleProductProvider>(
-                                context,
-                                listen: false,
-                              );
+                                    context,
+                                    listen: false,
+                                  );
+
+                              // Optimistic: hide "Add Review" and block a
+                              // second submission for this order right away
+                              // — don't wait for the background upload to
+                              // finish (which can take a while for a
+                              // video). Rolled back below if the actual
+                              // submission fails, so the buyer can retry.
+                              reviewedProvider.markReviewed(orderId);
 
                               uploadManager.enqueue(
                                 title: 'Review submission',
                                 task: (reportProgress) async {
-                                  final userId =
-                                      await LocalStorage.getUserId();
+                                  try {
+                                    final userId =
+                                        await LocalStorage.getUserId();
 
-                                  // Encoding (0 → 60%), then the streamed
-                                  // network send carries the rest (60 →
-                                  // 100%) — mirrors the original weighting.
-                                  final totalFiles = imagesSnapshot.length +
-                                      (videoSnapshot != null ? 1 : 0);
-                                  var encodedFiles = 0;
+                                    // Encoding (0 → 60%), then the streamed
+                                    // network send carries the rest (60 →
+                                    // 100%) — mirrors the original weighting.
+                                    final totalFiles =
+                                        imagesSnapshot.length +
+                                        (videoSnapshot != null ? 1 : 0);
+                                    var encodedFiles = 0;
 
-                                  final b64Images = <String>[];
-                                  for (final img in imagesSnapshot) {
-                                    final bytes = await img.readAsBytes();
-                                    b64Images.add(
-                                      "data:image/jpg;base64,${base64Encode(bytes)}",
+                                    final b64Images = <String>[];
+                                    for (final img in imagesSnapshot) {
+                                      final bytes = await img.readAsBytes();
+                                      b64Images.add(
+                                        "data:image/jpg;base64,${base64Encode(bytes)}",
+                                      );
+                                      encodedFiles++;
+                                      reportProgress(
+                                        totalFiles > 0
+                                            ? encodedFiles / totalFiles * 0.6
+                                            : 0.0,
+                                      );
+                                    }
+
+                                    String? b64Video;
+                                    if (videoSnapshot != null) {
+                                      final bytes = await videoSnapshot
+                                          .readAsBytes();
+                                      b64Video =
+                                          "data:video/mp4;base64,${base64Encode(bytes)}";
+                                      encodedFiles++;
+                                      reportProgress(
+                                        totalFiles > 0
+                                            ? encodedFiles / totalFiles * 0.6
+                                            : 0.0,
+                                      );
+                                    }
+
+                                    final encodingDone = totalFiles > 0
+                                        ? 0.6
+                                        : 0.0;
+
+                                    final token = await LocalStorage.getToken();
+                                    final response = await postJsonWithProgress(
+                                      Uri.parse(Global.CreateReview),
+                                      {
+                                        'productId': productId,
+                                        'userId': userId.toString(),
+                                        'stars': rating.toString(),
+                                        'text': text,
+                                        if (b64Images.isNotEmpty)
+                                          'images': b64Images,
+                                        if (b64Video != null) 'video': b64Video,
+                                      },
+                                      headers: {
+                                        'Accept': 'application/json',
+                                        if (token != null && token.isNotEmpty)
+                                          'Authorization': 'Bearer $token',
+                                      },
+                                      onProgress: (p) => reportProgress(
+                                        encodingDone + (1.0 - encodingDone) * p,
+                                      ),
                                     );
-                                    encodedFiles++;
-                                    reportProgress(
-                                      totalFiles > 0
-                                          ? encodedFiles / totalFiles * 0.6
-                                          : 0.0,
+
+                                    final responseMap =
+                                        jsonDecode(response.body)
+                                            as Map<String, dynamic>;
+                                    final reviewResp =
+                                        CreateReviewModel.fromJson(responseMap);
+
+                                    if (reviewResp.success != true) {
+                                      throw Exception(
+                                        reviewResp.message ??
+                                            'Review submission failed',
+                                      );
+                                    }
+
+                                    final reviewData = reviewResp.review;
+                                    String userEmail = "User";
+                                    if (reviewData?.userId != null) {
+                                      userEmail =
+                                          reviewData!.userId!.email ?? "User";
+                                    }
+                                    final newReview = Reviews(
+                                      sId:
+                                          reviewData?.sId ??
+                                          DateTime.now().toString(),
+                                      userEmail: userEmail.contains("@")
+                                          ? userEmail.split("@").first
+                                          : userEmail,
+                                      stars: rating,
+                                      text: text,
+                                      images: reviewData?.images ?? [],
+                                      video: reviewData?.video,
                                     );
-                                  }
-
-                                  String? b64Video;
-                                  if (videoSnapshot != null) {
-                                    final bytes =
-                                        await videoSnapshot.readAsBytes();
-                                    b64Video =
-                                        "data:video/mp4;base64,${base64Encode(bytes)}";
-                                    encodedFiles++;
-                                    reportProgress(
-                                      totalFiles > 0
-                                          ? encodedFiles / totalFiles * 0.6
-                                          : 0.0,
+                                    getProductProvider.addNewReview(newReview);
+                                  } catch (e) {
+                                    await reviewedProvider.unmarkReviewed(
+                                      orderId,
                                     );
+                                    rethrow;
                                   }
-
-                                  final encodingDone =
-                                      totalFiles > 0 ? 0.6 : 0.0;
-
-                                  final token = await LocalStorage.getToken();
-                                  final response = await postJsonWithProgress(
-                                    Uri.parse(Global.CreateReview),
-                                    {
-                                      'productId': productId,
-                                      'userId': userId.toString(),
-                                      'stars': rating.toString(),
-                                      'text': text,
-                                      if (b64Images.isNotEmpty)
-                                        'images': b64Images,
-                                      if (b64Video != null) 'video': b64Video,
-                                    },
-                                    headers: {
-                                      'Accept': 'application/json',
-                                      if (token != null && token.isNotEmpty)
-                                        'Authorization': 'Bearer $token',
-                                    },
-                                    onProgress: (p) => reportProgress(
-                                      encodingDone + (1.0 - encodingDone) * p,
-                                    ),
-                                  );
-
-                                  final responseMap = jsonDecode(
-                                    response.body,
-                                  ) as Map<String, dynamic>;
-                                  final reviewResp = CreateReviewModel
-                                      .fromJson(responseMap);
-
-                                  if (reviewResp.success != true) {
-                                    throw Exception(
-                                      reviewResp.message ??
-                                          'Review submission failed',
-                                    );
-                                  }
-
-                                  final reviewData = reviewResp.review;
-                                  String userEmail = "User";
-                                  if (reviewData?.userId != null) {
-                                    userEmail =
-                                        reviewData!.userId!.email ?? "User";
-                                  }
-                                  final newReview = Reviews(
-                                    sId: reviewData?.sId ??
-                                        DateTime.now().toString(),
-                                    userEmail: userEmail.contains("@")
-                                        ? userEmail.split("@").first
-                                        : userEmail,
-                                    stars: rating,
-                                    text: text,
-                                    images: reviewData?.images ?? [],
-                                    video: reviewData?.video,
-                                  );
-                                  getProductProvider.addNewReview(newReview);
-                                  await reviewedProvider.markReviewed(
-                                    orderId,
-                                  );
                                 },
                                 successTitle: "Review posted",
                                 successBody:
@@ -623,8 +642,8 @@ class ReviewScreen extends StatelessWidget {
                         form.selectedRating == 0 && form.trimmedText.isEmpty
                             ? "Please select a rating and write your review"
                             : form.selectedRating == 0
-                                ? "Please select a rating"
-                                : "Please write your review",
+                            ? "Please select a rating"
+                            : "Please write your review",
                         style: TextStyle(
                           fontSize: 11.sp,
                           color: Colors.grey[400],
