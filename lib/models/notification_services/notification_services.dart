@@ -23,6 +23,17 @@ class NotificationService {
     importance: Importance.max,
   );
 
+  // Locally-triggered only (never via FCM) — fired when a background
+  // image/video upload (submitting a review...) finishes. Lower importance
+  // than push notifications: it's a convenience ping, not urgent.
+  static const AndroidNotificationChannel _uploadChannel =
+      AndroidNotificationChannel(
+        'upload_status_channel',
+        'Upload Status',
+        description: 'Notifies when a background image/video upload finishes',
+        importance: Importance.defaultImportance,
+      );
+
   static Future<void> init() async {
     // ✅ Android 13+ + iOS permission (FCM handles it)
     await _fcm.requestPermission(alert: true, badge: true, sound: true);
@@ -46,11 +57,12 @@ class NotificationService {
     );
 
     // ✅ create Android channel
-    await _local
+    final androidPlugin = _local
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.createNotificationChannel(_channel);
+        >();
+    await androidPlugin?.createNotificationChannel(_channel);
+    await androidPlugin?.createNotificationChannel(_uploadChannel);
 
     // ✅ FOREGROUND: show local notif
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
@@ -92,6 +104,33 @@ class NotificationService {
       body: body,
       notificationDetails: details,
       payload: jsonEncode(data ?? {}),
+    );
+  }
+
+  /// Fires a plain "done" notification for a finished background upload —
+  /// title/body only, deliberately no progress percentage (that belongs on
+  /// the in-app overlay, not here).
+  static Future<void> showUploadStatusNotification({
+    required String title,
+    required String body,
+  }) async {
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        _uploadChannel.id,
+        _uploadChannel.name,
+        channelDescription: _uploadChannel.description,
+        importance: _uploadChannel.importance,
+        priority: Priority.defaultPriority,
+        icon: 'ic_notification',
+        color: const Color(0xFFDB9F3A),
+      ),
+    );
+
+    await _local.show(
+      id: -(DateTime.now().millisecondsSinceEpoch.remainder(1 << 31)),
+      title: title,
+      body: body,
+      notificationDetails: details,
     );
   }
 

@@ -18,6 +18,7 @@ import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDeta
 import 'package:user_side/viewModel/provider/connectivity_provider.dart';
 import 'package:user_side/viewModel/provider/multiProvider/multiProvider.dart';
 import 'package:user_side/viewModel/provider/syncCoordinator_provider.dart';
+import 'package:user_side/widgets/uploadProgressOverlay.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
@@ -243,7 +244,14 @@ class _MyAppState extends State<MyApp> {
                         ),
                       ),
                     ),
-                  Expanded(child: child!),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        child!,
+                        const UploadProgressOverlay(),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             );

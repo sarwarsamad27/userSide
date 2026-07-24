@@ -37,6 +37,7 @@ import 'package:user_side/viewModel/provider/deliveryProvider/delivery_settings_
 import 'package:user_side/viewModel/provider/productProvider/activeCategoryChips_provider.dart';
 import 'package:user_side/viewModel/provider/connectivity_provider.dart';
 import 'package:user_side/viewModel/provider/syncCoordinator_provider.dart';
+import 'package:user_side/viewModel/provider/uploadProvider/backgroundUpload_provider.dart';
 
 class AppMultiProvider extends StatelessWidget {
   final Widget child;
@@ -89,6 +90,7 @@ class AppMultiProvider extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ActiveCategoryChipsProvider()),
         ChangeNotifierProvider(create: (_) => ConnectivityProvider()),
         ChangeNotifierProvider(create: (_) => AiAssistantProvider()),
+        ChangeNotifierProvider(create: (_) => BackgroundUploadManager()),
         ChangeNotifierProvider<AuthSession>.value(value: AuthSession.instance),
         ChangeNotifierProvider(
           create: (ctx) => SyncCoordinator(

@@ -9,6 +9,7 @@ class CustomButton extends StatelessWidget {
   final double width;
   final bool isGradient;
   final bool isDisabled;
+  final bool loading;
   final Color? borderColor;
   final bool second; // NEW FLAG
 
@@ -21,13 +22,14 @@ class CustomButton extends StatelessWidget {
     this.width = double.infinity,
     this.isGradient = true,
     this.isDisabled = false,
+    this.loading = false,
     this.second = false, // default false, behavior unchanged
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: isDisabled ? null : onTap,
+      onTap: (isDisabled || loading) ? null : onTap,
       child: Container(
         height: height.h,
         width: width.w,
@@ -61,14 +63,25 @@ class CustomButton extends StatelessWidget {
             ),
           ],
         ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: second ? AppColor.primaryColor : Colors.white,
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        child: loading
+            ? SizedBox(
+                height: 22.h,
+                width: 22.h,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.4,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    second ? AppColor.primaryColor : Colors.white,
+                  ),
+                ),
+              )
+            : Text(
+                text,
+                style: TextStyle(
+                  color: second ? AppColor.primaryColor : Colors.white,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
       ),
     );
   }

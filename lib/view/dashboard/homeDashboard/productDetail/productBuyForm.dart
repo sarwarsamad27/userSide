@@ -1359,6 +1359,7 @@ class _WalletPhoneSheet extends StatelessWidget {
               width: double.infinity,
               child: CustomButton(
                 text: 'Send OTP',
+                loading: prov.walletOtpLoading,
                 onTap: prov.walletOtpLoading
                     ? null
                     : () async {
@@ -1415,6 +1416,9 @@ class _WalletOtpSheetState extends State<_WalletOtpSheet> {
 
   @override
   void dispose() {
+    // Autofill keeps a native context open while this field is focused;
+    // release it so the next screen's fields don't inherit stale hints.
+    TextInput.finishAutofillContext();
     _otpController.dispose();
     super.dispose();
   }
@@ -1460,6 +1464,9 @@ class _WalletOtpSheetState extends State<_WalletOtpSheet> {
           TextField(
             controller: _otpController,
             keyboardType: TextInputType.number,
+            // Lets the OS surface the incoming SMS code as a fill suggestion
+            // (Android SMS Retriever / iOS one-time-code) without a plugin.
+            autofillHints: const [AutofillHints.oneTimeCode],
             maxLength: 6,
             textAlign: TextAlign.center,
             decoration: InputDecoration(
@@ -1477,6 +1484,7 @@ class _WalletOtpSheetState extends State<_WalletOtpSheet> {
               height: 50.h,
               child: CustomButton(
                 text: 'Verify & Pay',
+                loading: provider.walletVerifyLoading,
                 onTap: provider.walletVerifyLoading
                     ? null
                     : () async {

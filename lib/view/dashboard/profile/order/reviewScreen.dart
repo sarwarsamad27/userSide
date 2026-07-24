@@ -3,16 +3,18 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:user_side/models/GetProfileAndProductModel/getSingleProduct_model.dart';
 import 'package:user_side/models/ProductAndCategoryModel/createReview_model.dart';
+import 'package:user_side/network/json_progress.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/resources/local_storage.dart';
+import 'package:user_side/resources/premium_toast.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getSingleProduct_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/review_provider.dart';
+import 'package:user_side/viewModel/provider/uploadProvider/backgroundUpload_provider.dart';
 import 'package:video_player/video_player.dart';
 
 class ReviewScreen extends StatelessWidget {
@@ -410,124 +412,116 @@ class ReviewScreen extends StatelessWidget {
                   SizedBox(height: 24.h),
 
                   // ── SUBMIT ──
+                  // Submitting hands the actual upload off to the app-wide
+                  // background queue and closes this screen immediately
+                  // (see below) — same reasoning as the seller-side
+                  // add/edit product screens: don't make the buyer wait on
+                  // a base64-encoded video before they can go do something
+                  // else. Progress now lives on the global overlay chip
+                  // instead of this button.
                   SizedBox(
                     width: double.infinity,
                     child: GestureDetector(
                       onTap: !form.canSubmit
                           ? null
-                          : () async {
-                              form.setSubmitting(true);
+                          : () {
+                              final imagesSnapshot = List<File>.from(
+                                form.images,
+                              );
+                              final videoSnapshot = form.video;
+                              final rating = form.selectedRating;
+                              final text = form.trimmedText;
 
-                              try {
-                                final userId = await LocalStorage.getUserId();
+                              final uploadManager =
+                                  Provider.of<BackgroundUploadManager>(
+                                context,
+                                listen: false,
+                              );
+                              final getProductProvider =
+                                  Provider.of<GetSingleProductProvider>(
+                                context,
+                                listen: false,
+                              );
 
-                                // Total files to encode (for progress weighting)
-                                final totalFiles = form.images.length +
-                                    (form.video != null ? 1 : 0);
-                                int encodedFiles = 0;
+                              uploadManager.enqueue(
+                                title: 'Review submission',
+                                task: (reportProgress) async {
+                                  final userId =
+                                      await LocalStorage.getUserId();
 
-                                // Stage 1: Encode images (0 → 60%)
-                                final b64Images = <String>[];
-                                for (final img in form.images) {
-                                  final bytes = await img.readAsBytes();
-                                  b64Images.add(
-                                    "data:image/jpg;base64,${base64Encode(bytes)}",
+                                  // Encoding (0 → 60%), then the streamed
+                                  // network send carries the rest (60 →
+                                  // 100%) — mirrors the original weighting.
+                                  final totalFiles = imagesSnapshot.length +
+                                      (videoSnapshot != null ? 1 : 0);
+                                  var encodedFiles = 0;
+
+                                  final b64Images = <String>[];
+                                  for (final img in imagesSnapshot) {
+                                    final bytes = await img.readAsBytes();
+                                    b64Images.add(
+                                      "data:image/jpg;base64,${base64Encode(bytes)}",
+                                    );
+                                    encodedFiles++;
+                                    reportProgress(
+                                      totalFiles > 0
+                                          ? encodedFiles / totalFiles * 0.6
+                                          : 0.0,
+                                    );
+                                  }
+
+                                  String? b64Video;
+                                  if (videoSnapshot != null) {
+                                    final bytes =
+                                        await videoSnapshot.readAsBytes();
+                                    b64Video =
+                                        "data:video/mp4;base64,${base64Encode(bytes)}";
+                                    encodedFiles++;
+                                    reportProgress(
+                                      totalFiles > 0
+                                          ? encodedFiles / totalFiles * 0.6
+                                          : 0.0,
+                                    );
+                                  }
+
+                                  final encodingDone =
+                                      totalFiles > 0 ? 0.6 : 0.0;
+
+                                  final token = await LocalStorage.getToken();
+                                  final response = await postJsonWithProgress(
+                                    Uri.parse(Global.CreateReview),
+                                    {
+                                      'productId': productId,
+                                      'userId': userId.toString(),
+                                      'stars': rating.toString(),
+                                      'text': text,
+                                      if (b64Images.isNotEmpty)
+                                        'images': b64Images,
+                                      if (b64Video != null) 'video': b64Video,
+                                    },
+                                    headers: {
+                                      'Accept': 'application/json',
+                                      if (token != null && token.isNotEmpty)
+                                        'Authorization': 'Bearer $token',
+                                    },
+                                    onProgress: (p) => reportProgress(
+                                      encodingDone + (1.0 - encodingDone) * p,
+                                    ),
                                   );
-                                  encodedFiles++;
-                                  form.setProgress(
-                                    totalFiles > 0
-                                        ? encodedFiles / totalFiles * 0.6
-                                        : 0.0,
-                                  );
-                                }
 
-                                // Stage 2: Encode video (up to 60%)
-                                String? b64Video;
-                                if (form.video != null) {
-                                  final bytes =
-                                      await form.video!.readAsBytes();
-                                  b64Video =
-                                      "data:video/mp4;base64,${base64Encode(bytes)}";
-                                  encodedFiles++;
-                                  form.setProgress(
-                                    totalFiles > 0
-                                        ? encodedFiles / totalFiles * 0.6
-                                        : 0.0,
-                                  );
-                                }
+                                  final responseMap = jsonDecode(
+                                    response.body,
+                                  ) as Map<String, dynamic>;
+                                  final reviewResp = CreateReviewModel
+                                      .fromJson(responseMap);
 
-                                final encodingDone =
-                                    totalFiles > 0 ? 0.6 : 0.0;
+                                  if (reviewResp.success != true) {
+                                    throw Exception(
+                                      reviewResp.message ??
+                                          'Review submission failed',
+                                    );
+                                  }
 
-                                // Stage 3: Stream upload (encodingDone → 100%)
-                                final payload = jsonEncode({
-                                  'productId': productId,
-                                  'userId': userId.toString(),
-                                  'stars':
-                                      form.selectedRating.toString(),
-                                  'text': form.trimmedText,
-                                  if (b64Images.isNotEmpty)
-                                    'images': b64Images,
-                                  if (b64Video != null) 'video': b64Video,
-                                });
-                                final payloadBytes = utf8.encode(payload);
-                                final total = payloadBytes.length;
-
-                                final token = await LocalStorage.getToken();
-                                final client = http.Client();
-                                final request = http.StreamedRequest(
-                                  'POST',
-                                  Uri.parse(Global.CreateReview),
-                                );
-                                request.headers.addAll({
-                                  'Content-Type': 'application/json',
-                                  'Accept': 'application/json',
-                                  if (token != null && token.isNotEmpty)
-                                    'Authorization': 'Bearer $token',
-                                });
-                                request.contentLength = total;
-
-                                final responseFuture = client.send(request);
-
-                                int sent = 0;
-                                const chunkSize = 32 * 1024;
-                                for (var i = 0;
-                                    i < payloadBytes.length;
-                                    i += chunkSize) {
-                                  final end = (i + chunkSize)
-                                      .clamp(0, payloadBytes.length);
-                                  request.sink.add(
-                                    payloadBytes.sublist(i, end),
-                                  );
-                                  sent += end - i;
-                                  form.setProgress(
-                                    encodingDone +
-                                        (1.0 - encodingDone) *
-                                            (sent / total),
-                                  );
-                                  await Future.microtask(() {});
-                                }
-                                await request.sink.close();
-
-                                final streamedResponse = await responseFuture;
-                                form.setProgress(1.0);
-                                final responseBody = await streamedResponse
-                                    .stream
-                                    .bytesToString();
-                                client.close();
-
-                                final responseMap = jsonDecode(responseBody)
-                                    as Map<String, dynamic>;
-                                final reviewResp =
-                                    CreateReviewModel.fromJson(responseMap);
-
-                                if (reviewResp.success == true) {
-                                  if (!context.mounted) return;
-                                  final getProductProvider =
-                                      Provider.of<GetSingleProductProvider>(
-                                    context,
-                                    listen: false,
-                                  );
                                   final reviewData = reviewResp.review;
                                   String userEmail = "User";
                                   if (reviewData?.userId != null) {
@@ -540,40 +534,29 @@ class ReviewScreen extends StatelessWidget {
                                     userEmail: userEmail.contains("@")
                                         ? userEmail.split("@").first
                                         : userEmail,
-                                    stars: form.selectedRating,
-                                    text: form.trimmedText,
+                                    stars: rating,
+                                    text: text,
                                     images: reviewData?.images ?? [],
                                     video: reviewData?.video,
                                   );
                                   getProductProvider.addNewReview(newReview);
-                                  await reviewedProvider.markReviewed(orderId);
-                                  form.reset();
-                                  if (!context.mounted) return;
-                                  await reviewedProvider.showSuccessDialog(
-                                    context,
+                                  await reviewedProvider.markReviewed(
+                                    orderId,
                                   );
-                                  if (context.mounted) {
-                                    Navigator.pop(context, true);
-                                  }
-                                } else {
-                                  form.setSubmitting(false);
-                                  form.setProgress(0.0);
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          reviewResp.message ??
-                                              'Review submission failed',
-                                        ),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                  }
-                                }
-                              } catch (_) {
-                                form.setSubmitting(false);
-                                form.setProgress(0.0);
-                              }
+                                },
+                                successTitle: "Review posted",
+                                successBody:
+                                    "Your review was submitted successfully.",
+                                failureTitle: "Review submission failed",
+                              );
+
+                              PremiumToast.show(
+                                null,
+                                videoSnapshot != null
+                                    ? "Sending your review in the background — you can keep browsing."
+                                    : "Sending your review...",
+                              );
+                              Navigator.pop(context);
                             },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
@@ -582,7 +565,7 @@ class ReviewScreen extends StatelessWidget {
                           horizontal: 20.w,
                         ),
                         decoration: BoxDecoration(
-                          gradient: (form.canSubmit || form.isSubmitting)
+                          gradient: form.canSubmit
                               ? LinearGradient(
                                   colors: [
                                     AppColor.primaryColor.withOpacity(0.9),
@@ -592,11 +575,9 @@ class ReviewScreen extends StatelessWidget {
                                   end: Alignment.bottomRight,
                                 )
                               : null,
-                          color: (form.canSubmit || form.isSubmitting)
-                              ? null
-                              : Colors.grey[200],
+                          color: form.canSubmit ? null : Colors.grey[200],
                           borderRadius: BorderRadius.circular(16.r),
-                          boxShadow: (form.canSubmit || form.isSubmitting)
+                          boxShadow: form.canSubmit
                               ? [
                                   BoxShadow(
                                     color: AppColor.primaryColor.withOpacity(
@@ -608,79 +589,29 @@ class ReviewScreen extends StatelessWidget {
                                 ]
                               : null,
                         ),
-                        child: form.isSubmitting
-                            ? Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      SizedBox(
-                                        width: 18.w,
-                                        height: 18.w,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                          value: form.uploadProgress > 0
-                                              ? form.uploadProgress
-                                              : null,
-                                        ),
-                                      ),
-                                      SizedBox(width: 8.w),
-                                      Text(
-                                        form.uploadProgress > 0
-                                            ? "${(form.uploadProgress * 100).toStringAsFixed(0)}% Uploaded"
-                                            : "Preparing...",
-                                        style: TextStyle(
-                                          fontSize: 15.sp,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  if (form.uploadProgress > 0) ...[
-                                    SizedBox(height: 8.h),
-                                    ClipRRect(
-                                      borderRadius:
-                                          BorderRadius.circular(4.r),
-                                      child: LinearProgressIndicator(
-                                        value: form.uploadProgress,
-                                        minHeight: 4,
-                                        backgroundColor:
-                                            Colors.white.withOpacity(0.3),
-                                        valueColor:
-                                            const AlwaysStoppedAnimation<
-                                              Color
-                                            >(Colors.white),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              )
-                            : Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.send_rounded,
-                                    color: form.canSubmit
-                                        ? Colors.white
-                                        : Colors.grey[400],
-                                    size: 18.sp,
-                                  ),
-                                  SizedBox(width: 8.w),
-                                  Text(
-                                    "Submit Review",
-                                    style: TextStyle(
-                                      fontSize: 15.sp,
-                                      fontWeight: FontWeight.w700,
-                                      color: form.canSubmit
-                                          ? Colors.white
-                                          : Colors.grey[400],
-                                    ),
-                                  ),
-                                ],
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.send_rounded,
+                              color: form.canSubmit
+                                  ? Colors.white
+                                  : Colors.grey[400],
+                              size: 18.sp,
+                            ),
+                            SizedBox(width: 8.w),
+                            Text(
+                              "Submit Review",
+                              style: TextStyle(
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.w700,
+                                color: form.canSubmit
+                                    ? Colors.white
+                                    : Colors.grey[400],
                               ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
