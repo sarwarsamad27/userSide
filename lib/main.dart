@@ -20,6 +20,8 @@ import 'package:user_side/viewModel/provider/multiProvider/multiProvider.dart';
 import 'package:user_side/viewModel/provider/syncCoordinator_provider.dart';
 import 'package:user_side/widgets/uploadProgressOverlay.dart';
 import 'package:provider/provider.dart';
+import 'package:background_downloader/background_downloader.dart';
+import 'package:user_side/viewModel/provider/uploadProvider/backgroundUpload_provider.dart';
 
 import 'firebase_options.dart';
 
@@ -38,6 +40,31 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
 }
 
+// Native notification wording for background review uploads — fires from
+// the OS itself (WorkManager on Android, background URLSession on iOS), so
+// it shows up even if this Dart isolate isn't running when the transfer
+// finishes. Deliberately no {progress} in the complete/error text — only
+// the "running" notification shows percentage.
+Future<void> _initBackgroundUploads() async {
+  final fd = FileDownloader();
+  fd.configureNotificationForGroup(
+    UploadGroups.buyerReview,
+    running: const TaskNotification('Sending review', '{progress}'),
+    complete: const TaskNotification(
+      'Review posted',
+      'Your review was submitted successfully.',
+    ),
+    error: const TaskNotification(
+      'Review submission failed',
+      '{displayName} — tap to check and retry.',
+    ),
+    progressBar: true,
+  );
+  // Registers this app to catch up on any uploads that completed while it
+  // wasn't running, and resumes tracking going forward.
+  await fd.start();
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
@@ -51,6 +78,7 @@ void main() async {
   }
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await NotificationService.init();
+  await _initBackgroundUploads();
 
   await NotificationRouter.init();
   await AuthSession.instance.init();

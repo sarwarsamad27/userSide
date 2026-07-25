@@ -54,8 +54,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     Future.microtask(() async {
       final buyerId = await LocalStorage.getUserId();
       if (buyerId != null && mounted) {
-        final exchProvider =
-            Provider.of<ExchangeProvider>(context, listen: false);
+        final exchProvider = Provider.of<ExchangeProvider>(
+          context,
+          listen: false,
+        );
         exchProvider.fetchMyRequests(buyerId);
         exchProvider.fetchMyRefunds(buyerId);
       }
@@ -137,9 +139,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               ),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(24.r),
-                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -243,9 +243,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                             style: TextStyle(
                               fontSize: 12.sp,
                               fontWeight: FontWeight.w600,
-                              color: isSelected
-                                  ? Colors.red
-                                  : Colors.grey[600],
+                              color: isSelected ? Colors.red : Colors.grey[600],
                             ),
                           ),
                         ),
@@ -292,11 +290,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                       onPressed: isLoading || selectedReason == null
                           ? null
                           : () async {
-                              final finalReason =
-                                  selectedReason == 'Other'
+                              final finalReason = selectedReason == 'Other'
                                   ? (reasonController.text.trim().isEmpty
-                                      ? 'No reason provided'
-                                      : reasonController.text.trim())
+                                        ? 'No reason provided'
+                                        : reasonController.text.trim())
                                   : selectedReason!;
 
                               setModalState(() => isLoading = true);
@@ -320,7 +317,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Order cancelled successfully'),
+                                      content: Text(
+                                        'Order cancelled successfully',
+                                      ),
                                       backgroundColor: Colors.green,
                                     ),
                                   );
@@ -405,8 +404,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       _lastSeenSyncVersion = sync.syncVersion;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        Provider.of<GetMyOrderProvider>(context, listen: false)
-            .fetchMyOrders(isRefresh: true);
+        Provider.of<GetMyOrderProvider>(
+          context,
+          listen: false,
+        ).fetchMyOrders(isRefresh: true);
       });
     }
 
@@ -436,10 +437,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
             final sortedOrders = [...provider.orderList];
             sortedOrders.sort((a, b) {
-              final aDate =
-                  DateTime.tryParse(a.createdAt ?? '') ?? DateTime(0);
-              final bDate =
-                  DateTime.tryParse(b.createdAt ?? '') ?? DateTime(0);
+              final aDate = DateTime.tryParse(a.createdAt ?? '') ?? DateTime(0);
+              final bDate = DateTime.tryParse(b.createdAt ?? '') ?? DateTime(0);
               return bDate.compareTo(aDate);
             });
 
@@ -619,10 +618,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                   SizedBox(height: 2.h),
                   Text(
                     "Rs ${grandTotal.toStringAsFixed(0)} — waiting for internet",
-                    style: TextStyle(
-                      fontSize: 11.sp,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 11.sp, color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -672,7 +668,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
-        itemCount: filtered.length +
+        itemCount:
+            filtered.length +
             (_searchQuery.isEmpty && provider.isMoreLoading ? 1 : 0),
         separatorBuilder: (_, __) => SizedBox(height: 14.h),
         itemBuilder: (context, index) {
@@ -703,23 +700,36 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     final bool isPending = order.status == 'Pending';
     final String? productId = product?.productId;
     final String orderId = order.id ?? '';
-    final bool canShowAddReview = isDelivered &&
+    // `product.review` is the server truth for this specific order (an
+    // account can review the same product again from a different order,
+    // but not the same order twice) — checked account-wide, so it's
+    // correct across devices. `reviewProvider.isReviewed` is a device-local
+    // optimistic flag that hides the button the instant a review is
+    // submitted, before the next server fetch would otherwise reflect it.
+    final bool alreadyReviewed =
+        order.product?.review != null || reviewProvider.isReviewed(orderId);
+    final bool canShowAddReview =
+        isDelivered &&
         productId != null &&
         orderId.isNotEmpty &&
-        !reviewProvider.isReviewed(orderId);
+        !alreadyReviewed;
 
     final oid = order.id ?? '';
     final oReadableId = order.orderId ?? '';
     final pid = order.product?.productId;
     final myEx = exchProvider.listModel?.requests
-        .where((e) =>
-            (e.orderId == oid || e.orderId == oReadableId) &&
-            (pid == null || e.productId == pid))
+        .where(
+          (e) =>
+              (e.orderId == oid || e.orderId == oReadableId) &&
+              (pid == null || e.productId == pid),
+        )
         .firstOrNull;
     final myRef = exchProvider.refundListModel?.requests
-        .where((r) =>
-            (r.orderId == oid || r.orderId == oReadableId) &&
-            (pid == null || r.productId == pid))
+        .where(
+          (r) =>
+              (r.orderId == oid || r.orderId == oReadableId) &&
+              (pid == null || r.productId == pid),
+        )
         .firstOrNull;
     final hasExchange = myEx != null;
     final hasRefund = myRef != null;
@@ -850,7 +860,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                   vertical: 3.h,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColor.primaryColor.withOpacity(0.08),
+                                  color: AppColor.primaryColor.withOpacity(
+                                    0.08,
+                                  ),
                                   borderRadius: BorderRadius.circular(8.r),
                                 ),
                                 child: Text(
@@ -934,7 +946,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     // Cancel button for Pending orders
                     if (isPending)
                       GestureDetector(
-                        onTap: () => _showCancelDialog(context, order, provider),
+                        onTap: () =>
+                            _showCancelDialog(context, order, provider),
                         child: Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: 10.w,
@@ -1024,49 +1037,49 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
                     // View Details
                     GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => OrderDetailScreen(order: order),
-                          ),
-                        ),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 14.w,
-                            vertical: 8.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColor.primaryColor,
-                            borderRadius: BorderRadius.circular(20.r),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColor.primaryColor.withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.remove_red_eye_outlined,
-                                size: 13.sp,
-                                color: Colors.white,
-                              ),
-                              SizedBox(width: 5.w),
-                              Text(
-                                "View Details",
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => OrderDetailScreen(order: order),
                         ),
                       ),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 14.w,
+                          vertical: 8.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColor.primaryColor,
+                          borderRadius: BorderRadius.circular(20.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColor.primaryColor.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.remove_red_eye_outlined,
+                              size: 13.sp,
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: 5.w),
+                            Text(
+                              "View Details",
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -1102,8 +1115,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 isByBuyer
                     ? 'Cancelled by You'
                     : isBySeller
-                        ? 'Cancelled by Seller'
-                        : 'Cancelled',
+                    ? 'Cancelled by Seller'
+                    : 'Cancelled',
                 style: TextStyle(
                   fontSize: 12.sp,
                   fontWeight: FontWeight.w700,
@@ -1128,10 +1141,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 Expanded(
                   child: Text(
                     reason,
-                    style: TextStyle(
-                      fontSize: 11.sp,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 11.sp, color: Colors.grey[600]),
                   ),
                 ),
               ],
@@ -1184,65 +1194,60 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   // ── Empty States ───────────────────────────────────────────────────────────
   Widget _buildEmpty() => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.shopping_bag_outlined,
-              size: 72.w,
-              color: Colors.grey[300],
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              "No Orders Yet",
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w700,
-                color: Colors.grey[600],
-              ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              "Your order history will appear here",
-              style: TextStyle(fontSize: 13.sp, color: Colors.grey[400]),
-            ),
-          ],
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.shopping_bag_outlined, size: 72.w, color: Colors.grey[300]),
+        SizedBox(height: 16.h),
+        Text(
+          "No Orders Yet",
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w700,
+            color: Colors.grey[600],
+          ),
         ),
-      );
+        SizedBox(height: 8.h),
+        Text(
+          "Your order history will appear here",
+          style: TextStyle(fontSize: 13.sp, color: Colors.grey[400]),
+        ),
+      ],
+    ),
+  );
 
   Widget _buildNoResult() => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.search_off_rounded, size: 64.w, color: Colors.grey[300]),
-            SizedBox(height: 16.h),
-            Text(
-              "No Results Found",
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w700,
-                color: Colors.grey[600],
-              ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              "Try searching with a different product name",
-              style: TextStyle(fontSize: 12.sp, color: Colors.grey[400]),
-            ),
-          ],
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.search_off_rounded, size: 64.w, color: Colors.grey[300]),
+        SizedBox(height: 16.h),
+        Text(
+          "No Results Found",
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w700,
+            color: Colors.grey[600],
+          ),
         ),
-      );
+        SizedBox(height: 8.h),
+        Text(
+          "Try searching with a different product name",
+          style: TextStyle(fontSize: 12.sp, color: Colors.grey[400]),
+        ),
+      ],
+    ),
+  );
 
   Widget _fallbackImg() => Container(
-        height: 80.h,
-        width: 80.w,
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(14.r),
-        ),
-        child:
-            Icon(Icons.image_outlined, size: 28.sp, color: Colors.grey[400]),
-      );
+    height: 80.h,
+    width: 80.w,
+    decoration: BoxDecoration(
+      color: Colors.grey[100],
+      borderRadius: BorderRadius.circular(14.r),
+    ),
+    child: Icon(Icons.image_outlined, size: 28.sp, color: Colors.grey[400]),
+  );
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   Color _statusColor(String? status) {
