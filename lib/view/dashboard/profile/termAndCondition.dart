@@ -10,8 +10,18 @@ class TermsConditionScreen extends StatelessWidget {
       icon: Icons.shopping_bag_rounded,
       title: 'Orders & Payments',
       items: [
-        'All sales made through this app are final and non-refundable unless eligible for exchange.',
+        'All sales made through this app are subject to our return, refund and exchange policy below.',
         'Discounts, promo codes, and offers cannot be combined unless specified.',
+      ],
+    ),
+    _TermsSection(
+      icon: Icons.assignment_return_rounded,
+      title: 'Returns, Refunds & Exchanges',
+      items: [
+        'You may request an exchange within 10 days of delivery.',
+        'You may request a return/refund within 3 days of delivery.',
+        'Valid reasons include a defective product, wrong item delivered, or a significant mismatch from the description.',
+        'Refunds are processed after the returned product is received and inspected, then credited to your Shookoo wallet.',
       ],
     ),
     _TermsSection(

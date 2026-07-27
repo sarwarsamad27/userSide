@@ -241,14 +241,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   // Shows the buyer exactly how many days they have left (or had) so the
   // eligibility message is never a guess — always backed by real dates.
-  Widget _returnWindowInfo(String deliveredAt, {required bool expired}) {
+  // [days]/[label] let this serve both the exchange window (10 days) and
+  // the shorter return/refund window (3 days).
+  Widget _windowInfo(
+    String deliveredAt, {
+    required int days,
+    required String label,
+    bool showDeliveredLine = true,
+  }) {
     DateTime delivered;
     try {
       delivered = DateTime.parse(deliveredAt);
     } catch (_) {
       return const SizedBox.shrink();
     }
-    final expiry = delivered.add(const Duration(days: 10));
+    final expiry = delivered.add(Duration(days: days));
+    final expired = !DateTime.now().isBefore(expiry);
     final daysLeft = expiry.difference(DateTime.now()).inDays;
 
     return Container(
@@ -270,14 +278,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Delivered: ${formatDate(deliveredAt)}",
-                  style: TextStyle(fontSize: 11.sp, color: Colors.grey[600]),
-                ),
+                if (showDeliveredLine)
+                  Text(
+                    "Delivered: ${formatDate(deliveredAt)}",
+                    style: TextStyle(fontSize: 11.sp, color: Colors.grey[600]),
+                  ),
                 Text(
                   expired
-                      ? "Return window expired on ${formatDate(expiry.toIso8601String())}"
-                      : "Return window closes ${formatDate(expiry.toIso8601String())} (${daysLeft >= 0 ? daysLeft : 0} day${daysLeft == 1 ? '' : 's'} left)",
+                      ? "$label window expired on ${formatDate(expiry.toIso8601String())}"
+                      : "$label window closes ${formatDate(expiry.toIso8601String())} (${daysLeft >= 0 ? daysLeft : 0} day${daysLeft == 1 ? '' : 's'} left)",
                   style: TextStyle(
                     fontSize: 11.sp,
                     fontWeight: FontWeight.w600,
@@ -292,13 +301,20 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  bool canExchangeOrRefund(String? status, String? deliveredAt) {
+  // Exchange stays open for 10 days after delivery.
+  bool canExchange(String? status, String? deliveredAt) =>
+      _withinWindow(status, deliveredAt, 10);
+
+  // Return/refund window is shorter — 3 days after delivery.
+  bool canRefund(String? status, String? deliveredAt) =>
+      _withinWindow(status, deliveredAt, 3);
+
+  bool _withinWindow(String? status, String? deliveredAt, int days) {
     if (status != "Delivered") return false;
     if (deliveredAt == null) return false;
     try {
       final delivered = DateTime.parse(deliveredAt);
-      // Return true if current time is before delivery + 10 days
-      return DateTime.now().isBefore(delivered.add(const Duration(days: 10)));
+      return DateTime.now().isBefore(delivered.add(Duration(days: days)));
     } catch (_) {
       return false;
     }
@@ -306,10 +322,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final eligible = canExchangeOrRefund(
-      _order.status,
-      _order.deliveredAt,
-    ); // ✅
+    final exchangeEligible = canExchange(_order.status, _order.deliveredAt);
+    final refundEligible = canRefund(_order.status, _order.deliveredAt);
     final List<Product> products = [];
     if (_order.product != null) products.add(_order.product!);
     final exReq = _order.exchangeRequest;
@@ -431,7 +445,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             SizedBox(height: 14.h),
 
             // ── PRODUCTS CARD ────────────────────────────────
-            _buildProductsCard(products, eligible, exReq, refReq),
+            _buildProductsCard(
+              products,
+              exchangeEligible,
+              refundEligible,
+              exReq,
+              refReq,
+            ),
             SizedBox(height: 14.h),
 
             // ── PRICE SUMMARY ────────────────────────────────
@@ -864,7 +884,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   // ── Products Card ─────────────────────────────────────────────
   Widget _buildProductsCard(
     List<Product> products,
-    bool eligible,
+    bool exchangeEligible,
+    bool refundEligible,
     ExchangeRequestData? exReq,
     RefundRequestData? refReq,
   ) {
@@ -954,59 +975,71 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ],
                 ),
 
-                // ✅ Exchange / Refund Buttons
-                if (eligible && exReq == null && refReq == null) ...[
-                  SizedBox(height: 14.h),
-                  Row(
-                    children: [
-                      _actionButton(
-                        label: "Exchange",
-                        icon: Icons.swap_horiz_rounded,
-                        color: Colors.blue,
-                        onTap: () async {
-                          await showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (_) => ExchangeRequestSheet(
-                              order: _order,
-                              products: products,
-                            ),
-                          );
-                          if (mounted) _refreshExchangeStatus();
-                        },
-                      ),
-                      SizedBox(width: 10.w),
-                      _actionButton(
-                        label: "Refund",
-                        icon: Icons.money_off_rounded,
-                        color: Colors.red,
-                        onTap: () async {
-                          await showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (_) => RefundRequestSheet(
-                              order: _order,
-                              products: products,
-                            ),
-                          );
-                          if (mounted) _refreshExchangeStatus();
-                        },
-                      ),
-                    ],
-                  ),
-                  if (_order.deliveredAt != null) ...[
-                    SizedBox(height: 8.h),
-                    _returnWindowInfo(_order.deliveredAt!, expired: false),
-                  ],
-                ] else if (_order.status == "Delivered" &&
+                // ✅ Exchange / Refund Buttons — exchange stays open for 10
+                // days after delivery, refund/return closes after 3.
+                if (_order.status == "Delivered" &&
                     exReq == null &&
                     refReq == null) ...[
+                  if (exchangeEligible || refundEligible) ...[
+                    SizedBox(height: 14.h),
+                    Row(
+                      children: [
+                        if (exchangeEligible)
+                          _actionButton(
+                            label: "Exchange",
+                            icon: Icons.swap_horiz_rounded,
+                            color: Colors.blue,
+                            onTap: () async {
+                              await showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) => ExchangeRequestSheet(
+                                  order: _order,
+                                  products: products,
+                                ),
+                              );
+                              if (mounted) _refreshExchangeStatus();
+                            },
+                          ),
+                        if (exchangeEligible && refundEligible)
+                          SizedBox(width: 10.w),
+                        if (refundEligible)
+                          _actionButton(
+                            label: "Refund",
+                            icon: Icons.money_off_rounded,
+                            color: Colors.red,
+                            onTap: () async {
+                              await showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) => RefundRequestSheet(
+                                  order: _order,
+                                  products: products,
+                                ),
+                              );
+                              if (mounted) _refreshExchangeStatus();
+                            },
+                          ),
+                      ],
+                    ),
+                  ],
                   SizedBox(height: 10.h),
-                  if (_order.deliveredAt != null)
-                    _returnWindowInfo(_order.deliveredAt!, expired: true)
-                  else
+                  if (_order.deliveredAt != null) ...[
+                    _windowInfo(
+                      _order.deliveredAt!,
+                      days: 10,
+                      label: "Exchange",
+                    ),
+                    SizedBox(height: 6.h),
+                    _windowInfo(
+                      _order.deliveredAt!,
+                      days: 3,
+                      label: "Return",
+                      showDeliveredLine: false,
+                    ),
+                  ] else
                     Row(
                       children: [
                         Icon(
@@ -1724,7 +1757,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       case "Dispatched":
         return "Estimated delivery: 3-5 days";
       case "Delivered":
-        return "Exchange available within 10 days";
+        return "Exchange within 10 days, return within 3 days";
       case "Returned":
         return "Return has been processed";
       case "Cancelled":
