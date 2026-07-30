@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'package:user_side/models/walletModel/walletModel.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/authSession.dart';
+import 'package:user_side/resources/global.dart';
+import 'package:user_side/resources/socketServices.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/view/dashboard/profile/wallet/BuyerWithdrawScreen.dart';
 import 'package:user_side/view/dashboard/profile/wallet/addMoney.dart';
@@ -26,6 +28,11 @@ class _WalletScreenState extends State<WalletScreen>
   bool balanceVisible = true;
   late AnimationController _shimmerController;
 
+  // Kept so dispose() can remove exactly this callback — socket.off with no
+  // handler would wipe out every other screen's listener for the same
+  // broadcast event.
+  void Function(dynamic)? _onDepositStatus;
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +42,7 @@ class _WalletScreenState extends State<WalletScreen>
     )..repeat();
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
+    _setupWalletSocket();
   }
 
   void _loadData() {
@@ -45,8 +53,28 @@ class _WalletScreenState extends State<WalletScreen>
     provider.fetchTransactions(buyerId);
   }
 
+  // Live-refreshes balance + transactions when admin approves/rejects a
+  // manual bank-transfer deposit request (wallet:deposit_status, emitted to
+  // this buyer's own room — see walletDeposit_controller.js). Without this
+  // the buyer only sees the change after leaving and re-entering this screen.
+  Future<void> _setupWalletSocket() async {
+    final buyerId = context.read<AuthSession>().userId;
+    if (buyerId == null || !mounted) return;
+    final socket = await SocketService().ensureConnected(
+      baseUrl: Global.imageUrl,
+      auth: {'buyerId': buyerId},
+    );
+    if (socket == null || !mounted) return;
+
+    _onDepositStatus = (_) => _loadData();
+    socket.on("wallet:deposit_status", _onDepositStatus!);
+  }
+
   @override
   void dispose() {
+    if (_onDepositStatus != null) {
+      SocketService().socket?.off("wallet:deposit_status", _onDepositStatus);
+    }
     _shimmerController.dispose();
     super.dispose();
   }

@@ -248,6 +248,33 @@ class WalletProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // ── Add Money: Manual Bank Transfer ─────────────────────────────────────
+  // Unlike Safepay, nothing is credited here — this files a pending request
+  // with a screenshot for admin to manually verify and approve/reject.
+  bool depositSubmitLoading = false;
+
+  Future<bool> submitBankTransfer({
+    required double amount,
+    required String screenshotBase64,
+  }) async {
+    depositSubmitLoading = true;
+    errorMessage = '';
+    notifyListeners();
+
+    final result = await _repo.submitBankTransfer(
+      amount: amount,
+      screenshotBase64: screenshotBase64,
+    );
+
+    depositSubmitLoading = false;
+    final ok = result['success'] == true;
+    if (!ok) {
+      errorMessage = (result['message'] as String?) ?? 'Failed to submit request.';
+    }
+    notifyListeners();
+    return ok;
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   //  REMOVED:
   //  - fetchPaymentMethods()   → Payment Methods screen removed

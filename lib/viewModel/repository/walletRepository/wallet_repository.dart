@@ -201,4 +201,25 @@ Future<PaymentVerifyModel> verifyBuyerWithdrawOtp({
       return SafepayStatusModel.error(e.toString());
     }
   }
+
+  // ── Manual Bank Transfer: submit deposit request ────────────────────────
+  // Nothing is credited here — this just files a pending request with a
+  // screenshot for admin to manually verify (see the seller-side mirror in
+  // personal_project's addMoney_repository.dart, and the shared backend
+  // flow in bankTransferController.js / walletDeposit_controller.js).
+  // [screenshotBase64] is a `data:image/...;base64,...` data URI.
+  Future<Map<String, dynamic>> submitBankTransfer({
+    required double amount,
+    required String screenshotBase64,
+  }) async {
+    try {
+      final response = await _api.postApi(Global.BuyerBankTransferSubmit, {
+        'amount': amount,
+        'screenshot': screenshotBase64,
+      });
+      return response;
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
 }
