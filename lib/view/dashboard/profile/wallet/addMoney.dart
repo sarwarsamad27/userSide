@@ -6,7 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:user_side/models/walletModel/walletModel.dart';
@@ -94,6 +96,18 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
     // isPending (timed out while polling) — leave the user on this screen;
     // the webhook will still credit the wallet once Safepay confirms, and
     // the balance will simply update next time they check it.
+  }
+
+  Future<void> _downloadQr() async {
+    try {
+      final byteData = await rootBundle.load('assets/images/QR_sarwar.jpeg');
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/shookoo_payment_qr.jpeg');
+      await file.writeAsBytes(byteData.buffer.asUint8List());
+      await Share.shareXFiles([XFile(file.path)], text: 'Shookoo payment QR code');
+    } catch (_) {
+      if (mounted) PremiumToast.error(context, 'Could not download QR code');
+    }
   }
 
   Future<void> _pickScreenshot() async {
@@ -325,7 +339,19 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: 10.h),
+              Center(
+                child: TextButton.icon(
+                  onPressed: _downloadQr,
+                  icon: Icon(Icons.download_outlined, size: 16.sp, color: _spBlue),
+                  label: Text('Download QR',
+                      style: TextStyle(
+                          fontSize: 12.5.sp,
+                          fontWeight: FontWeight.w600,
+                          color: _spBlue)),
+                ),
+              ),
+              SizedBox(height: 6.h),
               const BankAccountDetailCard(),
               SizedBox(height: 22.h),
 
