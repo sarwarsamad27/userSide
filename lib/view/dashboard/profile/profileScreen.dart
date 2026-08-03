@@ -10,6 +10,7 @@ import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/view/auth/loginView.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
+import 'package:user_side/view/dashboard/profile/changePasswordScreen.dart';
 import 'package:user_side/view/dashboard/profile/helpCenter.dart';
 import 'package:user_side/view/dashboard/profile/offer.dart';
 import 'package:user_side/view/dashboard/profile/order/orderHistory.dart';
@@ -707,6 +708,19 @@ class _ProfilescreenState extends State<Profilescreen> {
                           "Help Center",
                           Colors.blue,
                           HelpCenterScreen(),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        optionTile(
+                          context,
+                          Icons.lock_outline,
+                          "Change Password",
+                          Colors.purpleAccent,
+                          const ChangePasswordScreen(),
                         ),
                       ],
                     ),

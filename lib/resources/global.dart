@@ -23,6 +23,7 @@ class Global {
   static var ForgotPassword = "${BaseUrl}/buyer/forgot-password";
   static var VerifyCode = "${BaseUrl}/buyer/verifycode";
   static var UpdatePassword = "${BaseUrl}/buyer/reset/password";
+  static var ChangeLoggedInPassword = "${BaseUrl}/buyer/change-password";
   static var GetAllProfile = "${BaseUrl}/buyer/company/profiles";
   static var GetAllCategoryProfileWise = "${BaseUrl}/buyer/get/categories";
   static var GetAllProductCategoryWise = "${BaseUrl}/buyer/get/products";
