@@ -76,7 +76,7 @@ class _CategoryWiseProductsWidgetState
             left: 8.w,
             right: 8.w,
             top: 8.h,
-            bottom: 100.h,
+            bottom: 16.h,
           ),
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
