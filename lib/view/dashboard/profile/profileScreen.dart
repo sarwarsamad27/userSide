@@ -711,19 +711,19 @@ class _ProfilescreenState extends State<Profilescreen> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 10.h),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        optionTile(
-                          context,
-                          Icons.lock_outline,
-                          "Change Password",
-                          Colors.purpleAccent,
-                          const ChangePasswordScreen(),
-                        ),
-                      ],
-                    ),
+                    // SizedBox(height: 10.h),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //   children: [
+                    //     optionTile(
+                    //       context,
+                    //       Icons.lock_outline,
+                    //       "Change Password",
+                    //       Colors.purpleAccent,
+                    //       const ChangePasswordScreen(),
+                    //     ),
+                    //   ],
+                    // ),
                     SizedBox(height: 90.h),
                   ],
                 ),

@@ -30,11 +30,11 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
 
   static const Color _spBlue = Color(0xFF1E5AFF);
 
-  final List<int> _quickAmounts = [500, 1000, 2000, 5000];
+  // final List<int> _quickAmounts = [500, 1000, 2000, 5000];
 
   // 'safepay' (instant, automatic) or 'bank_transfer' (manual, admin
   // verifies a screenshot before crediting).
-  String _method = 'safepay';
+  // String _method = 'safepay';
   XFile? _screenshot;
   bool _submittingBankTransfer = false;
 
@@ -44,59 +44,59 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
     super.dispose();
   }
 
-  Future<void> _startCheckout() async {
-    setState(() => _error = null);
-    final amt = double.tryParse(_amountCtrl.text.trim()) ?? 0;
+  // Future<void> _startCheckout() async {
+  //   setState(() => _error = null);
+  //   final amt = double.tryParse(_amountCtrl.text.trim()) ?? 0;
 
-    if (amt < 500) {
-      setState(() => _error = 'Minimum Rs 500');
-      return;
-    }
-    if (amt > 50000) {
-      setState(() => _error = 'Maximum Rs 50,000');
-      return;
-    }
+  //   if (amt < 500) {
+  //     setState(() => _error = 'Minimum Rs 500');
+  //     return;
+  //   }
+  //   if (amt > 50000) {
+  //     setState(() => _error = 'Maximum Rs 50,000');
+  //     return;
+  //   }
 
-    final provider = context.read<WalletProvider>();
-    final checkout = await provider.initSafepayCheckout(amount: amt);
+  //   final provider = context.read<WalletProvider>();
+  //   final checkout = await provider.initSafepayCheckout(amount: amt);
 
-    if (!mounted) return;
-    if (!checkout.success) {
-      setState(() => _error = provider.errorMessage.isNotEmpty
-          ? provider.errorMessage
-          : 'Could not start payment. Try again.');
-      return;
-    }
+  //   if (!mounted) return;
+  //   if (!checkout.success) {
+  //     setState(() => _error = provider.errorMessage.isNotEmpty
+  //         ? provider.errorMessage
+  //         : 'Could not start payment. Try again.');
+  //     return;
+  //   }
 
-    final result = await Navigator.push<SafepayStatusModel>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => _SafepayCheckoutScreen(
-          checkoutUrl: checkout.url,
-          trackId: checkout.trackId,
-          amount: amt,
-        ),
-      ),
-    );
+  //   final result = await Navigator.push<SafepayStatusModel>(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (_) => _SafepayCheckoutScreen(
+  //         checkoutUrl: checkout.url,
+  //         trackId: checkout.trackId,
+  //         amount: amt,
+  //       ),
+  //     ),
+  //   );
 
-    if (!mounted || result == null) return;
+  //   if (!mounted || result == null) return;
 
-    if (result.isSuccess) {
-      PremiumToast.success(context, 'Rs ${amt.toStringAsFixed(0)} wallet mein add ho gaye!');
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const WalletScreen()),
-        (route) => route.isFirst,
-      );
-    } else if (!result.isPending) {
-      setState(() => _error = result.message.isNotEmpty
-          ? result.message
-          : 'Payment could not be confirmed.');
-    }
-    // isPending (timed out while polling) — leave the user on this screen;
-    // the webhook will still credit the wallet once Safepay confirms, and
-    // the balance will simply update next time they check it.
-  }
+  //   if (result.isSuccess) {
+  //     PremiumToast.success(context, 'Rs ${amt.toStringAsFixed(0)} wallet mein add ho gaye!');
+  //     Navigator.pushAndRemoveUntil(
+  //       context,
+  //       MaterialPageRoute(builder: (_) => const WalletScreen()),
+  //       (route) => route.isFirst,
+  //     );
+  //   } else if (!result.isPending) {
+  //     setState(() => _error = result.message.isNotEmpty
+  //         ? result.message
+  //         : 'Payment could not be confirmed.');
+  //   }
+  //   // isPending (timed out while polling) — leave the user on this screen;
+  //   // the webhook will still credit the wallet once Safepay confirms, and
+  //   // the balance will simply update next time they check it.
+  // }
 
   Future<void> _downloadQr() async {
     try {
@@ -104,7 +104,9 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
       final tempDir = await getTemporaryDirectory();
       final file = File('${tempDir.path}/shookoo_payment_qr.jpeg');
       await file.writeAsBytes(byteData.buffer.asUint8List());
-      await Share.shareXFiles([XFile(file.path)], text: 'Shookoo payment QR code');
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: 'Shookoo payment QR code');
     } catch (_) {
       if (mounted) PremiumToast.error(context, 'Could not download QR code');
     }
@@ -178,13 +180,21 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
         backgroundColor: AppColor.appimagecolor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: Color(0xFF1A1A2E), size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Color(0xFF1A1A2E),
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Add Money',
-            style: TextStyle(
-                color: Colors.white, fontSize: 17.sp, fontWeight: FontWeight.w700)),
+        title: Text(
+          'Add Money',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 17.sp,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -195,266 +205,285 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
             SizedBox(height: 8.h),
 
             // ── Method chooser ──────────────────────────────────────────
-            Row(
-              children: [
-                Expanded(
-                  child: _methodChip(
-                    label: 'Safepay',
-                    icon: Icons.shield_outlined,
-                    selected: _method == 'safepay',
-                    onTap: () => setState(() {
-                      _method = 'safepay';
-                      _error = null;
-                    }),
-                  ),
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: _methodChip(
-                    label: 'Bank Transfer',
-                    icon: Icons.account_balance_outlined,
-                    selected: _method == 'bank_transfer',
-                    onTap: () => setState(() {
-                      _method = 'bank_transfer';
-                      _error = null;
-                    }),
-                  ),
-                ),
-              ],
+            // Row(
+            //   children: [
+            //     Expanded(
+            //       child: _methodChip(
+            //         label: 'Safepay',
+            //         icon: Icons.shield_outlined,
+            //         selected: _method == 'safepay',
+            //         onTap: () => setState(() {
+            //           _method = 'safepay';
+            //           _error = null;
+            //         }),
+            //       ),
+            //     ),
+            //     SizedBox(width: 10.w),
+            //     Expanded(
+            //       child: _methodChip(
+            //         label: 'Bank Transfer',
+            //         icon: Icons.account_balance_outlined,
+            //         selected: _method == 'bank_transfer',
+            //         onTap: () => setState(() {
+            //           _method = 'bank_transfer';
+            //           _error = null;
+            //         }),
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            // SizedBox(height: 24.h),
+
+            // if (_method == 'safepay') ...[
+            //   Center(
+            //     child: Column(children: [
+            //       Container(
+            //         width: 72.r,
+            //         height: 72.r,
+            //         decoration: BoxDecoration(
+            //           color: const Color(0xFFEAF0FF),
+            //           shape: BoxShape.circle,
+            //           border: Border.all(
+            //               color: _spBlue.withValues(alpha: 0.3), width: 2),
+            //         ),
+            //         child: Icon(Icons.shield_outlined, color: _spBlue, size: 34.sp),
+            //       ),
+            //       SizedBox(height: 12.h),
+            //       Text('Secure payment via Safepay',
+            //           style:
+            //               TextStyle(fontSize: 14.sp, color: Colors.grey.shade600)),
+            //     ]),
+            //   ),
+            //   SizedBox(height: 28.h),
+
+            //   _label('Amount'),
+            //   SizedBox(height: 8.h),
+            //   TextField(
+            //     controller: _amountCtrl,
+            //     keyboardType: TextInputType.number,
+            //     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            //     style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.w700),
+            //     decoration: InputDecoration(
+            //       prefixText: 'Rs  ',
+            //       prefixStyle: TextStyle(
+            //           fontSize: 18.sp, fontWeight: FontWeight.w500, color: Colors.grey),
+            //       hintText: '500',
+            //       filled: true,
+            //       fillColor: Colors.white,
+            //       border: OutlineInputBorder(
+            //           borderRadius: BorderRadius.circular(14.r),
+            //           borderSide: BorderSide.none),
+            //       contentPadding: EdgeInsets.all(16.r),
+            //     ),
+            //     onChanged: (_) => setState(() {}),
+            //   ),
+            //   SizedBox(height: 10.h),
+            //   Wrap(
+            //     spacing: 8.w,
+            //     runSpacing: 8.h,
+            //     children: _quickAmounts
+            //         .map((a) => GestureDetector(
+            //               onTap: () => setState(() => _amountCtrl.text = '$a'),
+            //               child: Container(
+            //                 padding:
+            //                     EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
+            //                 decoration: BoxDecoration(
+            //                   color: _amountCtrl.text == '$a'
+            //                       ? const Color(0xFF1A1A2E)
+            //                       : Colors.white,
+            //                   borderRadius: BorderRadius.circular(20.r),
+            //                   border: Border.all(color: Colors.grey.shade200),
+            //                 ),
+            //                 child: Text('Rs $a',
+            //                     style: TextStyle(
+            //                         fontSize: 13.sp,
+            //                         fontWeight: FontWeight.w600,
+            //                         color: _amountCtrl.text == '$a'
+            //                             ? Colors.white
+            //                             : const Color(0xFF1A1A2E))),
+            //               ),
+            //             ))
+            //         .toList(),
+            //   ),
+            //   SizedBox(height: 28.h),
+
+            //   SizedBox(
+            //     width: double.infinity,
+            //     height: 54.h,
+            //     child: ElevatedButton(
+            //       onPressed: provider.otpLoading ? null : _startCheckout,
+            //       style: ElevatedButton.styleFrom(
+            //         backgroundColor: _spBlue,
+            //         shape:
+            //             RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
+            //       ),
+            //       child: provider.otpLoading
+            //           ? SpinKitThreeBounce(color: Colors.white, size: 22.sp)
+            //           : Text('Continue to Payment',
+            //               style: TextStyle(
+            //                   fontSize: 16.sp,
+            //                   fontWeight: FontWeight.w700,
+            //                   color: Colors.white)),
+            //     ),
+            //   ),
+            // ] else ...[
+            // ── Bank Transfer: pay into our account, upload proof ──────
+            Text(
+              'Scan the QR or transfer to this account, then upload a screenshot as proof. An admin will verify it and credit your wallet.',
+              style: TextStyle(fontSize: 12.5.sp, color: Colors.grey.shade600),
             ),
-            SizedBox(height: 24.h),
-
-            if (_method == 'safepay') ...[
-              Center(
-                child: Column(children: [
-                  Container(
-                    width: 72.r,
-                    height: 72.r,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEAF0FF),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                          color: _spBlue.withValues(alpha: 0.3), width: 2),
-                    ),
-                    child: Icon(Icons.shield_outlined, color: _spBlue, size: 34.sp),
-                  ),
-                  SizedBox(height: 12.h),
-                  Text('Secure payment via Safepay',
-                      style:
-                          TextStyle(fontSize: 14.sp, color: Colors.grey.shade600)),
-                ]),
-              ),
-              SizedBox(height: 28.h),
-
-              _label('Amount'),
-              SizedBox(height: 8.h),
-              TextField(
-                controller: _amountCtrl,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.w700),
-                decoration: InputDecoration(
-                  prefixText: 'Rs  ',
-                  prefixStyle: TextStyle(
-                      fontSize: 18.sp, fontWeight: FontWeight.w500, color: Colors.grey),
-                  hintText: '500',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14.r),
-                      borderSide: BorderSide.none),
-                  contentPadding: EdgeInsets.all(16.r),
+            SizedBox(height: 16.h),
+            Center(
+              child: Container(
+                padding: EdgeInsets.all(10.r),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14.r),
+                  border: Border.all(color: Colors.grey.shade200),
                 ),
-                onChanged: (_) => setState(() {}),
+                child: Image.asset(
+                  'assets/images/QR_sarwar.jpeg',
+                  height: 170.r,
+                  width: 170.r,
+                  fit: BoxFit.contain,
+                ),
               ),
-              SizedBox(height: 10.h),
-              Wrap(
-                spacing: 8.w,
-                runSpacing: 8.h,
-                children: _quickAmounts
-                    .map((a) => GestureDetector(
-                          onTap: () => setState(() => _amountCtrl.text = '$a'),
-                          child: Container(
-                            padding:
-                                EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
-                            decoration: BoxDecoration(
-                              color: _amountCtrl.text == '$a'
-                                  ? const Color(0xFF1A1A2E)
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(20.r),
-                              border: Border.all(color: Colors.grey.shade200),
-                            ),
-                            child: Text('Rs $a',
-                                style: TextStyle(
-                                    fontSize: 13.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: _amountCtrl.text == '$a'
-                                        ? Colors.white
-                                        : const Color(0xFF1A1A2E))),
+            ),
+            SizedBox(height: 10.h),
+            Center(
+              child: TextButton.icon(
+                onPressed: _downloadQr,
+                icon: Icon(
+                  Icons.download_outlined,
+                  size: 16.sp,
+                  color: _spBlue,
+                ),
+                label: Text(
+                  'Download QR',
+                  style: TextStyle(
+                    fontSize: 12.5.sp,
+                    fontWeight: FontWeight.w600,
+                    color: _spBlue,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 6.h),
+            const BankAccountDetailCard(),
+            SizedBox(height: 22.h),
+
+            _label('Amount Sent'),
+            SizedBox(height: 8.h),
+            TextField(
+              controller: _amountCtrl,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.w700),
+              decoration: InputDecoration(
+                prefixText: 'Rs  ',
+                prefixStyle: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey,
+                ),
+                hintText: '500',
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14.r),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: EdgeInsets.all(16.r),
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+            SizedBox(height: 16.h),
+
+            GestureDetector(
+              onTap: _pickScreenshot,
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(14.r),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14.r),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: _screenshot == null
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.upload_outlined,
+                            color: Colors.grey.shade600,
+                            size: 18.sp,
                           ),
-                        ))
-                    .toList(),
-              ),
-              SizedBox(height: 28.h),
-
-              SizedBox(
-                width: double.infinity,
-                height: 54.h,
-                child: ElevatedButton(
-                  onPressed: provider.otpLoading ? null : _startCheckout,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _spBlue,
-                    shape:
-                        RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
-                  ),
-                  child: provider.otpLoading
-                      ? SpinKitThreeBounce(color: Colors.white, size: 22.sp)
-                      : Text('Continue to Payment',
-                          style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white)),
-                ),
-              ),
-            ] else ...[
-              // ── Bank Transfer: pay into our account, upload proof ──────
-              Text(
-                'Scan the QR or transfer to this account, then upload a screenshot as proof. An admin will verify it and credit your wallet.',
-                style: TextStyle(fontSize: 12.5.sp, color: Colors.grey.shade600),
-              ),
-              SizedBox(height: 16.h),
-              Center(
-                child: Container(
-                  padding: EdgeInsets.all(10.r),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14.r),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Image.asset(
-                    'assets/images/QR_sarwar.jpeg',
-                    height: 170.r,
-                    width: 170.r,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Center(
-                child: TextButton.icon(
-                  onPressed: _downloadQr,
-                  icon: Icon(Icons.download_outlined, size: 16.sp, color: _spBlue),
-                  label: Text('Download QR',
-                      style: TextStyle(
-                          fontSize: 12.5.sp,
-                          fontWeight: FontWeight.w600,
-                          color: _spBlue)),
-                ),
-              ),
-              SizedBox(height: 6.h),
-              const BankAccountDetailCard(),
-              SizedBox(height: 22.h),
-
-              _label('Amount Sent'),
-              SizedBox(height: 8.h),
-              TextField(
-                controller: _amountCtrl,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.w700),
-                decoration: InputDecoration(
-                  prefixText: 'Rs  ',
-                  prefixStyle: TextStyle(
-                      fontSize: 18.sp, fontWeight: FontWeight.w500, color: Colors.grey),
-                  hintText: '500',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14.r),
-                      borderSide: BorderSide.none),
-                  contentPadding: EdgeInsets.all(16.r),
-                ),
-                onChanged: (_) => setState(() {}),
-              ),
-              SizedBox(height: 16.h),
-
-              GestureDetector(
-                onTap: _pickScreenshot,
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(14.r),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14.r),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: _screenshot == null
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.upload_outlined,
-                                color: Colors.grey.shade600, size: 18.sp),
-                            SizedBox(width: 8.w),
-                            Text(
-                              'Upload Payment Screenshot',
+                          SizedBox(width: 8.w),
+                          Text(
+                            'Upload Payment Screenshot',
+                            style: TextStyle(
+                              color: Colors.grey.shade700,
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8.r),
+                            child: Image.file(
+                              File(_screenshot!.path),
+                              width: 44.r,
+                              height: 44.r,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          SizedBox(width: 10.w),
+                          Expanded(
+                            child: Text(
+                              'Screenshot attached — tap to change',
                               style: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontSize: 13.sp,
-                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF1A1A2E),
+                                fontSize: 12.sp,
                               ),
                             ),
-                          ],
-                        )
-                      : Row(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8.r),
-                              child: Image.file(
-                                File(_screenshot!.path),
-                                width: 44.r,
-                                height: 44.r,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            SizedBox(width: 10.w),
-                            Expanded(
-                              child: Text(
-                                'Screenshot attached — tap to change',
-                                style: TextStyle(
-                                  color: const Color(0xFF1A1A2E),
-                                  fontSize: 12.sp,
-                                ),
-                              ),
-                            ),
-                            Icon(Icons.check_circle,
-                                color: Colors.green, size: 18.sp),
-                          ],
-                        ),
-                ),
+                          ),
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 18.sp,
+                          ),
+                        ],
+                      ),
               ),
-              SizedBox(height: 28.h),
+            ),
+            SizedBox(height: 28.h),
 
-              SizedBox(
-                width: double.infinity,
-                height: 54.h,
-                child: ElevatedButton(
-                  onPressed:
-                      _submittingBankTransfer ? null : _submitBankTransfer,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _spBlue,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14.r)),
+            SizedBox(
+              width: double.infinity,
+              height: 54.h,
+              child: ElevatedButton(
+                onPressed: _submittingBankTransfer ? null : _submitBankTransfer,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _spBlue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14.r),
                   ),
-                  child: _submittingBankTransfer
-                      ? SpinKitThreeBounce(color: Colors.white, size: 22.sp)
-                      : Text('Submit Deposit Request',
-                          style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white)),
                 ),
+                child: _submittingBankTransfer
+                    ? SpinKitThreeBounce(color: Colors.white, size: 22.sp)
+                    : Text(
+                        'Submit Deposit Request',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
-            ],
+            ),
 
             if (_error != null) ...[
               SizedBox(height: 14.h),
@@ -465,14 +494,21 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(color: Colors.red.shade200),
                 ),
-                child: Row(children: [
-                  Icon(Icons.error_outline, color: Colors.red, size: 18.sp),
-                  SizedBox(width: 8.w),
-                  Expanded(
-                      child: Text(_error!,
-                          style:
-                              TextStyle(fontSize: 13.sp, color: Colors.red.shade700))),
-                ]),
+                child: Row(
+                  children: [
+                    Icon(Icons.error_outline, color: Colors.red, size: 18.sp),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        _error!,
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: Colors.red.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
             SizedBox(height: 20.h),
@@ -482,46 +518,51 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
     );
   }
 
-  Widget _label(String t) => Text(t,
-      style: TextStyle(
-          fontSize: 14.sp, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A2E)));
+  Widget _label(String t) => Text(
+    t,
+    style: TextStyle(
+      fontSize: 14.sp,
+      fontWeight: FontWeight.w700,
+      color: const Color(0xFF1A1A2E),
+    ),
+  );
 
-  Widget _methodChip({
-    required String label,
-    required IconData icon,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: EdgeInsets.symmetric(vertical: 12.h),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFF1A1A2E) : Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(
-            color: selected ? const Color(0xFF1A1A2E) : Colors.grey.shade200,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: selected ? Colors.white : Colors.grey.shade700, size: 16.sp),
-            SizedBox(width: 6.w),
-            Text(
-              label,
-              style: TextStyle(
-                color: selected ? Colors.white : Colors.grey.shade700,
-                fontSize: 12.5.sp,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _methodChip({
+  //   required String label,
+  //   required IconData icon,
+  //   required bool selected,
+  //   required VoidCallback onTap,
+  // }) {
+  //   return GestureDetector(
+  //     onTap: onTap,
+  //     child: AnimatedContainer(
+  //       duration: const Duration(milliseconds: 150),
+  //       padding: EdgeInsets.symmetric(vertical: 12.h),
+  //       decoration: BoxDecoration(
+  //         color: selected ? const Color(0xFF1A1A2E) : Colors.white,
+  //         borderRadius: BorderRadius.circular(12.r),
+  //         border: Border.all(
+  //           color: selected ? const Color(0xFF1A1A2E) : Colors.grey.shade200,
+  //         ),
+  //       ),
+  //       child: Row(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           Icon(icon, color: selected ? Colors.white : Colors.grey.shade700, size: 16.sp),
+  //           SizedBox(width: 6.w),
+  //           Text(
+  //             label,
+  //             style: TextStyle(
+  //               color: selected ? Colors.white : Colors.grey.shade700,
+  //               fontSize: 12.5.sp,
+  //               fontWeight: FontWeight.w700,
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 }
 
 /// Platform bank account shown for manual "Bank Transfer" deposits — see
@@ -729,16 +770,20 @@ class _SafepayCheckoutScreenState extends State<_SafepayCheckoutScreen> {
           onPressed: () =>
               Navigator.pop(context, SafepayStatusModel.error('Cancelled')),
         ),
-        title: Text('Rs ${widget.amount.toStringAsFixed(0)}',
-            style: TextStyle(
-                color: Colors.white, fontSize: 17.sp, fontWeight: FontWeight.w700)),
+        title: Text(
+          'Rs ${widget.amount.toStringAsFixed(0)}',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 17.sp,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         centerTitle: true,
       ),
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-          if (_loading)
-            const Center(child: CircularProgressIndicator()),
+          if (_loading) const Center(child: CircularProgressIndicator()),
           if (_verifying)
             Container(
               color: Colors.black.withValues(alpha: 0.6),
@@ -748,8 +793,10 @@ class _SafepayCheckoutScreenState extends State<_SafepayCheckoutScreen> {
                   children: [
                     const CircularProgressIndicator(color: Colors.white),
                     SizedBox(height: 16.h),
-                    Text('Confirming payment…',
-                        style: TextStyle(color: Colors.white, fontSize: 14.sp)),
+                    Text(
+                      'Confirming payment…',
+                      style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                    ),
                   ],
                 ),
               ),

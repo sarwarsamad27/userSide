@@ -20,7 +20,7 @@ import 'package:user_side/view/dashboard/aiAssistant/aiAssistantScreen.dart';
 import 'package:user_side/view/dashboard/userChat/admin_messages_screen.dart';
 import 'package:user_side/view/dashboard/userChat/userChatScreen.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/chatThread_provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class UserChatListScreen extends StatefulWidget {
   const UserChatListScreen({super.key});

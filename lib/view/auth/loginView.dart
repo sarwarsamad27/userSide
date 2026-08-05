@@ -224,7 +224,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     socialButton(
-                                      icon: FontAwesomeIcons.google,
+                                      icon: FontAwesomeIcons.google.data,
                                       color: Colors.redAccent,
                                       onTap: () async {
                                         await googleProvider.loginWithGoogle();
