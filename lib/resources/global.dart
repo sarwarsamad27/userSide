@@ -5,12 +5,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class Global {
   // static var imageUrl = "http://192.168.88.59:5000";
   // static var BaseUrl = "http://192.168.88.59:5000/api/auth";
-  static var imageUrl = "http://10.0.2.2:5000";
-  static var BaseUrl = "http://10.0.2.2:5000/api/auth";
+  //   static var imageUrl = "http://10.0.2.2:5000";
+  //   static var BaseUrl = "http://10.0.2.2:5000/api/auth";
   //   static var imageUrl = "https://seller-and-buyer-backend.onrender.com";
   //   static var BaseUrl = "https://seller-and-buyer-backend.onrender.com/api/auth";
-  // static String BaseUrl = dotenv.env['BASE_URL'] ?? "";
-  // static String imageUrl = dotenv.env['IMAGE_URL'] ?? "";
+  static String BaseUrl = dotenv.env['BASE_URL'] ?? "";
+  static String imageUrl = dotenv.env['IMAGE_URL'] ?? "";
 
   // Bump this with every release. Checked against the backend's stored
   // value (PUT /app-version/buyer, e.g. via Postman) on app startup.

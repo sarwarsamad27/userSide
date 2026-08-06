@@ -915,6 +915,58 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                     ),
                                   ),
                                 ),
+
+                              // Wallet return-refund policy — reassures the
+                              // buyer, paying from wallet, that a returned
+                              // order isn't money lost: it comes straight
+                              // back to this same wallet once the return is
+                              // processed (see RefundDetailScreen).
+                              if (_selectedPayment == PaymentMethod.wallet)
+                                Padding(
+                                  padding: EdgeInsets.only(top: 8.h),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: EdgeInsets.all(10.w),
+                                    decoration: BoxDecoration(
+                                      color: const Color(
+                                        0xFF2979FF,
+                                      ).withOpacity(0.08),
+                                      borderRadius: BorderRadius.circular(
+                                        10.r,
+                                      ),
+                                      border: Border.all(
+                                        color: const Color(
+                                          0xFF2979FF,
+                                        ).withOpacity(0.25),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Icon(
+                                          Icons.info_outline_rounded,
+                                          color: Color(0xFF2979FF),
+                                          size: 16,
+                                        ),
+                                        SizedBox(width: 8.w),
+                                        Expanded(
+                                          child: Text(
+                                            'If this order is returned, the '
+                                            'full amount will be refunded '
+                                            'straight back to your wallet.',
+                                            style: TextStyle(
+                                              fontSize: 11.5.sp,
+                                              color: const Color(0xFF1E5FCC),
+                                              fontWeight: FontWeight.w600,
+                                              height: 1.35,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                             ],
                           );
                         },
