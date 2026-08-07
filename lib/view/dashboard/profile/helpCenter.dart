@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:user_side/resources/appColor.dart';
 
@@ -53,6 +54,17 @@ class HelpCenterScreen extends StatelessWidget {
       }
     } catch (e) {
       debugPrint('Error launching email: $e');
+    }
+  }
+
+  static Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('Error launching URL: $e');
     }
   }
 
@@ -163,9 +175,9 @@ class HelpCenterScreen extends StatelessWidget {
                   _ContactCard(
                     icon: Icons.phone_rounded,
                     label: 'Call Support',
-                    value: '+92 300 0000000',
+                    value: '+92 327-2382139',
                     color: const Color(0xFF10B981),
-                    onTap: () => _launchWhatsApp('+92 300 0000000'),
+                    onTap: () => _launchWhatsApp('+92 327-2382139'),
                   ),
                   SizedBox(height: 10.h),
                   _ContactCard(
@@ -182,6 +194,62 @@ class HelpCenterScreen extends StatelessWidget {
                     value: 'complaint@shookoo.pk',
                     color: AppColor.primaryColor,
                     onTap: () => _launchEmail('complaint@shookoo.pk'),
+                  ),
+
+                  SizedBox(height: 28.h),
+
+                  // ── Social Media ─────────────────────────────────────
+                  Text(
+                    'Follow Us',
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF1E1E2D),
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 20.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        _SocialButton(
+                          label: 'Facebook',
+                          color: const Color(0xFF1877F2),
+                          icon: FontAwesomeIcons.facebook.data,
+                          onTap: () => _launchUrl(
+                            'https://www.facebook.com/share/1C4AZgF3Ea/',
+                          ),
+                        ),
+                        _SocialButton(
+                          label: 'Instagram',
+                          color: const Color(0xFFE1306C),
+                          icon: FontAwesomeIcons.instagram.data,
+                          onTap: () =>
+                              _launchUrl('https://instagram.com/shookoo.pk'),
+                        ),
+                        _SocialButton(
+                          label: 'TikTok',
+                          color: Colors.black87,
+                          icon: FontAwesomeIcons.tiktok.data,
+                          onTap: () =>
+                              _launchUrl('https://tiktok.com/@shookoo'),
+                        ),
+                      ],
+                    ),
                   ),
 
                   SizedBox(height: 28.h),
@@ -285,6 +353,63 @@ class _ContactCard extends StatelessWidget {
               Icons.arrow_forward_ios_rounded,
               size: 14.sp,
               color: Colors.grey.shade400,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SocialButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _SocialButton({
+    required this.label,
+    required this.color,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16.r),
+        child: Column(
+          children: [
+            Container(
+              width: 52.w,
+              height: 52.w,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [color, color.withValues(alpha: 0.7)],
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: Colors.white, size: 22.sp),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11.5.sp,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF1E1E2D),
+              ),
             ),
           ],
         ),

@@ -117,7 +117,11 @@ class _HomeNavBarScreenState extends State<HomeNavBarScreen> {
                 return Scaffold(
                   extendBody: true,
                   // backgroundColor: Colors.amber,
-                  body: screens[currentIndex],
+                  // ✅ IndexedStack keeps every tab's state (scroll position,
+                  // selected filters, fetched data) alive across switches —
+                  // swapping `screens[currentIndex]` directly here used to
+                  // fully dispose/recreate the outgoing tab's widget tree.
+                  body: IndexedStack(index: currentIndex, children: screens),
                   bottomNavigationBar: _PremiumUserNavBar(
                     currentIndex: currentIndex,
                     onTap: (i) => _currentIndexNotifier.value = i,

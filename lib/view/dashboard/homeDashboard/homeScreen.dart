@@ -19,9 +19,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
+
+    _scrollController.addListener(_onScroll);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<GetAllProfileProvider>(
@@ -30,6 +34,24 @@ class _HomeScreenState extends State<HomeScreen> {
       ).fetchProfiles();
       Provider.of<NotificationProvider>(context, listen: false).fetch();
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 300) {
+      final provider = context.read<GetAllProfileProvider>();
+      if (provider.hasMore && !provider.isLoading && !provider.isLoadingMore) {
+        provider.fetchProfiles(loadMore: true);
+      }
+    }
   }
 
   @override
@@ -97,10 +119,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           provider.applySearch(""); // 🔥 RESET search
                         },
                         child: GridView.builder(
-                          padding: EdgeInsets.zero,
+                          controller: _scrollController,
+                          padding: EdgeInsets.only(bottom: 24.h),
                           physics:
                               const AlwaysScrollableScrollPhysics(), // IMPORTANT
-                          itemCount: provider.filteredProfiles.length,
+                          itemCount:
+                              provider.filteredProfiles.length +
+                              (provider.isLoadingMore ? 2 : 0),
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
@@ -109,6 +134,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 mainAxisSpacing: 6.h,
                               ),
                           itemBuilder: (context, index) {
+                            if (index >= provider.filteredProfiles.length) {
+                              return const Center(
+                                child: SizedBox(
+                                  width: 28,
+                                  height: 28,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                  ),
+                                ),
+                              );
+                            }
+
                             final item = provider.filteredProfiles[index];
 
                             return CategoryTile(
