@@ -100,7 +100,7 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
       return;
     }
     final files = await _picker.pickMultiImage(imageQuality: 75);
-    if (files.isEmpty) return;
+    if (files.isEmpty || !mounted) return;
     final remaining = 5 - _images.length;
     setState(() {
       _images = [..._images, ...files.take(remaining)];
@@ -380,7 +380,7 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
                       ),
                       decoration: BoxDecoration(
                         color: selected
-                            ? cat.color.withOpacity(0.12)
+                            ? cat.color.withValues(alpha: 0.12)
                             : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10.r),
                         border: Border.all(

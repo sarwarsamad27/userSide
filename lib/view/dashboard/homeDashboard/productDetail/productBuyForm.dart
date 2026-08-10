@@ -203,13 +203,13 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: unlocked
-            ? Colors.green.withOpacity(0.08)
-            : AppColor.primaryColor.withOpacity(0.08),
+            ? Colors.green.withValues(alpha: 0.08)
+            : AppColor.primaryColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
           color: unlocked
-              ? Colors.green.withOpacity(0.3)
-              : AppColor.primaryColor.withOpacity(0.25),
+              ? Colors.green.withValues(alpha: 0.3)
+              : AppColor.primaryColor.withValues(alpha: 0.25),
         ),
       ),
       child: unlocked
@@ -281,7 +281,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                 gradient: LinearGradient(
                                   colors: [
                                     AppColor.primaryColor,
-                                    AppColor.primaryColor.withOpacity(0.75),
+                                    AppColor.primaryColor.withValues(alpha: 0.75),
                                   ],
                                 ),
                               ),
@@ -930,14 +930,14 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                     decoration: BoxDecoration(
                                       color: const Color(
                                         0xFF2979FF,
-                                      ).withOpacity(0.08),
+                                      ).withValues(alpha: 0.08),
                                       borderRadius: BorderRadius.circular(
                                         10.r,
                                       ),
                                       border: Border.all(
                                         color: const Color(
                                           0xFF2979FF,
-                                        ).withOpacity(0.25),
+                                        ).withValues(alpha: 0.25),
                                       ),
                                     ),
                                     child: Row(
@@ -985,8 +985,9 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                               hintText: 'Enter your name',
                               headerText: 'Full Name',
                               validator: (val) {
-                                if (val == null || val.isEmpty)
+                                if (val == null || val.isEmpty) {
                                   return "Name is required";
+                                }
                                 return null;
                               },
                             ),
@@ -996,13 +997,15 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                               hintText: 'Enter your email',
                               headerText: 'Email Address',
                               validator: (val) {
-                                if (val == null || val.isEmpty)
+                                if (val == null || val.isEmpty) {
                                   return "Email is required";
+                                }
                                 final reg = RegExp(
                                   r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                                 );
-                                if (!reg.hasMatch(val))
+                                if (!reg.hasMatch(val)) {
                                   return "Invalid email format";
+                                }
                                 return null;
                               },
                             ),
@@ -1017,11 +1020,13 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                 LengthLimitingTextInputFormatter(11),
                               ],
                               validator: (val) {
-                                if (val == null || val.isEmpty)
+                                if (val == null || val.isEmpty) {
                                   return "Phone is required";
+                                }
                                 final reg = RegExp(r'^03[0-9]{9}$');
-                                if (!reg.hasMatch(val))
+                                if (!reg.hasMatch(val)) {
                                   return "Invalid phone (11 digits, starts with 03)";
+                                }
                                 return null;
                               },
                             ),
@@ -1031,8 +1036,9 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                               hintText: 'Enter your address',
                               headerText: 'Address',
                               validator: (val) {
-                                if (val == null || val.isEmpty)
+                                if (val == null || val.isEmpty) {
                                   return "Address is required";
+                                }
                                 return null;
                               },
                             ),
@@ -1042,8 +1048,9 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                               hintText: 'Enter your city (e.g. Karachi)',
                               headerText: 'City',
                               validator: (val) {
-                                if (val == null || val.trim().isEmpty)
+                                if (val == null || val.trim().isEmpty) {
                                   return "City is required";
+                                }
                                 return null;
                               },
                             ),
@@ -1111,7 +1118,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                                 ),
                                                 decoration: BoxDecoration(
                                                   color: Colors.green
-                                                      .withOpacity(0.12),
+                                                      .withValues(alpha: 0.12),
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                         20.r,
@@ -1162,7 +1169,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
                                         vertical: 4.h,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: _paymentColor().withOpacity(0.1),
+                                        color: _paymentColor().withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(
                                           20.r,
                                         ),
@@ -1196,7 +1203,7 @@ class _ProductBuyFormState extends State<ProductBuyForm> {
             builder: (_, loading, __) {
               if (!loading) return const SizedBox.shrink();
               return Container(
-                color: Colors.black.withOpacity(0.4),
+                color: Colors.black.withValues(alpha: 0.4),
                 child: Center(
                   child: SpinKitThreeBounce(
                     color: AppColor.primaryColor,
@@ -1271,12 +1278,11 @@ class _PaymentOptionCard extends StatelessWidget {
 
   const _PaymentOptionCard({
     this.icon,
-    this.imagePath,
     required this.label,
     required this.color,
     required this.selected,
     required this.onTap,
-  });
+  }) : imagePath = null;
 
   @override
   Widget build(BuildContext context) {
@@ -1286,7 +1292,7 @@ class _PaymentOptionCard extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
         decoration: BoxDecoration(
-          color: selected ? color.withOpacity(0.12) : Colors.white,
+          color: selected ? color.withValues(alpha: 0.12) : Colors.white,
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
             color: selected ? color : Colors.grey.shade200,
@@ -1294,7 +1300,7 @@ class _PaymentOptionCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),

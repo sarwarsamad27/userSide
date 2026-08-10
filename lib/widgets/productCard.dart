@@ -23,7 +23,7 @@ class ProductCard extends StatelessWidget {
   final int? quantity;
 
   const ProductCard({
-    Key? key,
+    super.key,
     required this.name,
     required this.price,
     required this.imageUrl,
@@ -34,7 +34,7 @@ class ProductCard extends StatelessWidget {
     this.originalPrice,
     this.quantity,
     required this.description,
-  }) : super(key: key);
+  });
 
   bool get _isOutOfStock => quantity != null && quantity! <= 0;
 
@@ -48,7 +48,7 @@ class ProductCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(18.r),
-          border: Border.all(color: Colors.black.withOpacity(0.06), width: 1),
+          border: Border.all(color: Colors.black.withValues(alpha: 0.06), width: 1),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -90,7 +90,7 @@ class ProductCard extends StatelessWidget {
                           begin: Alignment.topCenter,
                           end: Alignment.center,
                           colors: [
-                            Colors.black.withOpacity(0.18),
+                            Colors.black.withValues(alpha: 0.18),
                             Colors.transparent,
                           ],
                         ),
@@ -107,7 +107,7 @@ class ProductCard extends StatelessWidget {
                         topRight: Radius.circular(18.r),
                       ),
                       child: Container(
-                        color: Colors.black.withOpacity(0.45),
+                        color: Colors.black.withValues(alpha: 0.45),
                         alignment: Alignment.center,
                         child: Container(
                           padding: EdgeInsets.symmetric(
@@ -236,7 +236,7 @@ class ProductCard extends StatelessWidget {
                       Icon(
                         Icons.arrow_forward_ios_rounded,
                         size: 14.sp,
-                        color: Colors.black.withOpacity(0.35),
+                        color: Colors.black.withValues(alpha: 0.35),
                       ),
                     ],
                   ),
@@ -261,12 +261,12 @@ class _BadgeChip extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: background.withOpacity(0.92),
+        color: background.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: Colors.white.withOpacity(0.35), width: 1),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.10),
+            color: Colors.black.withValues(alpha: 0.10),
             blurRadius: 10,
             offset: const Offset(0, 6),
           ),

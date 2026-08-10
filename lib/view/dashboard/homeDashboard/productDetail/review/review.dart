@@ -218,7 +218,7 @@ class _ReviewState extends State<Review> {
                                               margin: EdgeInsets.only(top: 10.h),
                                               padding: EdgeInsets.all(10.w),
                                               decoration: BoxDecoration(
-                                                color: AppColor.primaryColor.withOpacity(0.05),
+                                                color: AppColor.primaryColor.withValues(alpha: 0.05),
                                                 borderRadius: BorderRadius.circular(10.r),
                                               ),
                                               child: Column(

@@ -220,8 +220,8 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withOpacity(0.10),
-                        Colors.black.withOpacity(0.25),
+                        Colors.black.withValues(alpha: 0.10),
+                        Colors.black.withValues(alpha: 0.25),
                       ],
                     ),
                   ),
@@ -260,8 +260,8 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                               shape: BoxShape.circle,
                               gradient: LinearGradient(
                                 colors: [
-                                  AppColor.primaryColor.withOpacity(0.95),
-                                  AppColor.primaryColor.withOpacity(0.35),
+                                  AppColor.primaryColor.withValues(alpha: 0.95),
+                                  AppColor.primaryColor.withValues(alpha: 0.35),
                                 ],
                               ),
                             ),

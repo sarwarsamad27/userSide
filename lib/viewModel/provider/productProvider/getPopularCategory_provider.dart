@@ -37,7 +37,7 @@ class PopularCategoryProvider extends ChangeNotifier {
     try {
       final response = await _repository.getPopularCategory();
 
-      log("controller response"+response.toString());
+      log("controller response$response");
       hasFetchedAtLeastOnce = true;
 
 

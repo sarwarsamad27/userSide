@@ -204,7 +204,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                 borderRadius: BorderRadius.circular(14.r),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 12,
                     offset: const Offset(0, 3),
                   ),
@@ -257,7 +257,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                 border: Border.all(color: _jcRed, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: _jcRed.withOpacity(0.12),
+                    color: _jcRed.withValues(alpha: 0.12),
                     blurRadius: 15,
                     offset: const Offset(0, 5),
                   ),
@@ -330,7 +330,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                 borderRadius: BorderRadius.circular(14.r),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 10,
                     offset: const Offset(0, 3),
                   ),
@@ -402,7 +402,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                 borderRadius: BorderRadius.circular(14.r),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 10,
                     offset: const Offset(0, 3),
                   ),
@@ -495,7 +495,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
           SizedBox(height: 20.h),
           CircleAvatar(
             radius: 60.r,
-            backgroundColor: _jcRed.withOpacity(0.1),
+            backgroundColor: _jcRed.withValues(alpha: 0.1),
             backgroundImage: const AssetImage('assets/images/JazzCashLogo.jpg'),
           ).animate().scale(curve: Curves.elasticOut, duration: 600.ms),
           SizedBox(height: 20.h),
@@ -521,7 +521,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
               borderRadius: BorderRadius.circular(14.r),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 12,
                   offset: const Offset(0, 3),
                 ),
@@ -562,7 +562,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
               onPressed: wallet.verifyLoading ? null : _verifyOtp,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _jcRed,
-                disabledBackgroundColor: _jcRed.withOpacity(0.5),
+                disabledBackgroundColor: _jcRed.withValues(alpha: 0.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16.r),
                 ),
@@ -657,7 +657,7 @@ class _SendSuccessSheet extends StatelessWidget {
             width: 72.r,
             height: 72.r,
             decoration: BoxDecoration(
-              color: const Color(0xFFCC0000).withOpacity(0.1),
+              color: const Color(0xFFCC0000).withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Center(

@@ -24,20 +24,20 @@ class OtherProductModel {
     if (json['otherProducts'] != null) {
       otherProducts = <OtherProducts>[];
       json['otherProducts'].forEach((v) {
-        otherProducts!.add(new OtherProducts.fromJson(v));
+        otherProducts!.add(OtherProducts.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['message'] = this.message;
-    data['total'] = this.total;
-    data['page'] = this.page;
-    data['limit'] = this.limit;
-    data['totalPages'] = this.totalPages;
-    if (this.otherProducts != null) {
-      data['otherProducts'] = this.otherProducts!
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['message'] = message;
+    data['total'] = total;
+    data['page'] = page;
+    data['limit'] = limit;
+    data['totalPages'] = totalPages;
+    if (otherProducts != null) {
+      data['otherProducts'] = otherProducts!
           .map((v) => v.toJson())
           .toList();
     }
@@ -106,7 +106,7 @@ class OtherProducts {
     if (json['reviews'] != null) {
       reviews = <Reviews>[];
       json['reviews'].forEach((v) {
-        reviews!.add(new Reviews.fromJson(v));
+        reviews!.add(Reviews.fromJson(v));
       });
     }
     averageRating = json['averageRating'] != null
@@ -115,27 +115,27 @@ class OtherProducts {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['profileId'] = this.profileId;
-    data['categoryId'] = this.categoryId;
-    data['name'] = this.name;
-    data['description'] = this.description;
-    data['images'] = this.images;
-    data['beforeDiscountPrice'] = this.beforeDiscountPrice;
-    data['afterDiscountPrice'] = this.afterDiscountPrice;
-    data['discountPercentage'] = this.discountPercentage;
-    data['size'] = this.size;
-    data['color'] = this.color;
-    data['stock'] = this.stock;
-    data['quantity'] = this.quantity;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
-    if (this.reviews != null) {
-      data['reviews'] = this.reviews!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['profileId'] = profileId;
+    data['categoryId'] = categoryId;
+    data['name'] = name;
+    data['description'] = description;
+    data['images'] = images;
+    data['beforeDiscountPrice'] = beforeDiscountPrice;
+    data['afterDiscountPrice'] = afterDiscountPrice;
+    data['discountPercentage'] = discountPercentage;
+    data['size'] = size;
+    data['color'] = color;
+    data['stock'] = stock;
+    data['quantity'] = quantity;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
+    if (reviews != null) {
+      data['reviews'] = reviews!.map((v) => v.toJson()).toList();
     }
-    data['averageRating'] = this.averageRating;
+    data['averageRating'] = averageRating;
     return data;
   }
 }
@@ -169,25 +169,25 @@ class Reviews {
     userId = json['userId'];
     stars = json['stars'];
     text = json['text'];
-    reply = json['reply'] != null ? new Reply.fromJson(json['reply']) : null;
+    reply = json['reply'] != null ? Reply.fromJson(json['reply']) : null;
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     iV = json['__v'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['productId'] = this.productId;
-    data['userId'] = this.userId;
-    data['stars'] = this.stars;
-    data['text'] = this.text;
-    if (this.reply != null) {
-      data['reply'] = this.reply!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['productId'] = productId;
+    data['userId'] = userId;
+    data['stars'] = stars;
+    data['text'] = text;
+    if (reply != null) {
+      data['reply'] = reply!.toJson();
     }
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
     return data;
   }
 }
@@ -204,9 +204,9 @@ class Reply {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['text'] = this.text;
-    data['repliedAt'] = this.repliedAt;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['text'] = text;
+    data['repliedAt'] = repliedAt;
     return data;
   }
 }

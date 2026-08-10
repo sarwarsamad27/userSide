@@ -95,8 +95,8 @@ class ProductMainCard extends StatelessWidget {
                           shape: BoxShape.circle,
                           gradient: LinearGradient(
                             colors: [
-                              AppColor.primaryColor.withOpacity(0.9),
-                              AppColor.primaryColor.withOpacity(0.35),
+                              AppColor.primaryColor.withValues(alpha: 0.9),
+                              AppColor.primaryColor.withValues(alpha: 0.35),
                             ],
                           ),
                         ),
@@ -346,13 +346,13 @@ class ProductMainCard extends StatelessWidget {
                           final pct = (((oldPrice - price) / oldPrice) * 100)
                               .round();
                           discountLine =
-                              '🏷️ *${pct}% OFF* — ~~Rs: $oldPrice~~\n';
+                              '🏷️ *$pct% OFF* — ~~Rs: $oldPrice~~\n';
                         }
 
                         final shareText =
                             '''🛍️ *$name*
 
-${discountLine}💰 *Price: Rs: $price*
+$discountLine💰 *Price: Rs: $price*
 ⭐ *$rating* ($reviews reviews)
 🏪 *Brand:* $brand
 

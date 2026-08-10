@@ -32,11 +32,8 @@ class NotificationRepository {
       Global.markNotificationRead,
       {"notificationId": notificationId},
     );
-
-    // support multiple API formats
-    if (response == null) return false;
-    if (response is Map && response['success'] == true) return true;
-    if (response is Map && response['message'] != null) return true;
+    if (response['success'] == true) return true;
+    if (response['message'] != null) return true;
 
     return false;
   } catch (_) {

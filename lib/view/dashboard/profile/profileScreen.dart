@@ -10,16 +10,13 @@ import 'package:user_side/resources/authSession.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/view/auth/loginView.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
-import 'package:user_side/view/dashboard/profile/changePasswordScreen.dart';
 import 'package:user_side/view/dashboard/profile/helpCenter.dart';
 import 'package:user_side/view/dashboard/profile/offer.dart';
 import 'package:user_side/view/dashboard/profile/order/orderHistory.dart';
-import 'package:user_side/view/dashboard/profile/setting.dart';
 import 'package:user_side/view/dashboard/profile/termAndCondition.dart';
 import 'package:user_side/view/dashboard/profile/wallet/walletScreen.dart';
 import 'package:user_side/view/dashboard/profile/widgets/optionTile.dart';
 import 'package:user_side/view/dashboard/profile/widgets/premiumOfferCard.dart';
-import 'package:user_side/view/dashboard/userChat/exchangeListScreen.dart';
 import 'package:user_side/viewModel/provider/authProvider/signInWithGoogle_provider.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/recommendedProduct_provider.dart';
 import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
@@ -251,7 +248,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                         decoration: BoxDecoration(
                           color: active
                               ? AppColor.primaryColor
-                              : Colors.black.withOpacity(0.18),
+                              : Colors.black.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(20.r),
                         ),
                       );
@@ -295,7 +292,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                               BoxShadow(
                                 color: const Color(
                                   0xFF1A1A2E,
-                                ).withOpacity(0.25),
+                                ).withValues(alpha: 0.25),
                                 blurRadius: 20,
                                 offset: const Offset(0, 6),
                               ),
@@ -307,7 +304,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                                 width: 54.r,
                                 height: 54.r,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.12),
+                                  color: Colors.white.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(16.r),
                                 ),
                                 child: const Center(
@@ -400,7 +397,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                                       vertical: 5.h,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.12),
+                                      color: Colors.white.withValues(alpha: 0.12),
                                       borderRadius: BorderRadius.circular(20.r),
                                     ),
                                     child: Row(
@@ -456,7 +453,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                         borderRadius: BorderRadius.circular(20.r),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFFF6B6B).withOpacity(0.3),
+                            color: const Color(0xFFFF6B6B).withValues(alpha: 0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 6),
                           ),
@@ -469,7 +466,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                             width: 54.r,
                             height: 54.r,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(16.r),
                             ),
                             child: const Center(
@@ -495,7 +492,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                                 Text(
                                   'Login to access payments & rewards',
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.85),
+                                    color: Colors.white.withValues(alpha: 0.85),
                                     fontSize: 12.sp,
                                     fontWeight: FontWeight.w400,
                                   ),
@@ -515,7 +512,7 @@ class _ProfilescreenState extends State<Profilescreen> {
                               borderRadius: BorderRadius.circular(20.r),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
+                                  color: Colors.black.withValues(alpha: 0.1),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),

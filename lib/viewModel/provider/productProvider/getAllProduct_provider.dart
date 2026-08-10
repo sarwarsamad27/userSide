@@ -27,8 +27,9 @@ class GetAllProductProvider extends ChangeNotifier {
     // fallback: if model has totalPages/currentPage
     final totalPages = pagination!.totalPages;
     final currentPage = pagination!.page;
-    if (totalPages != null && currentPage != null)
+    if (totalPages != null && currentPage != null) {
       return currentPage < totalPages;
+    }
     return true;
   }
 

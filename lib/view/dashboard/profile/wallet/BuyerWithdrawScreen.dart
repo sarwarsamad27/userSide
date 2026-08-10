@@ -251,7 +251,7 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColor.primaryColor.withOpacity(0.9),
+                    AppColor.primaryColor.withValues(alpha: 0.9),
                     AppColor.primaryColor,
                   ],
                   begin: Alignment.topLeft,
@@ -260,7 +260,7 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
                 borderRadius: BorderRadius.circular(18.r),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColor.primaryColor.withOpacity(0.3),
+                    color: AppColor.primaryColor.withValues(alpha: 0.3),
                     blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
@@ -271,7 +271,7 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
                   Container(
                     padding: EdgeInsets.all(10.r),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -333,14 +333,14 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: AppColor.primaryColor.withOpacity(0.3),
+                                  color: AppColor.primaryColor.withValues(alpha: 0.3),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
                               ]
                             : [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.04),
+                                  color: Colors.black.withValues(alpha: 0.04),
                                   blurRadius: 8,
                                 ),
                               ],
@@ -662,7 +662,7 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColor.primaryColor.withOpacity(0.8),
+                  AppColor.primaryColor.withValues(alpha: 0.8),
                   AppColor.primaryColor,
                 ],
                 begin: Alignment.topLeft,
@@ -671,7 +671,7 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColor.primaryColor.withOpacity(0.3),
+                  color: AppColor.primaryColor.withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -701,9 +701,9 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
           Container(
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
             decoration: BoxDecoration(
-              color: AppColor.primaryColor.withOpacity(0.08),
+              color: AppColor.primaryColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(14.r),
-              border: Border.all(color: AppColor.primaryColor.withOpacity(0.2)),
+              border: Border.all(color: AppColor.primaryColor.withValues(alpha: 0.2)),
             ),
             child: Text(
               'Rs ${_amountController.text} via $_method',
@@ -724,7 +724,7 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
               borderRadius: BorderRadius.circular(14.r),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 12,
                   offset: const Offset(0, 3),
                 ),
@@ -766,7 +766,7 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
               onPressed: wallet.verifyLoading ? null : _verifyOtp,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColor.primaryColor,
-                disabledBackgroundColor: AppColor.primaryColor.withOpacity(0.5),
+                disabledBackgroundColor: AppColor.primaryColor.withValues(alpha: 0.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16.r),
                 ),
@@ -809,7 +809,7 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
         borderRadius: BorderRadius.circular(14.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -892,7 +892,7 @@ class _WithdrawSuccessSheet extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.green.withOpacity(0.3),
+                  color: Colors.green.withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -970,9 +970,9 @@ class _WithdrawSuccessSheet extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(12.r),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.06),
+              color: Colors.blue.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: Colors.blue.withOpacity(0.2)),
+              border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [

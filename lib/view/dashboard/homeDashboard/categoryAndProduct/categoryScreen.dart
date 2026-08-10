@@ -5,13 +5,13 @@ import 'package:provider/provider.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/view/dashboard/homeDashboard/categoryAndProduct/productBelowCategory.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getAllCategoryProfileWise_provider.dart';
+import 'package:user_side/widgets/cached_image.dart';
 
 class Categoryscreen extends StatefulWidget {
   final String profileId;
   final String? categoryId;
 
-  const Categoryscreen({Key? key, required this.profileId, this.categoryId})
-    : super(key: key);
+  const Categoryscreen({super.key, required this.profileId, this.categoryId});
 
   @override
   State<Categoryscreen> createState() => _CategoryscreenState();
@@ -86,8 +86,8 @@ class _CategoryscreenState extends State<Categoryscreen> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    Global.getImageUrl(categories[selectedIndex].image),
+                  CachedImage(
+                    url: Global.getImageUrl(categories[selectedIndex].image),
                     fit: BoxFit.cover,
                     errorBuilder: (c, e, s) => Container(
                       color: Colors.grey[300],
@@ -100,7 +100,7 @@ class _CategoryscreenState extends State<Categoryscreen> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Colors.black.withOpacity(0.6),
+                          Colors.black.withValues(alpha: 0.6),
                           Colors.transparent,
                         ],
                         begin: Alignment.bottomCenter,
@@ -135,7 +135,7 @@ class _CategoryscreenState extends State<Categoryscreen> {
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? Colors.white
-                                    : Colors.white.withOpacity(0.2),
+                                    : Colors.white.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(24.r),
                               ),
                               child: Center(
@@ -145,7 +145,7 @@ class _CategoryscreenState extends State<Categoryscreen> {
                                     fontSize: 16.sp,
                                     color: isSelected
                                         ? Colors.black
-                                        : Colors.white.withOpacity(0.8),
+                                        : Colors.white.withValues(alpha: 0.8),
                                     fontWeight: isSelected
                                         ? FontWeight.bold
                                         : FontWeight.w500,

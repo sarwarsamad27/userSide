@@ -6,14 +6,6 @@ import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 
 // Providers for refresh
-import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getAllProfile_provider.dart';
-import 'package:user_side/viewModel/provider/notificationProvider/notification_provider.dart';
-import 'package:user_side/viewModel/provider/favouriteProvider/getFavourite_provider.dart';
-import 'package:user_side/viewModel/provider/productProvider/getPopularProduct_provider.dart';
-import 'package:user_side/viewModel/provider/orderProvider/getMyOrder_provider.dart';
-import 'package:user_side/viewModel/provider/productProvider/getPopularCategory_provider.dart';
-import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/recommendedProduct_provider.dart';
-import 'package:user_side/viewModel/provider/exchangeProvider/chatThread_provider.dart';
 
 class AuthGate extends StatefulWidget {
   final Widget child;

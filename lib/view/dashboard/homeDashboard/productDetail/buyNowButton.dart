@@ -73,7 +73,7 @@ class BuyNowButton extends StatelessWidget {
               ? null
               : [
                   BoxShadow(
-                    color: AppColor.primaryColor.withOpacity(0.35),
+                    color: AppColor.primaryColor.withValues(alpha: 0.35),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),

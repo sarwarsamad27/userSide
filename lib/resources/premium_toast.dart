@@ -116,13 +116,12 @@ class _ToastWidget extends StatefulWidget {
   final VoidCallback onDismiss;
 
   const _ToastWidget({
-    Key? key,
     required this.message,
     required this.backgroundColor,
     required this.icon,
     required this.iconColor,
     required this.onDismiss,
-  }) : super(key: key);
+  });
 
   @override
   State<_ToastWidget> createState() => _ToastWidgetState();
@@ -185,7 +184,7 @@ class _ToastWidgetState extends State<_ToastWidget>
                   borderRadius: BorderRadius.circular(16.r),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),

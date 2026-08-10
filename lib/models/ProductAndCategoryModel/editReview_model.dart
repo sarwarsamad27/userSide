@@ -9,15 +9,15 @@ class EditReviewModel {
     success = json['success'];
     message = json['message'];
     review =
-        json['review'] != null ? new EditReview.fromJson(json['review']) : null;
+        json['review'] != null ? EditReview.fromJson(json['review']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    data['message'] = this.message;
-    if (this.review != null) {
-      data['review'] = this.review!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
+    data['message'] = message;
+    if (review != null) {
+      data['review'] = review!.toJson();
     }
     return data;
   }
@@ -47,7 +47,7 @@ class EditReview {
     sId = json['_id'];
     productId = json['productId'];
     userId =
-        json['userId'] != null ? new UserId.fromJson(json['userId']) : null;
+        json['userId'] != null ? UserId.fromJson(json['userId']) : null;
     stars = json['stars'];
     text = json['text'];
     createdAt = json['createdAt'];
@@ -56,17 +56,17 @@ class EditReview {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['productId'] = this.productId;
-    if (this.userId != null) {
-      data['userId'] = this.userId!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['productId'] = productId;
+    if (userId != null) {
+      data['userId'] = userId!.toJson();
     }
-    data['stars'] = this.stars;
-    data['text'] = this.text;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
+    data['stars'] = stars;
+    data['text'] = text;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
     return data;
   }
 }
@@ -83,9 +83,9 @@ class UserId {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['email'] = this.email;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['email'] = email;
     return data;
   }
 }

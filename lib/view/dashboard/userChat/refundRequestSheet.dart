@@ -79,17 +79,19 @@ class _RefundRequestSheetState extends State<RefundRequestSheet> {
       return;
     }
     final files = await _picker.pickMultiImage(imageQuality: 70);
-    if (files.isEmpty) return;
+    if (files.isEmpty || !mounted) return;
     setState(() {
       _images = [..._images, ...files].take(5).toList();
     });
   }
 
   Future<void> _submit() async {
-    if (_selectedProduct == null)
+    if (_selectedProduct == null) {
       return PremiumToast.error(context, "Select product");
-    if (_reason.text.trim().isEmpty)
+    }
+    if (_reason.text.trim().isEmpty) {
       return PremiumToast.error(context, "Provide reason");
+    }
 
     final provider = context.read<ExchangeProvider>();
     final userId = await LocalStorage.getUserId() ?? "";
@@ -163,7 +165,7 @@ class _RefundRequestSheetState extends State<RefundRequestSheet> {
 
             if (widget.products.length > 1)
               DropdownButtonFormField<Product>(
-                value: _selectedProduct,
+                initialValue: _selectedProduct,
                 items: widget.products
                     .map(
                       (p) =>

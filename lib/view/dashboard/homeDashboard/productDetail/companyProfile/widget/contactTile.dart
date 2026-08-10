@@ -15,7 +15,7 @@ Widget contactTile(
         height: 70.h,
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
         decoration: BoxDecoration(
-          color: color.withOpacity(.1),
+          color: color.withValues(alpha: .1),
           borderRadius: BorderRadius.circular(12.r),
         ),
         child: Column(

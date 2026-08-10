@@ -115,7 +115,7 @@ class _LeopardsTrackingScreenState extends State<LeopardsTrackingScreen> {
                                   shape: BoxShape.circle,
                                   border: Border.all(
                                     color: isFirst
-                                        ? AppColor.primaryColor.withOpacity(0.2)
+                                        ? AppColor.primaryColor.withValues(alpha: 0.2)
                                         : Colors.transparent,
                                     width: 4,
                                   ),
@@ -208,7 +208,7 @@ class _LeopardsTrackingScreenState extends State<LeopardsTrackingScreen> {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -219,7 +219,7 @@ class _LeopardsTrackingScreenState extends State<LeopardsTrackingScreen> {
           Container(
             padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
+              color: Colors.blue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: Icon(
@@ -266,9 +266,9 @@ class _LeopardsTrackingScreenState extends State<LeopardsTrackingScreen> {
       margin: EdgeInsets.only(top: 16.h),
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Colors.blue.withOpacity(0.1),
+        color: Colors.blue.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.blue.withOpacity(0.3)),
+        border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [

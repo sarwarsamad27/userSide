@@ -175,7 +175,7 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -244,7 +244,7 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
                               boxShadow: isCurrent
                                   ? [
                                       BoxShadow(
-                                        color: Colors.blue.withOpacity(0.4),
+                                        color: Colors.blue.withValues(alpha: 0.4),
                                         blurRadius: 8,
                                       ),
                                     ]
@@ -580,7 +580,7 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -753,7 +753,7 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.indigo.withOpacity(0.1),
+            color: Colors.indigo.withValues(alpha: 0.1),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -945,7 +945,7 @@ class _RefundReturnProofWidgetState extends State<_RefundReturnProofWidget> {
       return;
     }
     final files = await _picker.pickMultiImage(imageQuality: 75);
-    if (files.isEmpty) return;
+    if (files.isEmpty || !mounted) return;
     final remaining = 5 - _images.length;
     setState(() => _images = [..._images, ...files.take(remaining)]);
   }

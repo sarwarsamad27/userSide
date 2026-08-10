@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CustomTabBar extends StatefulWidget {
+  const CustomTabBar({super.key});
+
   @override
   State<CustomTabBar> createState() => _CustomTabBarState();
 }
@@ -32,7 +34,7 @@ class _CustomTabBarState extends State<CustomTabBar> {
                 borderRadius: BorderRadius.circular(30.r),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                   ),
                 ],

@@ -60,7 +60,7 @@ class ReviewScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          AppColor.primaryColor.withOpacity(0.9),
+                          AppColor.primaryColor.withValues(alpha: 0.9),
                           AppColor.primaryColor,
                         ],
                         begin: Alignment.topLeft,
@@ -69,7 +69,7 @@ class ReviewScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20.r),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColor.primaryColor.withOpacity(0.3),
+                          color: AppColor.primaryColor.withValues(alpha: 0.3),
                           blurRadius: 16,
                           offset: const Offset(0, 6),
                         ),
@@ -80,7 +80,7 @@ class ReviewScreen extends StatelessWidget {
                         Container(
                           padding: EdgeInsets.all(10.w),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -107,7 +107,7 @@ class ReviewScreen extends StatelessWidget {
                                 "Your feedback helps others decide",
                                 style: TextStyle(
                                   fontSize: 12.sp,
-                                  color: Colors.white.withOpacity(0.8),
+                                  color: Colors.white.withValues(alpha: 0.8),
                                 ),
                               ),
                             ],
@@ -232,7 +232,7 @@ class ReviewScreen extends StatelessWidget {
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14.r),
                               borderSide: BorderSide(
-                                color: AppColor.primaryColor.withOpacity(0.4),
+                                color: AppColor.primaryColor.withValues(alpha: 0.4),
                                 width: 1.5,
                               ),
                             ),
@@ -278,10 +278,11 @@ class ReviewScreen extends StatelessWidget {
                                   final picked = await picker.pickMultiImage(
                                     imageQuality: 70,
                                   );
-                                  if (picked.isNotEmpty)
+                                  if (picked.isNotEmpty) {
                                     form.addImages(
                                       picked.map((x) => File(x.path)).toList(),
                                     );
+                                  }
                                 },
                                 icon: Icon(
                                   Icons.add_photo_alternate_outlined,
@@ -553,7 +554,7 @@ class ReviewScreen extends StatelessWidget {
                           gradient: form.canSubmit
                               ? LinearGradient(
                                   colors: [
-                                    AppColor.primaryColor.withOpacity(0.9),
+                                    AppColor.primaryColor.withValues(alpha: 0.9),
                                     AppColor.primaryColor,
                                   ],
                                   begin: Alignment.topLeft,
@@ -565,7 +566,7 @@ class ReviewScreen extends StatelessWidget {
                           boxShadow: form.canSubmit
                               ? [
                                   BoxShadow(
-                                    color: AppColor.primaryColor.withOpacity(
+                                    color: AppColor.primaryColor.withValues(alpha: 
                                       0.3,
                                     ),
                                     blurRadius: 12,
@@ -638,7 +639,7 @@ class ReviewScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),

@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/global.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/userChat_provider.dart';
 import '../../../models/chatModel/chatModel.dart';
@@ -26,14 +25,14 @@ class RefundRequestCard extends StatelessWidget {
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.blue.withOpacity(0.08), Colors.blue.withOpacity(0.03)],
+          colors: [Colors.blue.withValues(alpha: 0.08), Colors.blue.withValues(alpha: 0.03)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: statusInfo.color.withOpacity(0.3), width: 1.5),
+        border: Border.all(color: statusInfo.color.withValues(alpha: 0.3), width: 1.5),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -45,7 +44,7 @@ class RefundRequestCard extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.12),
+                  color: Colors.blue.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10.r),
                 ),
                 child: Icon(Icons.account_balance_wallet_rounded, color: Colors.blue, size: 22.sp),
@@ -65,7 +64,7 @@ class RefundRequestCard extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
                 decoration: BoxDecoration(
-                  color: statusInfo.color.withOpacity(0.12),
+                  color: statusInfo.color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20.r),
                   border: Border.all(color: statusInfo.color, width: 1),
                 ),
@@ -132,7 +131,7 @@ class RefundRequestCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8.r),
                     child: Image.network(url, fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             child: Icon(Icons.broken_image, size: 24.sp))),
                   ),
                 );
@@ -234,9 +233,9 @@ class RefundRequestCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: color.withOpacity(0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [

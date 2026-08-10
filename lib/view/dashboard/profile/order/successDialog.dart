@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/appColor.dart';
 
 class SuccessDialog extends StatefulWidget {
-  const SuccessDialog();
+  const SuccessDialog({super.key});
 
   @override
   State<SuccessDialog> createState() => _SuccessDialogState();
@@ -54,7 +54,7 @@ class _SuccessDialogState extends State<SuccessDialog>
               borderRadius: BorderRadius.circular(28.r),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
+                  color: Colors.black.withValues(alpha: 0.15),
                   blurRadius: 30,
                   offset: const Offset(0, 10),
                 ),
@@ -80,7 +80,7 @@ class _SuccessDialogState extends State<SuccessDialog>
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.green.withOpacity(0.35),
+                        color: Colors.green.withValues(alpha: 0.35),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
@@ -180,7 +180,7 @@ class _SuccessDialogState extends State<SuccessDialog>
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          AppColor.primaryColor.withOpacity(0.9),
+                          AppColor.primaryColor.withValues(alpha: 0.9),
                           AppColor.primaryColor,
                         ],
                         begin: Alignment.topLeft,
@@ -189,7 +189,7 @@ class _SuccessDialogState extends State<SuccessDialog>
                       borderRadius: BorderRadius.circular(14.r),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColor.primaryColor.withOpacity(0.3),
+                          color: AppColor.primaryColor.withValues(alpha: 0.3),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),

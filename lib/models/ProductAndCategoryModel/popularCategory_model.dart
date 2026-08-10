@@ -24,20 +24,20 @@ class PopularCategoryModel {
     if (json['categories'] != null) {
       categories = <Categories>[];
       json['categories'].forEach((v) {
-        categories!.add(new Categories.fromJson(v));
+        categories!.add(Categories.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    data['page'] = this.page;
-    data['limit'] = this.limit;
-    data['totalCategories'] = this.totalCategories;
-    data['totalPages'] = this.totalPages;
-    if (this.categories != null) {
-      data['categories'] = this.categories!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
+    data['page'] = page;
+    data['limit'] = limit;
+    data['totalCategories'] = totalCategories;
+    data['totalPages'] = totalPages;
+    if (categories != null) {
+      data['categories'] = categories!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -73,13 +73,13 @@ class Categories {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['categoryId'] = this.categoryId;
-    data['profileId'] = this.profileId;
-    data['categoryName'] = this.categoryName;
-    data['categoryImage'] = this.categoryImage;
-    data['totalProducts'] = this.totalProducts;
-    data['averageDiscountPercentage'] = this.averageDiscountPercentage;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['categoryId'] = categoryId;
+    data['profileId'] = profileId;
+    data['categoryName'] = categoryName;
+    data['categoryImage'] = categoryImage;
+    data['totalProducts'] = totalProducts;
+    data['averageDiscountPercentage'] = averageDiscountPercentage;
     return data;
   }
 }

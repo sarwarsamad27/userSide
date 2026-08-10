@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
-import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/viewModel/provider/getAllProfileAndProductProvider/getAllProductCategoryWise_provider.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
@@ -13,10 +11,10 @@ class ProductBelowCategory extends StatefulWidget {
   final String categoryId;
 
   const ProductBelowCategory({
-    Key? key,
+    super.key,
     required this.profileId,
     required this.categoryId,
-  }) : super(key: key);
+  });
 
   @override
   State<ProductBelowCategory> createState() => _ProductBelowCategoryState();

@@ -94,7 +94,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   style: TextStyle(
                                     fontSize: 14.sp,
                                     color: AppColor.textSecondaryColor
-                                        .withOpacity(0.8),
+                                        .withValues(alpha: 0.8),
                                   ),
                                 ),
                                 SizedBox(height: 30.h),
@@ -156,11 +156,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                           }
 
                                           if (!await isConnected()) {
-                                            if (mounted)
+                                            if (mounted) {
                                               PremiumToast.error(
                                                 context,
                                                 "No internet connection",
                                               );
+                                            }
                                             return;
                                           }
 
@@ -291,7 +292,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   return Container(
                     height: double.infinity,
                     width: double.infinity,
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                     child: Utils.loadingLottie(size: 80),
                   );
                 }

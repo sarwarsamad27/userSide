@@ -9,6 +9,7 @@ import 'package:user_side/view/auth/AuthLoginGate.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productDetailScreen.dart';
 import 'package:user_side/view/dashboard/userChat/userChatScreen.dart';
 import 'package:user_side/viewModel/provider/notificationProvider/notification_provider.dart';
+import 'package:user_side/widgets/cached_image.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -117,7 +118,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     color: AppColor.successColor,
                     borderRadius: BorderRadius.circular(30.r),
                     border: Border.all(
-                      color: AppColor.successColor.withOpacity(0.18),
+                      color: AppColor.successColor.withValues(alpha: 0.18),
                     ),
                   ),
                   child: Text(
@@ -354,12 +355,12 @@ class _NotifTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
             color: isRead
-                ? Colors.black12.withOpacity(0.06)
-                : accent.withOpacity(0.22),
+                ? Colors.black12.withValues(alpha: 0.06)
+                : accent.withValues(alpha: 0.22),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 18,
               offset: const Offset(0, 10),
             ),
@@ -372,13 +373,13 @@ class _NotifTile extends StatelessWidget {
               width: 52.w,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14.r),
-                color: accent.withOpacity(0.10),
+                color: accent.withValues(alpha: 0.10),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(14.r),
                 child: (absoluteImage.isNotEmpty)
-                    ? Image.network(
-                        absoluteImage,
+                    ? CachedImage(
+                        url: absoluteImage,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) =>
                             Icon(Icons.notifications, color: accent),
@@ -474,7 +475,7 @@ class _NotifLoading extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: Colors.black12.withOpacity(0.06)),
+          border: Border.all(color: Colors.black12.withValues(alpha: 0.06)),
         ),
       ),
     );

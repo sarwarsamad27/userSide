@@ -1,4 +1,3 @@
-import 'package:user_side/models/chatModel/chatModel.dart';
 
 class MyOrderModel {
   bool? success;
@@ -26,20 +25,20 @@ class MyOrderModel {
     if (json['orders'] != null) {
       orders = <Orders>[];
       json['orders'].forEach((v) {
-        orders!.add(new Orders.fromJson(v));
+        orders!.add(Orders.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    data['totalItems'] = this.totalItems;
-    data['page'] = this.page;
-    data['limit'] = this.limit;
-    data['totalPages'] = this.totalPages;
-    if (this.orders != null) {
-      data['orders'] = this.orders!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
+    data['totalItems'] = totalItems;
+    data['page'] = page;
+    data['limit'] = limit;
+    data['totalPages'] = totalPages;
+    if (orders != null) {
+      data['orders'] = orders!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -287,18 +286,18 @@ class Seller {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['userId'] = this.userId;
-    data['image'] = this.image;
-    data['name'] = this.name;
-    data['email'] = this.email;
-    data['phone'] = this.phone;
-    data['address'] = this.address;
-    data['description'] = this.description;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['userId'] = userId;
+    data['image'] = image;
+    data['name'] = name;
+    data['email'] = email;
+    data['phone'] = phone;
+    data['address'] = address;
+    data['description'] = description;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
     return data;
   }
 }
@@ -327,12 +326,12 @@ class BuyerDetails {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['name'] = this.name;
-    data['email'] = this.email;
-    data['phone'] = this.phone;
-    data['address'] = this.address;
-    data['additionalNote'] = this.additionalNote;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['name'] = name;
+    data['email'] = email;
+    data['phone'] = phone;
+    data['address'] = address;
+    data['additionalNote'] = additionalNote;
     return data;
   }
 }
@@ -384,36 +383,36 @@ class Product {
     stock = json['stock'];
     description = json['description'];
     review = json['review'] != null
-        ? new Review.fromJson(json['review'])
+        ? Review.fromJson(json['review'])
         : null;
     exchangeRequest = json['exchangeRequest'] != null
-        ? new ExchangeRequest.fromJson(json['exchangeRequest'])
+        ? ExchangeRequest.fromJson(json['exchangeRequest'])
         : null;
     refundRequest = json['refundRequest'] != null
-        ? new RefundRequest.fromJson(json['refundRequest'])
+        ? RefundRequest.fromJson(json['refundRequest'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['productId'] = this.productId;
-    data['name'] = this.name;
-    data['quantity'] = this.quantity;
-    data['price'] = this.price;
-    data['totalPrice'] = this.totalPrice;
-    data['selectedColor'] = this.selectedColor;
-    data['selectedSize'] = this.selectedSize;
-    data['images'] = this.images;
-    data['stock'] = this.stock;
-    data['description'] = this.description;
-    if (this.review != null) {
-      data['review'] = this.review!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['productId'] = productId;
+    data['name'] = name;
+    data['quantity'] = quantity;
+    data['price'] = price;
+    data['totalPrice'] = totalPrice;
+    data['selectedColor'] = selectedColor;
+    data['selectedSize'] = selectedSize;
+    data['images'] = images;
+    data['stock'] = stock;
+    data['description'] = description;
+    if (review != null) {
+      data['review'] = review!.toJson();
     }
-    if (this.exchangeRequest != null) {
-      data['exchangeRequest'] = this.exchangeRequest!.toJson();
+    if (exchangeRequest != null) {
+      data['exchangeRequest'] = exchangeRequest!.toJson();
     }
-    if (this.refundRequest != null) {
-      data['refundRequest'] = this.refundRequest!.toJson();
+    if (refundRequest != null) {
+      data['refundRequest'] = refundRequest!.toJson();
     }
     return data;
   }
@@ -443,12 +442,12 @@ class ExchangeRequest {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.id;
-    data['status'] = this.status;
-    data['reason'] = this.reason;
-    data['companyNote'] = this.companyNote;
-    data['pdfPath'] = this.pdfPath;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = id;
+    data['status'] = status;
+    data['reason'] = reason;
+    data['companyNote'] = companyNote;
+    data['pdfPath'] = pdfPath;
     return data;
   }
 }
@@ -480,13 +479,13 @@ class RefundRequest {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.id;
-    data['status'] = this.status;
-    data['reason'] = this.reason;
-    data['companyNote'] = this.companyNote;
-    data['pdfPath'] = this.pdfPath;
-    data['refundAmount'] = this.refundAmount;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = id;
+    data['status'] = status;
+    data['reason'] = reason;
+    data['companyNote'] = companyNote;
+    data['pdfPath'] = pdfPath;
+    data['refundAmount'] = refundAmount;
     return data;
   }
 }
@@ -520,25 +519,25 @@ class Review {
     userId = json['userId'];
     stars = json['stars'];
     text = json['text'];
-    reply = json['reply'] != null ? new Reply.fromJson(json['reply']) : null;
+    reply = json['reply'] != null ? Reply.fromJson(json['reply']) : null;
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     iV = json['__v'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['productId'] = this.productId;
-    data['userId'] = this.userId;
-    data['stars'] = this.stars;
-    data['text'] = this.text;
-    if (this.reply != null) {
-      data['reply'] = this.reply!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['productId'] = productId;
+    data['userId'] = userId;
+    data['stars'] = stars;
+    data['text'] = text;
+    if (reply != null) {
+      data['reply'] = reply!.toJson();
     }
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
     return data;
   }
 }
@@ -555,9 +554,9 @@ class Reply {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['text'] = this.text;
-    data['repliedAt'] = this.repliedAt;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['text'] = text;
+    data['repliedAt'] = repliedAt;
     return data;
   }
 }

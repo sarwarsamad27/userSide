@@ -9,16 +9,16 @@ class FavouriteListModel {
     if (json['favourites'] != null) {
       favourites = <Favourites>[];
       json['favourites'].forEach((v) {
-        favourites!.add(new Favourites.fromJson(v));
+        favourites!.add(Favourites.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    if (this.favourites != null) {
-      data['favourites'] = this.favourites!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
+    if (favourites != null) {
+      data['favourites'] = favourites!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -44,23 +44,23 @@ class Favourites {
     selectedSizes = json['selectedSizes'].cast<String>();
     selectedColors = json['selectedColors'].cast<String>();
     product = json['product'] != null
-        ? new Product.fromJson(json['product'])
+        ? Product.fromJson(json['product'])
         : null;
     seller = json['seller'] != null
-        ? new Seller.fromJson(json['seller'])
+        ? Seller.fromJson(json['seller'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['selectedSizes'] = this.selectedSizes;
-    data['selectedColors'] = this.selectedColors;
-    if (this.product != null) {
-      data['product'] = this.product!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['selectedSizes'] = selectedSizes;
+    data['selectedColors'] = selectedColors;
+    if (product != null) {
+      data['product'] = product!.toJson();
     }
-    if (this.seller != null) {
-      data['seller'] = this.seller!.toJson();
+    if (seller != null) {
+      data['seller'] = seller!.toJson();
     }
     return data;
   }
@@ -93,13 +93,13 @@ class Product {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['name'] = this.name;
-    data['beforeDiscountPrice'] = this.beforeDiscountPrice;
-    data['afterDiscountPrice'] = this.afterDiscountPrice;
-    data['image'] = this.image;
-    data['quantity'] = this.quantity;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['name'] = name;
+    data['beforeDiscountPrice'] = beforeDiscountPrice;
+    data['afterDiscountPrice'] = afterDiscountPrice;
+    data['image'] = image;
+    data['quantity'] = quantity;
     return data;
   }
 }
@@ -118,10 +118,10 @@ class Seller {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['name'] = this.name;
-    data['image'] = this.image;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['name'] = name;
+    data['image'] = image;
     return data;
   }
 }

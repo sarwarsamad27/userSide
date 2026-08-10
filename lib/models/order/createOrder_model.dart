@@ -2,6 +2,7 @@
 ///  createOrder_model.dart — UPDATED
 ///  Added: paymentMethod, paymentStatus, paymentNote fields
 /// ══════════════════════════════════════════════════════════
+library;
 
 class CreateOrderModel {
   String? message;
@@ -117,8 +118,9 @@ class Order {
     final data = <String, dynamic>{};
     data['buyerId'] = buyerId;
     data['profileId'] = profileId;
-    if (products != null)
+    if (products != null) {
       data['products'] = products!.map((v) => v.toJson()).toList();
+    }
     data['shipmentCharges'] = shipmentCharges;
     data['grandTotal'] = grandTotal;
     if (buyerDetails != null) data['buyerDetails'] = buyerDetails!.toJson();

@@ -63,7 +63,7 @@ class LoginProvider with ChangeNotifier {
 
         // ✅ 2) Then register FCM token (now userId exists)
         await NotificationService.registerTokenIfLoggedIn();
-        print("FCM TOKEN HINT: ...${fcm?.substring((fcm?.length ?? 10) - 10)}");
+        print("FCM TOKEN HINT: ...${fcm?.substring((fcm.length ?? 10) - 10)}");
         print("Saved userId: ${await LocalStorage.getUserId()}");
       } else {
         _errorMessage = _loginData?.message ?? "Login failed";

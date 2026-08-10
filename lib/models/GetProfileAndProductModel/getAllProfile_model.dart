@@ -21,19 +21,19 @@ class GetAllProfileModel {
     if (json['profiles'] != null) {
       profiles = <Profiles>[];
       json['profiles'].forEach((v) {
-        profiles!.add(new Profiles.fromJson(v));
+        profiles!.add(Profiles.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['message'] = this.message;
-    data['page'] = this.page;
-    data['totalPages'] = this.totalPages;
-    data['totalProfiles'] = this.totalProfiles;
-    if (this.profiles != null) {
-      data['profiles'] = this.profiles!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['message'] = message;
+    data['page'] = page;
+    data['totalPages'] = totalPages;
+    data['totalProfiles'] = totalProfiles;
+    if (profiles != null) {
+      data['profiles'] = profiles!.map((v) => v.toJson()).toList();
     }
     return data;
   }

@@ -46,11 +46,12 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
         headers: {"Accept": "application/pdf"},
       );
       if (response.statusCode != 200) {
-        if (mounted)
+        if (mounted) {
           PremiumToast.error(
             context,
             "Download failed (${response.statusCode})",
           );
+        }
         return;
       }
       final dir = await getApplicationDocumentsDirectory();
@@ -216,7 +217,7 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -641,7 +642,7 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -809,7 +810,7 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.1),
+            color: Colors.blue.withValues(alpha: 0.1),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -999,7 +1000,7 @@ class _ReturnProofWidgetState extends State<_ReturnProofWidget> {
       return;
     }
     final files = await _picker.pickMultiImage(imageQuality: 75);
-    if (files.isEmpty) return;
+    if (files.isEmpty || !mounted) return;
     final remaining = 5 - _images.length;
     setState(() {
       _images = [..._images, ...files.take(remaining)];

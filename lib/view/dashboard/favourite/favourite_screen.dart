@@ -9,6 +9,7 @@ import 'package:user_side/resources/toast.dart';
 import 'package:user_side/view/auth/AuthLoginGate.dart';
 import 'package:user_side/view/dashboard/homeDashboard/productDetail/productBuyForm.dart';
 import 'package:user_side/viewModel/provider/favouriteProvider/getFavourite_provider.dart';
+import 'package:user_side/widgets/cached_image.dart';
 import 'package:user_side/widgets/customBgContainer.dart';
 import 'package:user_side/widgets/customButton.dart';
 
@@ -40,8 +41,8 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
     }
     return ClipRRect(
       borderRadius: BorderRadius.circular(10.r),
-      child: Image.network(
-        fixImage(url),
+      child: CachedImage(
+        url: fixImage(url),
         height: size,
         width: size,
         fit: BoxFit.cover,
@@ -168,7 +169,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
                                         vertical: 2.h,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.red.withOpacity(0.1),
+                                        color: Colors.red.withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(
                                           4.r,
                                         ),

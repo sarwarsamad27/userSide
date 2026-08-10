@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -20,6 +22,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -40,7 +43,17 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _searchDebounce?.cancel();
     super.dispose();
+  }
+
+  // Debounced so fast typing doesn't re-filter/re-render on every keystroke.
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
+      if (!mounted) return;
+      context.read<GetAllProfileProvider>().applySearch(value);
+    });
   }
 
   void _onScroll() {
@@ -56,8 +69,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<GetAllProfileProvider>(context);
-    final notifProvider = Provider.of<NotificationProvider>(context);
+    // Only the badge count is read here, so a change to any other field on
+    // NotificationProvider (or to GetAllProfileProvider, scoped below via
+    // Consumer) doesn't force this whole screen — search bar, notification
+    // icon, grid — to rebuild.
+    final unreadCount = context.select<NotificationProvider, int>(
+      (p) => p.unreadCount,
+    );
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
@@ -70,17 +88,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: CustomSearchBar(
                       hintText: "Search brands...",
-                      onChanged: (value) {
-                        provider.applySearch(value);
-                      },
+                      onChanged: _onSearchChanged,
                     ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.1),
                   ),
 
                   SizedBox(width: 12.w),
 
                   NotificationIconButton(
-                    unreadCount: notifProvider.unreadCount,
+                    unreadCount: unreadCount,
                     onTap: () {
+                      final notifProvider = context.read<NotificationProvider>();
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -88,6 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ).then((_) {
                         // screen se wapis aate hi count refresh
+                        if (!mounted) return;
                         notifProvider.fetch(showLoader: false);
                       });
                     },
@@ -98,77 +116,84 @@ class _HomeScreenState extends State<HomeScreen> {
               SizedBox(height: 16.h),
 
               Expanded(
-                child: provider.isLoading
-                    ? Utils.loadingLottie()
-                    : provider.productData == null ||
-                          provider.productData!.profiles == null ||
-                          provider.productData!.profiles!.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Utils.notFound(size: 300.sp),
-                            Text("No Profiles Found"),
-                          ],
-                        ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: () async {
-                          await provider.refreshProfiles(); // 🔥 REFRESH API
-                          provider.applySearch(""); // 🔥 RESET search
-                        },
-                        child: GridView.builder(
-                          controller: _scrollController,
-                          padding: EdgeInsets.only(bottom: 24.h),
-                          physics:
-                              const AlwaysScrollableScrollPhysics(), // IMPORTANT
-                          itemCount:
-                              provider.filteredProfiles.length +
-                              (provider.isLoadingMore ? 2 : 0),
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                mainAxisExtent: 230.h,
-                                crossAxisSpacing: 14.w,
-                                mainAxisSpacing: 6.h,
-                              ),
-                          itemBuilder: (context, index) {
-                            if (index >= provider.filteredProfiles.length) {
-                              return const Center(
-                                child: SizedBox(
-                                  width: 28,
-                                  height: 28,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
+                child: Consumer<GetAllProfileProvider>(
+                  builder: (context, provider, _) {
+                    return provider.isLoading
+                        ? Utils.loadingLottie()
+                        : provider.productData == null ||
+                              provider.productData!.profiles == null ||
+                              provider.productData!.profiles!.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Utils.notFound(size: 300.sp),
+                                Text("No Profiles Found"),
+                              ],
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: () async {
+                              _searchDebounce?.cancel();
+                              await provider
+                                  .refreshProfiles(); // 🔥 REFRESH API
+                              provider.applySearch(""); // 🔥 RESET search
+                            },
+                            child: GridView.builder(
+                              controller: _scrollController,
+                              padding: EdgeInsets.only(bottom: 24.h),
+                              physics:
+                                  const AlwaysScrollableScrollPhysics(), // IMPORTANT
+                              itemCount:
+                                  provider.filteredProfiles.length +
+                                  (provider.isLoadingMore ? 2 : 0),
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    mainAxisExtent: 230.h,
+                                    crossAxisSpacing: 14.w,
+                                    mainAxisSpacing: 6.h,
                                   ),
-                                ),
-                              );
-                            }
-
-                            final item = provider.filteredProfiles[index];
-
-                            return CategoryTile(
-                                  name: item.name ?? "",
-                                  image: item.image ?? "",
-                                  averageDiscount: item.averageDiscount,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => Categoryscreen(
-                                          profileId: item.sId!,
-                                        ),
+                              itemBuilder: (context, index) {
+                                if (index >= provider.filteredProfiles.length) {
+                                  return const Center(
+                                    child: SizedBox(
+                                      width: 28,
+                                      height: 28,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
                                       ),
-                                    );
-                                  },
-                                )
-                                .animate()
-                                .fadeIn(delay: (index * 50).ms)
-                                .scale(begin: const Offset(0.9, 0.9));
-                          },
-                        ),
-                      ),
+                                    ),
+                                  );
+                                }
+
+                                final item = provider.filteredProfiles[index];
+
+                                return CategoryTile(
+                                      name: item.name ?? "",
+                                      image: item.image ?? "",
+                                      averageDiscount: item.averageDiscount,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                Categoryscreen(
+                                                  profileId: item.sId!,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                    )
+                                    .animate()
+                                    .fadeIn(delay: (index * 50).ms)
+                                    .scale(begin: const Offset(0.9, 0.9));
+                              },
+                            ),
+                          );
+                  },
+                ),
               ),
 
               SizedBox(height: 30.h),

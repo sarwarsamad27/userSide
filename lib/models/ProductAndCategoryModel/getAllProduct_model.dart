@@ -8,13 +8,13 @@ class GetAllProductModel {
   GetAllProductModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
     message = json['message'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    data['message'] = this.message;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
+    data['message'] = message;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
@@ -32,21 +32,21 @@ class Data {
     if (json['products'] != null) {
       products = <Products>[];
       json['products'].forEach((v) {
-        products!.add(new Products.fromJson(v));
+        products!.add(Products.fromJson(v));
       });
     }
     pagination = json['pagination'] != null
-        ? new Pagination.fromJson(json['pagination'])
+        ? Pagination.fromJson(json['pagination'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.products != null) {
-      data['products'] = this.products!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (products != null) {
+      data['products'] = products!.map((v) => v.toJson()).toList();
     }
-    if (this.pagination != null) {
-      data['pagination'] = this.pagination!.toJson();
+    if (pagination != null) {
+      data['pagination'] = pagination!.toJson();
     }
     return data;
   }
@@ -111,23 +111,23 @@ class Products {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['productId'] = this.productId;
-    data['categoryId'] = this.categoryId;
-    data['profileId'] = this.profileId;
-    data['name'] = this.name;
-    data['description'] = this.description;
-    data['images'] = this.images;
-    data['beforeDiscountPrice'] = this.beforeDiscountPrice;
-    data['afterDiscountPrice'] = this.afterDiscountPrice;
-    data['discountAmount'] = this.discountAmount;
-    data['discountPercentage'] = this.discountPercentage;
-    data['size'] = this.size;
-    data['color'] = this.color;
-    data['stock'] = this.stock;
-    data['quantity'] = this.quantity;
-    data['averageRating'] = this.averageRating;
-    data['createdAt'] = this.createdAt;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['productId'] = productId;
+    data['categoryId'] = categoryId;
+    data['profileId'] = profileId;
+    data['name'] = name;
+    data['description'] = description;
+    data['images'] = images;
+    data['beforeDiscountPrice'] = beforeDiscountPrice;
+    data['afterDiscountPrice'] = afterDiscountPrice;
+    data['discountAmount'] = discountAmount;
+    data['discountPercentage'] = discountPercentage;
+    data['size'] = size;
+    data['color'] = color;
+    data['stock'] = stock;
+    data['quantity'] = quantity;
+    data['averageRating'] = averageRating;
+    data['createdAt'] = createdAt;
     return data;
   }
 }
@@ -156,12 +156,12 @@ class Pagination {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['totalCount'] = this.totalCount;
-    data['page'] = this.page;
-    data['limit'] = this.limit;
-    data['totalPages'] = this.totalPages;
-    data['hasMore'] = this.hasMore;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['totalCount'] = totalCount;
+    data['page'] = page;
+    data['limit'] = limit;
+    data['totalPages'] = totalPages;
+    data['hasMore'] = hasMore;
     return data;
   }
 }

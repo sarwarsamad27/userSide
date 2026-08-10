@@ -12,7 +12,6 @@ import 'package:user_side/resources/socketServices.dart';
 import 'package:user_side/resources/utiles.dart';
 import 'package:user_side/view/dashboard/profile/wallet/BuyerWithdrawScreen.dart';
 import 'package:user_side/view/dashboard/profile/wallet/addMoney.dart';
-import 'package:user_side/view/dashboard/profile/wallet/sendMoney.dart';
 import 'package:user_side/view/dashboard/profile/wallet/transactionHistory.dart';
 import 'package:user_side/viewModel/provider/walletProvider/walletProvider.dart';
 
@@ -259,10 +258,10 @@ class _WalletScreenState extends State<WalletScreen>
                       vertical: 5.h,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.12),
+                      color: Colors.white.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20.r),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         width: 1,
                       ),
                     ),
@@ -362,7 +361,7 @@ class _WalletScreenState extends State<WalletScreen>
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -509,7 +508,7 @@ class _QuickActionButton extends StatelessWidget {
             width: 52.r,
             height: 52.r,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(16.r),
             ),
             child: Icon(icon, color: color, size: 24.r),
@@ -552,7 +551,7 @@ class _TransactionTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(14.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -565,8 +564,8 @@ class _TransactionTile extends StatelessWidget {
             height: 46.r,
             decoration: BoxDecoration(
               color: transaction.isCredit
-                  ? const Color(0xFF00C853).withOpacity(0.1)
-                  : const Color(0xFFFF1744).withOpacity(0.1),
+                  ? const Color(0xFF00C853).withValues(alpha: 0.1)
+                  : const Color(0xFFFF1744).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14.r),
             ),
             child: Center(
@@ -621,17 +620,17 @@ class _TransactionTile extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
                 decoration: BoxDecoration(
                   color: transaction.status == 'success'
-                      ? const Color(0xFF00C853).withOpacity(0.12)
+                      ? const Color(0xFF00C853).withValues(alpha: 0.12)
                       : transaction.status == 'pending'
-                      ? Colors.orange.withOpacity(0.12)
-                      : Colors.red.withOpacity(0.12),
+                      ? Colors.orange.withValues(alpha: 0.12)
+                      : Colors.red.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6.r),
                   border: Border.all(
                     color: transaction.status == 'success'
-                        ? const Color(0xFF00C853).withOpacity(0.3)
+                        ? const Color(0xFF00C853).withValues(alpha: 0.3)
                         : transaction.status == 'pending'
-                        ? Colors.orange.withOpacity(0.3)
-                        : Colors.red.withOpacity(0.3),
+                        ? Colors.orange.withValues(alpha: 0.3)
+                        : Colors.red.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Text(
@@ -679,8 +678,9 @@ class _TransactionTile extends StatelessWidget {
     Widget iconW(IconData ic, Color c) => Icon(ic, color: c, size: 24.sp);
 
     // Subtitle takes priority — DB may store wrong method
-    if (sub.contains('easypaisa'))
+    if (sub.contains('easypaisa')) {
       return logo('assets/images/easypaisaLogo.jpg');
+    }
     if (sub.contains('jazzcash') || sub.contains('jazz cash')) {
       return logo('assets/images/JazzCashLogo.jpg');
     }

@@ -75,8 +75,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               "Login to continue your journey",
                               style: TextStyle(
                                 fontSize: 14.sp,
-                                color: AppColor.textSecondaryColor.withOpacity(
-                                  0.8,
+                                color: AppColor.textSecondaryColor.withValues(
+                                  alpha: 0.8,
                                 ),
                               ),
                             ),
@@ -193,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               children: [
                                 Expanded(
                                   child: Divider(
-                                    color: Colors.grey.withOpacity(0.4),
+                                    color: Colors.grey.withValues(alpha: 0.4),
                                     thickness: 1,
                                   ),
                                 ),
@@ -211,7 +211,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 Expanded(
                                   child: Divider(
-                                    color: Colors.grey.withOpacity(0.4),
+                                    color: Colors.grey.withValues(alpha: 0.4),
                                     thickness: 1,
                                   ),
                                 ),

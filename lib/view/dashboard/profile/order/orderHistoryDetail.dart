@@ -14,6 +14,7 @@ import 'package:user_side/view/dashboard/userChat/refundRequestSheet.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/exchange_provider.dart';
 import 'package:user_side/viewModel/provider/orderProvider/getMyOrder_provider.dart';
+import 'package:user_side/widgets/cached_image.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final Orders order;
@@ -262,7 +263,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
       decoration: BoxDecoration(
-        color: (expired ? Colors.grey : AppColor.primaryColor).withOpacity(0.06),
+        color: (expired ? Colors.grey : AppColor.primaryColor).withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(10.r),
       ),
       child: Row(
@@ -475,7 +476,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -508,7 +509,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Container(
                 padding: EdgeInsets.all(10.w),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.12),
+                  color: statusColor.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(statusIcon, color: statusColor, size: 22.sp),
@@ -548,9 +549,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Colors.indigo.withOpacity(0.05),
+        color: Colors.indigo.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: Colors.indigo.withOpacity(0.2)),
+        border: Border.all(color: Colors.indigo.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -600,10 +601,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: info.color.withOpacity(0.2)),
+        border: Border.all(color: info.color.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -615,7 +616,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
             decoration: BoxDecoration(
-              color: info.color.withOpacity(0.06),
+              color: info.color.withValues(alpha: 0.06),
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(20.r),
                 topRight: Radius.circular(20.r),
@@ -759,10 +760,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: info.color.withOpacity(0.2)),
+        border: Border.all(color: info.color.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -773,7 +774,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
             decoration: BoxDecoration(
-              color: info.color.withOpacity(0.06),
+              color: info.color.withValues(alpha: 0.06),
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(20.r),
                 topRight: Radius.circular(20.r),
@@ -896,7 +897,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -934,8 +935,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12.r),
                       child: (p.images?.isNotEmpty == true)
-                          ? Image.network(
-                              Global.getImageUrl(p.images!.first),
+                          ? CachedImage(
+                              url: Global.getImageUrl(p.images!.first),
                               height: 80.h,
                               width: 80.w,
                               fit: BoxFit.cover,
@@ -1093,7 +1094,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 ],
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -1106,7 +1107,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColor.primaryColor.withOpacity(0.9),
+            AppColor.primaryColor.withValues(alpha: 0.9),
             AppColor.primaryColor,
           ],
           begin: Alignment.topLeft,
@@ -1115,7 +1116,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: AppColor.primaryColor.withOpacity(0.3),
+            color: AppColor.primaryColor.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1184,7 +1185,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1198,14 +1199,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Container(
                 padding: EdgeInsets.all(imagePath != null ? 0 : 8.w),
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
+                  color: iconColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10.r),
                 ),
                 child: imagePath != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8.r),
-                        child: Image.network(
-                          imagePath,
+                        child: CachedImage(
+                          url: imagePath,
                           width: 36.sp,
                           height: 36.sp,
                           fit: BoxFit.cover,
@@ -1330,7 +1331,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       boxShadow: isCurrent
                           ? [
                               BoxShadow(
-                                color: AppColor.primaryColor.withOpacity(0.4),
+                                color: AppColor.primaryColor.withValues(alpha: 0.4),
                                 blurRadius: 8,
                               ),
                             ]
@@ -1440,9 +1441,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         margin: EdgeInsets.only(bottom: 10.h),
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.06),
+          color: color.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: color.withOpacity(0.15)),
+          border: Border.all(color: color.withValues(alpha: 0.15)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1488,9 +1489,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1514,7 +1515,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8.r),
       ),
       child: Text(
@@ -1541,9 +1542,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         child: Container(
           padding: EdgeInsets.symmetric(vertical: 12.h),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.08),
+            color: color.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: color.withOpacity(0.4)),
+            border: Border.all(color: color.withValues(alpha: 0.4)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

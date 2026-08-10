@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -252,8 +251,9 @@ class UserChatProvider extends ChangeNotifier {
 
         final tId = _pendingClientMap.remove(clientId);
         if (tId == null) {
-          if (serverMessage.id != null)
+          if (serverMessage.id != null) {
             _processedMessageIds.add(serverMessage.id!);
+          }
           _registerFingerprint(serverMessage);
           return;
         }
@@ -280,8 +280,9 @@ class UserChatProvider extends ChangeNotifier {
 
           messages[idx] = finalMessage;
           _processedMessageIds.remove(tId);
-          if (finalMessage.id != null)
+          if (finalMessage.id != null) {
             _processedMessageIds.add(finalMessage.id!);
+          }
           _registerFingerprint(finalMessage);
           _safeNotify();
         }
@@ -698,8 +699,9 @@ class UserChatProvider extends ChangeNotifier {
 
         final tId = _pendingClientMap.remove(clientId);
         if (tId == null) {
-          if (serverMessage.id != null)
+          if (serverMessage.id != null) {
             _processedMessageIds.add(serverMessage.id!);
+          }
           _registerFingerprint(serverMessage);
           return;
         }
@@ -708,13 +710,15 @@ class UserChatProvider extends ChangeNotifier {
         if (idx != -1) {
           messages[idx] = serverMessage;
           _processedMessageIds.remove(tId);
-          if (serverMessage.id != null)
+          if (serverMessage.id != null) {
             _processedMessageIds.add(serverMessage.id!);
+          }
           _registerFingerprint(serverMessage);
           _safeNotify();
         } else {
-          if (serverMessage.id != null)
+          if (serverMessage.id != null) {
             _processedMessageIds.add(serverMessage.id!);
+          }
           _registerFingerprint(serverMessage);
         }
       },
@@ -798,8 +802,9 @@ class UserChatProvider extends ChangeNotifier {
           ...replyPayload,
         },
         ack: (resp) {
-          if (resp is! Map || resp["ok"] != true || resp["data"] == null)
+          if (resp is! Map || resp["ok"] != true || resp["data"] == null) {
             return;
+          }
           final serverMessage = ChatMessage.fromJson(
             Map<String, dynamic>.from(resp["data"]),
           );
@@ -810,8 +815,9 @@ class UserChatProvider extends ChangeNotifier {
           if (idx != -1) {
             messages[idx] = serverMessage;
             _processedMessageIds.remove(tId);
-            if (serverMessage.id != null)
+            if (serverMessage.id != null) {
               _processedMessageIds.add(serverMessage.id!);
+            }
             _registerFingerprint(serverMessage);
             _safeNotify();
           }

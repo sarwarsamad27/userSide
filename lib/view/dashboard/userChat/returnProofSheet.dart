@@ -43,7 +43,7 @@ class _ReturnProofSheetState extends State<ReturnProofSheet> {
       return;
     }
     final files = await _picker.pickMultiImage(imageQuality: 75);
-    if (files.isEmpty) return;
+    if (files.isEmpty || !mounted) return;
     final remaining = 3 - _images.length;
     setState(() {
       _images = [..._images, ...files.take(remaining)];

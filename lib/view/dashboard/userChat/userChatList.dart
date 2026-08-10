@@ -20,6 +20,7 @@ import 'package:user_side/view/dashboard/aiAssistant/aiAssistantScreen.dart';
 import 'package:user_side/view/dashboard/userChat/admin_messages_screen.dart';
 import 'package:user_side/view/dashboard/userChat/userChatScreen.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/chatThread_provider.dart';
+import 'package:user_side/widgets/cached_image.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class UserChatListScreen extends StatefulWidget {
@@ -425,15 +426,11 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
             backgroundColor: AppColor.primaryColor.withValues(alpha: 0.1),
             child: ClipOval(
               child: thread.image != null && thread.image!.isNotEmpty
-                  ? Image.network(
-                      Global.getImageUrl(thread.image),
+                  ? CachedImage(
+                      url: Global.getImageUrl(thread.image),
                       width: 56.r,
                       height: 56.r,
                       fit: BoxFit.cover,
-                      loadingBuilder: (context, child, progress) {
-                        if (progress == null) return child;
-                        return const Center(child: CircularProgressIndicator());
-                      },
                       errorBuilder: (context, error, stackTrace) => Icon(
                         Icons.store,
                         size: 28.sp,

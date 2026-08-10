@@ -31,7 +31,7 @@ class _ParticlePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (final p in particles) {
       final paint = Paint()
-        ..color = color.withOpacity(p.opacity)
+        ..color = color.withValues(alpha: p.opacity)
         ..style = PaintingStyle.fill;
       canvas.drawCircle(
         Offset(p.x * size.width, p.y * size.height),
@@ -62,7 +62,7 @@ class _ShimmerRingPainter extends CustomPainter {
 
     // Background ring
     final bgPaint = Paint()
-      ..color = primaryColor.withOpacity(0.1)
+      ..color = primaryColor.withValues(alpha: 0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
     canvas.drawCircle(center, radius, bgPaint);
@@ -73,10 +73,10 @@ class _ShimmerRingPainter extends CustomPainter {
         startAngle: 0,
         endAngle: 2 * pi,
         colors: [
-          accentColor.withOpacity(0),
+          accentColor.withValues(alpha: 0),
           accentColor,
           primaryColor,
-          accentColor.withOpacity(0),
+          accentColor.withValues(alpha: 0),
         ],
         stops: const [0.0, 0.25, 0.5, 1.0],
         transform: GradientRotation(2 * pi * progress),
@@ -133,6 +133,11 @@ class _SplashScreenState extends State<SplashScreen>
   final List<_Particle> _particles = [];
   final _rng = Random();
   late Timer _particleTimer;
+  // Ticks on every particle-position update (~25x/sec) — kept separate from
+  // setState so only the small CustomPaint subtree below repaints instead
+  // of rebuilding the whole splash screen (logo, text, animations) on every
+  // tick.
+  final ValueNotifier<int> _particleTick = ValueNotifier<int>(0);
 
   // ── Palette (BRAND THEME) ────────────────────
   static const Color _bg = AppColor.screenBgColor;
@@ -178,16 +183,15 @@ class _SplashScreenState extends State<SplashScreen>
 
     _particleTimer = Timer.periodic(const Duration(milliseconds: 40), (_) {
       if (!mounted) return;
-      setState(() {
-        for (final p in _particles) {
-          p.y -= p.speed;
-          if (p.y < -0.02) {
-            p.y = 1.02;
-            p.x = _rng.nextDouble();
-            p.opacity = _rng.nextDouble() * 0.35 + 0.05;
-          }
+      for (final p in _particles) {
+        p.y -= p.speed;
+        if (p.y < -0.02) {
+          p.y = 1.02;
+          p.x = _rng.nextDouble();
+          p.opacity = _rng.nextDouble() * 0.35 + 0.05;
         }
-      });
+      }
+      _particleTick.value++;
     });
   }
 
@@ -277,6 +281,7 @@ class _SplashScreenState extends State<SplashScreen>
     _particleCtrl.dispose();
     _pulseCtrl.dispose();
     _particleTimer.cancel();
+    _particleTick.dispose();
     super.dispose();
   }
 
@@ -292,8 +297,11 @@ class _SplashScreenState extends State<SplashScreen>
 
           // ② Floating particles (Subtle brand color)
           Positioned.fill(
-            child: CustomPaint(
-              painter: _ParticlePainter(_particles, _primary),
+            child: ValueListenableBuilder<int>(
+              valueListenable: _particleTick,
+              builder: (context, _, __) => CustomPaint(
+                painter: _ParticlePainter(_particles, _primary),
+              ),
             ),
           ),
 
@@ -321,7 +329,7 @@ class _SplashScreenState extends State<SplashScreen>
               height: 520.h,
               decoration: BoxDecoration(
                 gradient: RadialGradient(
-                  colors: [_primary.withOpacity(0.12), _bg.withOpacity(0.0)],
+                  colors: [_primary.withValues(alpha: 0.12), _bg.withValues(alpha: 0.0)],
                   radius: 0.75,
                 ),
               ),
@@ -338,7 +346,7 @@ class _SplashScreenState extends State<SplashScreen>
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, _primary.withOpacity(0.04)],
+                  colors: [Colors.transparent, _primary.withValues(alpha: 0.04)],
                 ),
               ),
             ),
@@ -378,7 +386,7 @@ class _SplashScreenState extends State<SplashScreen>
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: _primary.withOpacity(0.2),
+                                color: _primary.withValues(alpha: 0.2),
                                 blurRadius: 40,
                                 spreadRadius: 4,
                               ),
@@ -393,7 +401,7 @@ class _SplashScreenState extends State<SplashScreen>
                             painter: _ShimmerRingPainter(
                               _ringCtrl.value,
                               _primary,
-                              _primary.withOpacity(0.3),
+                              _primary.withValues(alpha: 0.3),
                             ),
                           ),
                         ),
@@ -405,12 +413,12 @@ class _SplashScreenState extends State<SplashScreen>
                             shape: BoxShape.circle,
                             color: _surface,
                             border: Border.all(
-                              color: _primary.withOpacity(0.1),
+                              color: _primary.withValues(alpha: 0.1),
                               width: 1.2,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: _primary.withOpacity(0.1),
+                                color: _primary.withValues(alpha: 0.1),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
@@ -457,7 +465,7 @@ class _SplashScreenState extends State<SplashScreen>
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
-                        color: _text.withOpacity(0.6),
+                        color: _text.withValues(alpha: 0.6),
                         letterSpacing: 10,
                       ),
                     ),
@@ -476,7 +484,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 1.5,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.transparent, _primary.withOpacity(0.5), Colors.transparent],
+                    colors: [Colors.transparent, _primary.withValues(alpha: 0.5), Colors.transparent],
                   ),
                 ),
               ),
@@ -493,7 +501,7 @@ class _SplashScreenState extends State<SplashScreen>
                   "Everything you need, in one place",
                   style: TextStyle(
                     fontSize: 13.sp,
-                    color: _text.withOpacity(0.4),
+                    color: _text.withValues(alpha: 0.4),
                     letterSpacing: 1.2,
                     fontWeight: FontWeight.w400,
                   ),
@@ -531,7 +539,7 @@ class _SplashScreenState extends State<SplashScreen>
               "Crafted with ♥ for you",
               style: TextStyle(
                 fontSize: 11.sp,
-                color: _text.withOpacity(0.3),
+                color: _text.withValues(alpha: 0.3),
                 letterSpacing: 1.5,
               ),
             ),
@@ -592,7 +600,7 @@ class _LoadingDotState extends State<_LoadingDot>
         height: 6,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: widget.color.withOpacity(_anim.value),
+          color: widget.color.withValues(alpha: _anim.value),
         ),
       ),
     );

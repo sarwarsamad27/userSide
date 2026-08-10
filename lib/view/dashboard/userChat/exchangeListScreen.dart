@@ -139,7 +139,7 @@ class _ExchangeCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16.r),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -154,7 +154,7 @@ class _ExchangeCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(10.w),
                   decoration: BoxDecoration(
-                    color: AppColor.primaryColor.withOpacity(0.1),
+                    color: AppColor.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Icon(
@@ -189,10 +189,10 @@ class _ExchangeCard extends StatelessWidget {
                   padding:
                       EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
                   decoration: BoxDecoration(
-                    color: statusStyle.color.withOpacity(0.12),
+                    color: statusStyle.color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20.r),
                     border: Border.all(
-                        color: statusStyle.color.withOpacity(0.4), width: 1),
+                        color: statusStyle.color.withValues(alpha: 0.4), width: 1),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

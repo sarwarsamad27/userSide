@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import 'package:user_side/resources/app_version_checker.dart';
@@ -176,7 +175,7 @@ class _PremiumUserNavBar extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                   blurRadius: 18,
                   offset: const Offset(0, -4),
                 ),
@@ -253,11 +252,10 @@ class _NavItem extends StatelessWidget {
 
   const _NavItem({
     this.lottiePath,
-    this.icon,
     required this.label,
     required this.selected,
     required this.onTap,
-  });
+  }) : icon = null;
 
   @override
   Widget build(BuildContext context) {
@@ -269,7 +267,7 @@ class _NavItem extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 10.w),
         decoration: BoxDecoration(
           color: selected
-              ? AppColor.primaryColor.withOpacity(0.10)
+              ? AppColor.primaryColor.withValues(alpha: 0.10)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16.r),
         ),
@@ -321,13 +319,13 @@ class _CenterMessagesButton extends StatelessWidget {
         height: 66.w,
         decoration: BoxDecoration(
           color: selected
-              ? AppColor.primaryColor.withOpacity(0.80)
+              ? AppColor.primaryColor.withValues(alpha: 0.80)
               : Colors.white,
 
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.18),
+              color: Colors.black.withValues(alpha: 0.18),
               blurRadius: 18,
               offset: const Offset(0, 8),
             ),

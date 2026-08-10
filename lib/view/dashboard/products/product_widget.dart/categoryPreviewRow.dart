@@ -51,18 +51,18 @@ class _CategoryPreviewRowState extends State<CategoryPreviewRow> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColor.primaryColor.withOpacity(0.08),
+                AppColor.primaryColor.withValues(alpha: 0.08),
                 AppColor.whiteColor,
               ],
             ),
             borderRadius: BorderRadius.circular(24.r),
             border: Border.all(
-              color: AppColor.primaryColor.withOpacity(0.12),
+              color: AppColor.primaryColor.withValues(alpha: 0.12),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withValues(alpha: 0.06),
                 blurRadius: 18,
                 offset: const Offset(0, 8),
               ),
@@ -167,7 +167,7 @@ class _CategoryPreviewRowState extends State<CategoryPreviewRow> {
                               borderRadius: BorderRadius.circular(20.r),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.10),
+                                  color: Colors.black.withValues(alpha: 0.10),
                                   blurRadius: 16,
                                   offset: const Offset(0, 6),
                                 ),

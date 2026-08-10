@@ -206,11 +206,12 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                                                           .updateData
                                                           ?.message ??
                                                       "Password updated successfully.";
-                                                  if (mounted)
+                                                  if (mounted) {
                                                     PremiumToast.success(
                                                       context,
                                                       msg,
                                                     );
+                                                  }
 
                                                   newPasswordController.clear();
                                                   confirmPasswordController

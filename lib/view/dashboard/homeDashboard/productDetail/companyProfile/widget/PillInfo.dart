@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class PillInfo extends StatelessWidget {
   final IconData icon;
   final String text;
-  const PillInfo({required this.icon, required this.text});
+  const PillInfo({super.key, required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {

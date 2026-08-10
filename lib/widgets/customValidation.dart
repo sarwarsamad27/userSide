@@ -21,13 +21,16 @@ class Validators {
   static String? password(String? v) {
     if (v == null || v.trim().isEmpty) return "Password is required";
     if (v.length < 6) return "Password must be at least 6 characters";
-    if (!RegExp(r'[A-Z]').hasMatch(v))
+    if (!RegExp(r'[A-Z]').hasMatch(v)) {
       return "Password must contain an uppercase letter";
-    if (!RegExp(r'[a-z]').hasMatch(v))
+    }
+    if (!RegExp(r'[a-z]').hasMatch(v)) {
       return "Password must contain a lowercase letter";
+    }
     if (!RegExp(r'[0-9]').hasMatch(v)) return "Password must contain a number";
-    if (!RegExp(r'[!@#\$&*~%^()_\-+=\[\]{};:"\\|,.<>/?]').hasMatch(v))
+    if (!RegExp(r'[!@#\$&*~%^()_\-+=\[\]{};:"\\|,.<>/?]').hasMatch(v)) {
       return "Password must contain a special character";
+    }
     return null;
   }
 
@@ -48,8 +51,9 @@ class Validators {
     if (v == null || v.trim().isEmpty) return "$label is required";
     if (v.trim().length < 2) return "$label must be at least 2 characters";
     if (v.trim().length > 50) return "$label must be at most 50 characters";
-    if (!RegExp(r"^[a-zA-Z\s'\-]+$").hasMatch(v.trim()))
+    if (!RegExp(r"^[a-zA-Z\s'\-]+$").hasMatch(v.trim())) {
       return "$label can only contain letters, spaces, hyphens, or apostrophes";
+    }
     return null;
   }
 
@@ -57,8 +61,9 @@ class Validators {
   static String? phonePK(String? v) {
     if (v == null || v.trim().isEmpty) return "Phone number is required";
     final r = RegExp(r'^(03\d{9}|\+92\d{10})$');
-    if (!r.hasMatch(v.trim()))
+    if (!r.hasMatch(v.trim())) {
       return "Enter a valid Pakistani phone number (03xxxxxxxxx or +92xxxxxxxxxx)";
+    }
     return null;
   }
 
@@ -66,8 +71,9 @@ class Validators {
   static String? phoneIntl(String? v) {
     if (v == null || v.trim().isEmpty) return "Phone number is required";
     final r = RegExp(r'^\+?[1-9]\d{6,14}$');
-    if (!r.hasMatch(v.trim().replaceAll(' ', '')))
+    if (!r.hasMatch(v.trim().replaceAll(' ', ''))) {
       return "Enter a valid phone number";
+    }
     return null;
   }
 
@@ -83,16 +89,18 @@ class Validators {
   static String? city(String? v, {String label = "City"}) {
     if (v == null || v.trim().isEmpty) return "$label is required";
     if (v.trim().length < 2) return "$label must be at least 2 characters";
-    if (!RegExp(r"^[a-zA-Z\s'\-]+$").hasMatch(v.trim()))
+    if (!RegExp(r"^[a-zA-Z\s'\-]+$").hasMatch(v.trim())) {
       return "$label can only contain letters";
+    }
     return null;
   }
 
   // ─── Postal / ZIP Code ───────────────────────────────────────
   static String? postalCode(String? v) {
     if (v == null || v.trim().isEmpty) return "Postal code is required";
-    if (!RegExp(r'^\d{4,10}$').hasMatch(v.trim()))
+    if (!RegExp(r'^\d{4,10}$').hasMatch(v.trim())) {
       return "Enter a valid postal code";
+    }
     return null;
   }
 
@@ -104,10 +112,12 @@ class Validators {
     int maxLen = 500,
   }) {
     if (v == null || v.trim().isEmpty) return "$label is required";
-    if (v.trim().length < minLen)
+    if (v.trim().length < minLen) {
       return "$label must be at least $minLen characters";
-    if (v.trim().length > maxLen)
+    }
+    if (v.trim().length > maxLen) {
       return "$label must be at most $maxLen characters";
+    }
     return null;
   }
 
@@ -116,8 +126,9 @@ class Validators {
     if (v == null || v.trim().isEmpty) return "Username is required";
     if (v.trim().length < 3) return "Username must be at least 3 characters";
     if (v.trim().length > 20) return "Username must be at most 20 characters";
-    if (!RegExp(r'^[a-zA-Z0-9_\.]+$').hasMatch(v.trim()))
+    if (!RegExp(r'^[a-zA-Z0-9_\.]+$').hasMatch(v.trim())) {
       return "Username can only contain letters, numbers, underscores, or dots";
+    }
     return null;
   }
 

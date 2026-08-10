@@ -12,7 +12,7 @@ class CategoryTile extends StatefulWidget {
   final bool isPremium;
   final double? averageDiscount;
 
-  const CategoryTile({
+  const CategoryTile({super.key, 
     required this.name,
     required this.image,
     required this.onTap,
@@ -82,7 +82,7 @@ class _CategoryTileState extends State<CategoryTile>
               borderRadius: BorderRadius.circular(18.r),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -110,8 +110,8 @@ class _CategoryTileState extends State<CategoryTile>
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            Colors.black.withOpacity(0.0),
-                            Colors.black.withOpacity(0.15),
+                            Colors.black.withValues(alpha: 0.0),
+                            Colors.black.withValues(alpha: 0.15),
                           ],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
@@ -140,8 +140,8 @@ class _CategoryTileState extends State<CategoryTile>
                                 shape: BoxShape.circle,
                                 gradient: RadialGradient(
                                   colors: [
-                                    Colors.amber.withOpacity(0.6),
-                                    Colors.orange.withOpacity(0.3),
+                                    Colors.amber.withValues(alpha: 0.6),
+                                    Colors.orange.withValues(alpha: 0.3),
                                     Colors.transparent,
                                   ],
                                 ),
@@ -184,7 +184,7 @@ class _CategoryTileState extends State<CategoryTile>
                                     letterSpacing: 0.5,
                                     shadows: [
                                       Shadow(
-                                        color: Colors.black.withOpacity(0.5),
+                                        color: Colors.black.withValues(alpha: 0.5),
                                         blurRadius: 2,
                                       ),
                                     ],
@@ -199,7 +199,7 @@ class _CategoryTileState extends State<CategoryTile>
                                     letterSpacing: 0.3,
                                     shadows: [
                                       Shadow(
-                                        color: Colors.black.withOpacity(0.6),
+                                        color: Colors.black.withValues(alpha: 0.6),
                                         blurRadius: 3,
                                       ),
                                     ],
@@ -214,7 +214,7 @@ class _CategoryTileState extends State<CategoryTile>
                                     letterSpacing: 0.5,
                                     shadows: [
                                       Shadow(
-                                        color: Colors.black.withOpacity(0.5),
+                                        color: Colors.black.withValues(alpha: 0.5),
                                         blurRadius: 2,
                                       ),
                                     ],
@@ -241,13 +241,13 @@ class _CategoryTileState extends State<CategoryTile>
               borderRadius: BorderRadius.circular(14.r),
               boxShadow: [
                 BoxShadow(
-                  color: AppColor.primaryColor.withOpacity(0.1),
+                  color: AppColor.primaryColor.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),
               ],
               border: Border.all(
-                color: AppColor.primaryColor.withOpacity(0.15),
+                color: AppColor.primaryColor.withValues(alpha: 0.15),
                 width: 1,
               ),
             ),
@@ -330,7 +330,7 @@ class StarPainter extends CustomPainter {
 
     // Add border
     final borderPaint = Paint()
-      ..color = Colors.white.withOpacity(0.3)
+      ..color = Colors.white.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.drawPath(path, borderPaint);

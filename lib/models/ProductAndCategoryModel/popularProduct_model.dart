@@ -23,20 +23,20 @@ class PopularProductModel {
     if (json['products'] != null) {
       products = <Products>[];
       json['products'].forEach((v) {
-        products!.add(new Products.fromJson(v));
+        products!.add(Products.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    data['page'] = this.page;
-    data['limit'] = this.limit;
-    data['totalProducts'] = this.totalProducts;
-    data['totalPages'] = this.totalPages;
-    if (this.products != null) {
-      data['products'] = this.products!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
+    data['page'] = page;
+    data['limit'] = limit;
+    data['totalProducts'] = totalProducts;
+    data['totalPages'] = totalPages;
+    if (products != null) {
+      data['products'] = products!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -80,17 +80,17 @@ class Products {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['productId'] = this.productId;
-    data['profileId'] = this.profileId;
-    data['categoryId'] = this.categoryId;
-    data['name'] = this.name;
-    data['image'] = this.image;
-    data['beforeDiscountPrice'] = this.beforeDiscountPrice;
-    data['afterDiscountPrice'] = this.afterDiscountPrice;
-    data['discountPercentage'] = this.discountPercentage;
-    data['discountAmount'] = this.discountAmount;
-    data['quantity'] = this.quantity;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['productId'] = productId;
+    data['profileId'] = profileId;
+    data['categoryId'] = categoryId;
+    data['name'] = name;
+    data['image'] = image;
+    data['beforeDiscountPrice'] = beforeDiscountPrice;
+    data['afterDiscountPrice'] = afterDiscountPrice;
+    data['discountPercentage'] = discountPercentage;
+    data['discountAmount'] = discountAmount;
+    data['quantity'] = quantity;
     return data;
   }
 }

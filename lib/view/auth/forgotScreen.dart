@@ -119,8 +119,9 @@ class _ForgotScreenState extends State<ForgotScreen> {
 
                                         if (!(_formKey.currentState
                                                 ?.validate() ??
-                                            false))
+                                            false)) {
                                           return;
+                                        }
 
                                         await provider.forgotPassword(
                                           email: emailController.text.trim(),

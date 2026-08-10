@@ -9,7 +9,7 @@ class ActionTile extends StatelessWidget {
   final String subtitle;
   final VoidCallback onTap;
 
-  const ActionTile({
+  const ActionTile({super.key, 
     required this.icon,
     required this.iconBg,
     required this.iconColor,

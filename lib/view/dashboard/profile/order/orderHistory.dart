@@ -1,4 +1,5 @@
 // ignore_for_file: deprecated_member_use
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,6 +19,7 @@ import 'package:user_side/viewModel/provider/orderProvider/getMyOrder_provider.d
 import 'package:user_side/viewModel/provider/orderProvider/review_provider.dart';
 import 'package:user_side/viewModel/provider/syncCoordinator_provider.dart';
 import 'package:user_side/models/order/myOrderModel.dart';
+import 'package:user_side/widgets/cached_image.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});
@@ -31,6 +33,16 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   int _lastSeenSyncVersion = -1;
+  Timer? _searchDebounce;
+
+  // Debounced so fast typing doesn't re-filter/re-render on every keystroke.
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
+      if (!mounted) return;
+      setState(() => _searchQuery = value);
+    });
+  }
 
   @override
   void initState() {
@@ -93,6 +105,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   void dispose() {
     _scrollController.dispose();
     _searchController.dispose();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
@@ -164,7 +177,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
+                          color: Colors.red.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -229,12 +242,12 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? Colors.red.withOpacity(0.1)
+                                ? Colors.red.withValues(alpha: 0.1)
                                 : Colors.grey[100],
                             borderRadius: BorderRadius.circular(20.r),
                             border: Border.all(
                               color: isSelected
-                                  ? Colors.red.withOpacity(0.5)
+                                  ? Colors.red.withValues(alpha: 0.5)
                                   : Colors.grey[300]!,
                             ),
                           ),
@@ -273,7 +286,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
                           borderSide: BorderSide(
-                            color: Colors.red.withOpacity(0.4),
+                            color: Colors.red.withValues(alpha: 0.4),
                           ),
                         ),
                         contentPadding: EdgeInsets.all(12.w),
@@ -489,7 +502,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                       borderRadius: BorderRadius.circular(22.r),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
+                          color: Colors.black.withValues(alpha: 0.08),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -507,8 +520,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         Expanded(
                           child: TextField(
                             controller: _searchController,
-                            onChanged: (value) =>
-                                setState(() => _searchQuery = value),
+                            onChanged: _onSearchChanged,
                             style: TextStyle(
                               fontSize: 13.sp,
                               color: Colors.black87,
@@ -527,6 +539,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         if (_searchQuery.isNotEmpty)
                           GestureDetector(
                             onTap: () {
+                              _searchDebounce?.cancel();
                               _searchController.clear();
                               setState(() => _searchQuery = '');
                             },
@@ -584,8 +597,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
             ClipRRect(
               borderRadius: BorderRadius.circular(8.r),
               child: image != null && image.isNotEmpty
-                  ? Image.network(
-                      Global.getImageUrl(image),
+                  ? CachedImage(
+                      url: Global.getImageUrl(image),
                       height: 48.h,
                       width: 48.w,
                       fit: BoxFit.cover,
@@ -745,7 +758,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -795,9 +808,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         vertical: 4.h,
                       ),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
+                        color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20.r),
-                        border: Border.all(color: statusColor.withOpacity(0.3)),
+                        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -827,8 +840,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(14.r),
                       child: product?.images?.isNotEmpty == true
-                          ? Image.network(
-                              Global.getImageUrl(product!.images!.first),
+                          ? CachedImage(
+                              url: Global.getImageUrl(product!.images!.first),
                               height: 80.h,
                               width: 80.w,
                               fit: BoxFit.cover,
@@ -860,7 +873,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                   vertical: 3.h,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColor.primaryColor.withOpacity(
+                                  color: AppColor.primaryColor.withValues(alpha: 
                                     0.08,
                                   ),
                                   borderRadius: BorderRadius.circular(8.r),
@@ -954,10 +967,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                             vertical: 6.h,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.08),
+                            color: Colors.red.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(20.r),
                             border: Border.all(
-                              color: Colors.red.withOpacity(0.3),
+                              color: Colors.red.withValues(alpha: 0.3),
                             ),
                           ),
                           child: Row(
@@ -1005,10 +1018,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                             vertical: 6.h,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.amber.withOpacity(0.1),
+                            color: Colors.amber.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20.r),
                             border: Border.all(
-                              color: Colors.amber.withOpacity(0.4),
+                              color: Colors.amber.withValues(alpha: 0.4),
                             ),
                           ),
                           child: Row(
@@ -1053,7 +1066,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                           borderRadius: BorderRadius.circular(20.r),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColor.primaryColor.withOpacity(0.3),
+                              color: AppColor.primaryColor.withValues(alpha: 0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 3),
                             ),
@@ -1100,9 +1113,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       width: double.infinity,
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.05),
+        color: Colors.red.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.red.withOpacity(0.15)),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1170,9 +1183,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 7.h),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: color.withOpacity(0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

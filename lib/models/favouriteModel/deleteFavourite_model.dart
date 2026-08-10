@@ -9,16 +9,16 @@ class DeleteFavouriteProductModel {
     success = json['success'];
     message = json['message'];
     favourite = json['favourite'] != null
-        ? new Favourite.fromJson(json['favourite'])
+        ? Favourite.fromJson(json['favourite'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    data['message'] = this.message;
-    if (this.favourite != null) {
-      data['favourite'] = this.favourite!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
+    data['message'] = message;
+    if (favourite != null) {
+      data['favourite'] = favourite!.toJson();
     }
     return data;
   }
@@ -53,14 +53,14 @@ class Favourite {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['userId'] = this.userId;
-    data['productId'] = this.productId;
-    data['selectedSizes'] = this.selectedSizes;
-    data['selectedColors'] = this.selectedColors;
-    data['createdAt'] = this.createdAt;
-    data['__v'] = this.iV;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['userId'] = userId;
+    data['productId'] = productId;
+    data['selectedSizes'] = selectedSizes;
+    data['selectedColors'] = selectedColors;
+    data['createdAt'] = createdAt;
+    data['__v'] = iV;
     return data;
   }
 }

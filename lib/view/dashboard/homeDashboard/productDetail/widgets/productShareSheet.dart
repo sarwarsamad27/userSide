@@ -126,7 +126,7 @@ class _ProductShareSheetState extends State<ProductShareSheet> {
                 border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -257,7 +257,7 @@ class _ProductShareSheetState extends State<ProductShareSheet> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColor.primaryColor.withOpacity(0.3),
+                          color: AppColor.primaryColor.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -314,7 +314,7 @@ class ProductCardWidget extends StatelessWidget {
           border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, 2),
             ),
@@ -327,7 +327,7 @@ class ProductCardWidget extends StatelessWidget {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
               decoration: BoxDecoration(
-                color: AppColor.primaryColor.withOpacity(0.08),
+                color: AppColor.primaryColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16.r),
                   topRight: Radius.circular(16.r),
@@ -436,10 +436,10 @@ class ProductCardWidget extends StatelessWidget {
                             vertical: 6.h,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColor.primaryColor.withOpacity(0.1),
+                            color: AppColor.primaryColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(999),
                             border: Border.all(
-                              color: AppColor.primaryColor.withOpacity(0.3),
+                              color: AppColor.primaryColor.withValues(alpha: 0.3),
                             ),
                           ),
                           child: Text(

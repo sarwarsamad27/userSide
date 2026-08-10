@@ -24,7 +24,7 @@ class GetSingleProductModel {
   GetSingleProductModel.fromJson(Map<String, dynamic> json) {
     message = json['message'];
     product = json['product'] != null
-        ? new Product.fromJson(json['product'])
+        ? Product.fromJson(json['product'])
         : null;
     profileName = json['profileName'];
     profileImage = json['profileImage'];
@@ -37,25 +37,25 @@ class GetSingleProductModel {
     if (json['reviews'] != null) {
       reviews = <Reviews>[];
       json['reviews'].forEach((v) {
-        reviews!.add(new Reviews.fromJson(v));
+        reviews!.add(Reviews.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['message'] = this.message;
-    if (this.product != null) {
-      data['product'] = this.product!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['message'] = message;
+    if (product != null) {
+      data['product'] = product!.toJson();
     }
-    data['profileName'] = this.profileName;
-    data['profileImage'] = this.profileImage;
-    data['profileDescription'] = this.profileDescription;
-    data['profileEmail'] = this.profileEmail;
-    data['profilephoneNumber'] = this.profilephoneNumber;
-    data['averageRating'] = this.averageRating;
-    if (this.reviews != null) {
-      data['reviews'] = this.reviews!.map((v) => v.toJson()).toList();
+    data['profileName'] = profileName;
+    data['profileImage'] = profileImage;
+    data['profileDescription'] = profileDescription;
+    data['profileEmail'] = profileEmail;
+    data['profilephoneNumber'] = profilephoneNumber;
+    data['averageRating'] = averageRating;
+    if (reviews != null) {
+      data['reviews'] = reviews!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -118,23 +118,23 @@ class Product {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['profileId'] = this.profileId;
-    data['categoryId'] = this.categoryId;
-    data['name'] = this.name;
-    data['description'] = this.description;
-    data['images'] = this.images;
-    data['beforeDiscountPrice'] = this.beforeDiscountPrice;
-    data['afterDiscountPrice'] = this.afterDiscountPrice;
-    data['size'] = this.size;
-    data['color'] = this.color;
-    data['stock'] = this.stock;
-    data['quantity'] = this.quantity;
-    data['videoUrl'] = this.videoUrl;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['profileId'] = profileId;
+    data['categoryId'] = categoryId;
+    data['name'] = name;
+    data['description'] = description;
+    data['images'] = images;
+    data['beforeDiscountPrice'] = beforeDiscountPrice;
+    data['afterDiscountPrice'] = afterDiscountPrice;
+    data['size'] = size;
+    data['color'] = color;
+    data['stock'] = stock;
+    data['quantity'] = quantity;
+    data['videoUrl'] = videoUrl;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
     return data;
   }
 }

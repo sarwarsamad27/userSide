@@ -117,7 +117,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
       source: ImageSource.gallery,
       imageQuality: 75,
     );
-    if (picked != null) setState(() => _screenshot = picked);
+    if (picked != null && mounted) setState(() => _screenshot = picked);
   }
 
   Future<void> _submitBankTransfer() async {

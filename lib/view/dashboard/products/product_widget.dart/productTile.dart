@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user_side/resources/appColor.dart';
+import 'package:user_side/widgets/cached_image.dart';
 
 class CustomProductTile extends StatelessWidget {
   final String imageUrl;
@@ -11,14 +12,14 @@ class CustomProductTile extends StatelessWidget {
   final VoidCallback? onTap;
 
   const CustomProductTile({
-    Key? key,
+    super.key,
     required this.imageUrl,
     required this.name,
     this.onTap,
     this.price,
     this.discountText,
     this.saveText,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,11 +32,12 @@ class CustomProductTile extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(10.r),
                 child: imageUrl.isNotEmpty
-                    ? Image.network(
-                        imageUrl,
+                    ? CachedImage(
+                        url: imageUrl,
                         width: 100.w,
                         height: 100.h,
                         fit: BoxFit.cover,
+                        placeholderBuilder: (context) => placeholder(),
                         errorBuilder: (context, error, stackTrace) {
                           return placeholder();
                         },

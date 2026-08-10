@@ -53,7 +53,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     subtitle: const Text("Enable dark theme"),
                     value: isDarkMode,
                     onChanged: (v) => _isDarkModeNotifier.value = v,
-                    activeColor: AppColor.primaryColor,
+                    activeThumbColor: AppColor.primaryColor,
                   );
                 },
               ),
@@ -68,7 +68,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     subtitle: const Text("Receive app notifications"),
                     value: notifications,
                     onChanged: (v) => _notificationsNotifier.value = v,
-                    activeColor: AppColor.primaryColor,
+                    activeThumbColor: AppColor.primaryColor,
                   );
                 },
               ),

@@ -100,7 +100,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 6,
                     offset: const Offset(0, 3),
                   ),
@@ -137,7 +137,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                       ),
                       hintText: widget.hintText,
                       hintStyle: TextStyle(
-                        color: AppColor.textSecondaryColor.withOpacity(0.7),
+                        color: AppColor.textSecondaryColor.withValues(alpha: 0.7),
                         fontSize: 14.sp,
                       ),
                       border: InputBorder.none,

@@ -9,16 +9,16 @@ class CreateReviewModel {
     success = json['success'];
     message = json['message'];
     review = json['review'] != null
-        ? new Review.fromJson(json['review'])
+        ? Review.fromJson(json['review'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    data['message'] = this.message;
-    if (this.review != null) {
-      data['review'] = this.review!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
+    data['message'] = message;
+    if (review != null) {
+      data['review'] = review!.toJson();
     }
     return data;
   }
@@ -90,9 +90,9 @@ class UserId {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['email'] = this.email;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['email'] = email;
     return data;
   }
 }

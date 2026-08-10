@@ -84,9 +84,9 @@ class PillBadge extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
       decoration: BoxDecoration(
-        color: background.withOpacity(0.95),
+        color: background.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: border.withOpacity(0.9)),
+        border: Border.all(color: border.withValues(alpha: 0.9)),
       ),
       child: Text(
         text,

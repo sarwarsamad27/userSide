@@ -15,16 +15,16 @@ class GetAllCategoryProfileWiseModel {
     total = json['total'];
     if (json['categories'] != null) {
       json['categories'].forEach((v) {
-        categories.add(new Categories.fromJson(v));
+        categories.add(Categories.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['message'] = this.message;
-    data['total'] = this.total;
-    data['categories'] = this.categories.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['message'] = message;
+    data['total'] = total;
+    data['categories'] = categories.map((v) => v.toJson()).toList();
     return data;
   }
 }
@@ -58,14 +58,14 @@ class Categories {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['profileId'] = this.profileId;
-    data['name'] = this.name;
-    data['image'] = this.image;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['__v'] = this.iV;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['_id'] = sId;
+    data['profileId'] = profileId;
+    data['name'] = name;
+    data['image'] = image;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['__v'] = iV;
     return data;
   }
 }

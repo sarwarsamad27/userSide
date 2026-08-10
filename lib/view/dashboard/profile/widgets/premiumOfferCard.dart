@@ -7,7 +7,7 @@ class PremiumOfferCard extends StatelessWidget {
   final OfferCardData data;
   final bool isActive;
 
-  const PremiumOfferCard({required this.data, required this.isActive});
+  const PremiumOfferCard({super.key, required this.data, required this.isActive});
 
   @override
   Widget build(BuildContext context) {
@@ -19,14 +19,14 @@ class PremiumOfferCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.black.withOpacity(0.88),
-            Colors.black.withOpacity(0.50),
+            Colors.black.withValues(alpha: 0.88),
+            Colors.black.withValues(alpha: 0.50),
           ],
         ),
         boxShadow: [
           BoxShadow(
             color: (isActive ? AppColor.primaryColor : Colors.black)
-                .withOpacity(0.18),
+                .withValues(alpha: 0.18),
             blurRadius: isActive ? 26 : 16,
             offset: const Offset(0, 12),
           ),
@@ -41,7 +41,7 @@ class PremiumOfferCard extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.white.withOpacity(0.07), Colors.transparent],
+                  colors: [Colors.white.withValues(alpha: 0.07), Colors.transparent],
                 ),
               ),
             ),
@@ -61,10 +61,10 @@ class PremiumOfferCard extends StatelessWidget {
                           vertical: 6.h,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.12),
+                          color: Colors.white.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(999.r),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.20),
+                            color: Colors.white.withValues(alpha: 0.20),
                           ),
                         ),
                         child: Text(
@@ -73,7 +73,7 @@ class PremiumOfferCard extends StatelessWidget {
                             fontSize: 11.sp,
                             letterSpacing: 1.0,
                             fontWeight: FontWeight.w800,
-                            color: Colors.white.withOpacity(0.95),
+                            color: Colors.white.withValues(alpha: 0.95),
                           ),
                         ),
                       ),
@@ -96,7 +96,7 @@ class PremiumOfferCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.w500,
-                          color: Colors.white.withOpacity(0.85),
+                          color: Colors.white.withValues(alpha: 0.85),
                         ),
                       ),
                     ],
@@ -108,8 +108,8 @@ class PremiumOfferCard extends StatelessWidget {
                   width: 56.w,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.10),
-                    border: Border.all(color: Colors.white.withOpacity(0.20)),
+                    color: Colors.white.withValues(alpha: 0.10),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.20)),
                   ),
                   child: Icon(data.icon, color: Colors.white, size: 28.sp),
                 ),

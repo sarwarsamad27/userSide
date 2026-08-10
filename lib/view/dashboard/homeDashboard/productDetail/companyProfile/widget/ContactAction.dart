@@ -10,7 +10,7 @@ class ContactAction extends StatelessWidget {
   final Color iconColor;
   final VoidCallback onTap;
 
-  const ContactAction({
+  const ContactAction({super.key, 
     required this.icon,
     required this.title,
     required this.subtitle,
