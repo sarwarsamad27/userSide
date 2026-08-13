@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:flutter/foundation.dart';
 import 'package:user_side/models/ProductAndCategoryModel/deleteReview_model.dart';
 import 'package:user_side/network/network_api_services.dart';
 import 'package:user_side/resources/global.dart';
@@ -12,7 +13,7 @@ class DeleteReviewRepository {
     try {
       final url = '$apiUrl?reviewId=$reviewId&userId=$userId';
       final response = await apiServices.deleteApi(url);
-      print(response);
+      debugPrint(response.toString());
       log(response.toString());
       return DeleteReviewModel.fromJson(response);
     } catch (e) {

@@ -388,10 +388,12 @@ _Powered by Shookoo 🇵🇰_''';
                             );
                             await file.writeAsBytes(bytes);
 
-                            await Share.shareXFiles(
-                              [XFile(file.path)],
-                              text: shareText,
-                              subject: '$name — Rs: $price | Shookoo',
+                            await SharePlus.instance.share(
+                              ShareParams(
+                                files: [XFile(file.path)],
+                                text: shareText,
+                                subject: '$name — Rs: $price | Shookoo',
+                              ),
                             );
                             return;
                           } catch (_) {
@@ -400,9 +402,11 @@ _Powered by Shookoo 🇵🇰_''';
                         }
 
                         // Fallback — sirf text
-                        await Share.share(
-                          shareText,
-                          subject: '$name — Rs: $price | Shookoo',
+                        await SharePlus.instance.share(
+                          ShareParams(
+                            text: shareText,
+                            subject: '$name — Rs: $price | Shookoo',
+                          ),
                         );
                       },
                     ),

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:user_side/models/auth/verifyCode_model.dart';
 import 'package:user_side/network/base_api_services.dart';
 import 'package:user_side/network/network_api_services.dart';
@@ -13,7 +14,7 @@ class VerifyCodeRepository {
         "email": email,
         "verificationCode": verificationCode,
       });
-      print(response);
+      debugPrint(response.toString());
       return VerifyCodeModel.fromJson(response);
     } catch (e) {
       return VerifyCodeModel(message: "Error occurred: $e");

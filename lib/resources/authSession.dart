@@ -78,6 +78,7 @@ class AuthSession extends ChangeNotifier {
       context.read<PopularCategoryProvider>().refresh();
 
       final deviceId = await LocalStorage.getOrCreateDeviceId();
+      if (!context.mounted) return;
       context.read<RecommendationProvider>().fetchRecommendations(deviceId);
 
       final userId = instance.userId;

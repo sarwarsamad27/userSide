@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:flutter/foundation.dart';
 import 'package:user_side/models/ProductAndCategoryModel/editReview_model.dart';
 import 'package:user_side/network/network_api_services.dart';
 import 'package:user_side/resources/global.dart';
@@ -20,8 +21,8 @@ class EditReviewRepository {
         "text": text,
         "stars": stars,
       });
-      print(response);
-      log(  response.toString());
+      debugPrint(response.toString());
+      log(response.toString());
       return EditReviewModel.fromJson(response);
     } catch (e) {
       return EditReviewModel(message: "Error: $e", review: null);

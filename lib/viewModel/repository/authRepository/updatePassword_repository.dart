@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:user_side/models/auth/updatePassword_model.dart';
 import 'package:user_side/network/base_api_services.dart';
 import 'package:user_side/network/network_api_services.dart';
@@ -13,7 +14,7 @@ class UpdatePasswordRepository {
         "email": email,
         "newPassword": newPassword,
       });
-      print(response);
+      debugPrint(response.toString());
       return UpdatePasswordModel.fromJson(response);
     } catch (e) {
       return UpdatePasswordModel(message: "Error occurred: $e");

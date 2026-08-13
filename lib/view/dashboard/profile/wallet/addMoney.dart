@@ -104,9 +104,9 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
       final tempDir = await getTemporaryDirectory();
       final file = File('${tempDir.path}/shookoo_payment_qr.jpeg');
       await file.writeAsBytes(byteData.buffer.asUint8List());
-      await Share.shareXFiles([
-        XFile(file.path),
-      ], text: 'Shookoo payment QR code');
+      await SharePlus.instance.share(
+        ShareParams(files: [XFile(file.path)], text: 'Shookoo payment QR code'),
+      );
     } catch (_) {
       if (mounted) PremiumToast.error(context, 'Could not download QR code');
     }
@@ -142,6 +142,7 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
     final bytes = await _screenshot!.readAsBytes();
     final base64Image = 'data:image/jpeg;base64,${base64Encode(bytes)}';
 
+    if (!mounted) return;
     final provider = context.read<WalletProvider>();
     final ok = await provider.submitBankTransfer(
       amount: amt,
@@ -172,7 +173,9 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<WalletProvider>();
+    // Subscribes this screen to WalletProvider changes so it rebuilds when
+    // the wallet state updates elsewhere (the value itself isn't read here).
+    context.watch<WalletProvider>();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),

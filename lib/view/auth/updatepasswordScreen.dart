@@ -46,10 +46,11 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
         PremiumToast.error(context, "Please update your password");
-        return false;
       },
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
@@ -191,7 +192,8 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                                                       );
 
                                                   if (!success) {
-                                                    if (mounted) {
+                                                    if (mounted &&
+                                                        context.mounted) {
                                                       PremiumToast.error(
                                                         context,
                                                         provider.errorMessage ??
@@ -206,7 +208,8 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                                                           .updateData
                                                           ?.message ??
                                                       "Password updated successfully.";
-                                                  if (mounted) {
+                                                  if (mounted &&
+                                                      context.mounted) {
                                                     PremiumToast.success(
                                                       context,
                                                       msg,
@@ -219,6 +222,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                                                   provider.setSubmitted(false);
 
                                                   if (!mounted) return;
+                                                  if (!context.mounted) return;
                                                   Navigator.pushReplacement(
                                                     context,
                                                     MaterialPageRoute(

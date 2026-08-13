@@ -66,6 +66,7 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
 
     if (buyerId != null && buyerId!.trim().isNotEmpty) {
       log('📩 Loading chat threads for buyer: $buyerId');
+      if (!mounted) return;
       await context.read<ChatThreadProvider>().fetchThreads(buyerId!);
       _setupSocketListeners();
       _fetchAdminMessageState();

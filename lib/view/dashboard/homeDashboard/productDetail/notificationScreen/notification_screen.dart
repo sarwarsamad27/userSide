@@ -165,6 +165,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           await provider.markAsRead(n.id!);
                         }
 
+                        if (!context.mounted) return;
+
                         // 2) routing
                         final type = (n.type ?? "").toString();
 

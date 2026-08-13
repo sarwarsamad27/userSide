@@ -155,7 +155,7 @@ class UserChatProvider extends ChangeNotifier {
         additionalMessage: initialMessage,
       );
     } catch (e) {
-      print('❌ Error sending product card: $e');
+      debugPrint('❌ Error sending product card: $e');
       _productSent = false; // ✅ Error pe reset karo taake retry ho sake
     }
   }
@@ -173,7 +173,7 @@ class UserChatProvider extends ChangeNotifier {
 
     // ✅ FIX: Socket ready nahi to retry karo
     if (socket == null || !socket.connected) {
-      print('⚠️ Socket not ready, retrying in 1s...');
+      debugPrint('⚠️ Socket not ready, retrying in 1s...');
       Future.delayed(const Duration(seconds: 1), () {
         _sendProductCardMessage(
           productName: productName,
@@ -237,7 +237,7 @@ class UserChatProvider extends ChangeNotifier {
         },
       },
       ack: (resp) {
-        print('🔍 ACK response: $resp');
+        debugPrint('🔍 ACK response: $resp');
 
         if (resp is! Map || resp["ok"] != true || resp["data"] == null) return;
 
@@ -245,7 +245,7 @@ class UserChatProvider extends ChangeNotifier {
           Map<String, dynamic>.from(resp["data"]),
         );
 
-        print('🔍 Server productCard: ${serverMessage.productCard}');
+        debugPrint('🔍 Server productCard: ${serverMessage.productCard}');
 
         _processedClientIds.add(clientId);
 
@@ -309,10 +309,12 @@ class UserChatProvider extends ChangeNotifier {
         final List<dynamic> messagesData = data['messages'] ?? [];
 
         // ✅ DEBUG: Server history check karo
-        print('📦 Total messages from server: ${messagesData.length}');
+        debugPrint('📦 Total messages from server: ${messagesData.length}');
         for (var msgData in messagesData) {
           if (msgData['productCard'] != null) {
-            print('✅ ProductCard found in history: ${msgData['productCard']}');
+            debugPrint(
+              '✅ ProductCard found in history: ${msgData['productCard']}',
+            );
           }
         }
 
@@ -355,10 +357,10 @@ class UserChatProvider extends ChangeNotifier {
 
         _safeNotify();
       } else {
-        print('❌ History load failed: ${response.statusCode}');
+        debugPrint('❌ History load failed: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ _loadChatHistory error: $e');
+      debugPrint('❌ _loadChatHistory error: $e');
     }
   }
 

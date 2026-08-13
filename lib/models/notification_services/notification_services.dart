@@ -117,15 +117,15 @@ class NotificationService {
           await _removeTokenFromBackend(userId: userId, token: token);
         }
       } catch (e) {
-        print("FCM remove-from-server failed (non-fatal): $e");
+        debugPrint("FCM remove-from-server failed (non-fatal): $e");
       }
     }
 
     try {
       await _fcm.deleteToken();
-      print("FCM token deleted successfully");
+      debugPrint("FCM token deleted successfully");
     } catch (e) {
-      print("FCM token deletion failed: $e");
+      debugPrint("FCM token deletion failed: $e");
     }
   }
 
@@ -149,9 +149,9 @@ class NotificationService {
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(payload),
       );
-      print("FCM save status: ${resp.statusCode} body: ${resp.body}");
+      debugPrint("FCM save status: ${resp.statusCode} body: ${resp.body}");
     } catch (e) {
-      print("FCM save failed: $e");
+      debugPrint("FCM save failed: $e");
     }
   }
 
@@ -165,6 +165,6 @@ class NotificationService {
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"userId": userId, "token": token}),
     );
-    print("FCM remove status: ${resp.statusCode} body: ${resp.body}");
+    debugPrint("FCM remove status: ${resp.statusCode} body: ${resp.body}");
   }
 }

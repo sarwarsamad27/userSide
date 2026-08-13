@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:user_side/models/ProductAndCategoryModel/categoryWiseProduct_model.dart';
 import 'package:user_side/network/network_api_services.dart';
 import 'package:user_side/resources/global.dart';
@@ -10,7 +11,7 @@ class GetCategoryWiseProductRepository {
     try {
       final response = await apiServices
           .getApi("$apiUrl?category=$categoryName&page=$page&limit=$limit");
-          print(response);
+      debugPrint(response.toString());
       return CategoryWiseProductModel.fromJson(response);
     } catch (e) {
       return CategoryWiseProductModel(data: [], );

@@ -133,6 +133,7 @@ class _ForgotScreenState extends State<ForgotScreen> {
                                           provider.setSubmitted(false);
 
                                           if (!mounted) return;
+                                          if (!context.mounted) return;
                                           PremiumToast.success(
                                             context,
                                             provider.forgotData!.message!,
@@ -150,7 +151,7 @@ class _ForgotScreenState extends State<ForgotScreen> {
                                             ),
                                           );
                                         } else {
-                                          if (mounted) {
+                                          if (mounted && context.mounted) {
                                             PremiumToast.error(
                                               context,
                                               provider.errorMessage ??

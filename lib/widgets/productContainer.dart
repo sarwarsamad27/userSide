@@ -29,7 +29,6 @@ class _CategoryTileState extends State<CategoryTile>
   late AnimationController _pulseController;
   late AnimationController _rotateController;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _rotateAnimation;
 
   @override
   void initState() {
@@ -50,11 +49,6 @@ class _CategoryTileState extends State<CategoryTile>
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat();
-
-    _rotateAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(_rotateController);
   }
 
   @override

@@ -142,7 +142,6 @@ class _SplashScreenState extends State<SplashScreen>
   // ── Palette (BRAND THEME) ────────────────────
   static const Color _bg = AppColor.screenBgColor;
   static const Color _primary = AppColor.primaryColor;
-  static const Color _accent = AppColor.secondaryColor;
   static const Color _surface = AppColor.whiteColor;
   static const Color _text = AppColor.textPrimaryColor;
 

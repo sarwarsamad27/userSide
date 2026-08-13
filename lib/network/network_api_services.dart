@@ -14,7 +14,7 @@ class NetworkApiServices extends BaseApiServices {
   // ✅ Existing headers (WITH token if available) - unchanged
   Future<Map<String, String>> getHeaders({bool isMultipart = false}) async {
     final token = await LocalStorage.getToken();
-    print("Token: $token"); // Debugging token value
+    debugPrint("Token: $token"); // Debugging token value
 
     return {
       "Accept": "application/json",
@@ -154,7 +154,7 @@ class NetworkApiServices extends BaseApiServices {
         var streamed = await request.send();
         var response = await http.Response.fromStream(streamed);
 
-        print("PUT Multipart Response: ${response.body}");
+        debugPrint("PUT Multipart Response: ${response.body}");
         return _handleResponse(url, response, body: body);
       } else {
         // Plain JSON PUT
@@ -268,7 +268,7 @@ class NetworkApiServices extends BaseApiServices {
       var streamed = await request.send();
       var response = await http.Response.fromStream(streamed);
 
-      print("Upload Response: ${response.body}");
+      debugPrint("Upload Response: ${response.body}");
 
       return _handleResponse(url, response);
     } catch (e) {
@@ -344,12 +344,12 @@ class NetworkApiServices extends BaseApiServices {
     Map<String, dynamic>? body,
   }) {
     if (kDebugMode) {
-      print('✅ API URL: $url');
+      debugPrint('✅ API URL: $url');
     }
-    if (body != null) print('✅ Request Body: ${jsonEncode(body)}');
+    if (body != null) debugPrint('✅ Request Body: ${jsonEncode(body)}');
     if (kDebugMode) {
-      print('✅ Status Code: ${response.statusCode}');
-      print('✅ Response Body: ${response.body}');
+      debugPrint('✅ Status Code: ${response.statusCode}');
+      debugPrint('✅ Response Body: ${response.body}');
     }
 
     if (response.statusCode == 200 || response.statusCode == 201) {

@@ -379,6 +379,7 @@ class _WalletScreenState extends State<WalletScreen>
                   context,
                   _pageRoute(const AddMoneyScreen()),
                 ).then((_) {
+                  if (!mounted) return;
                   if (buyerId.isNotEmpty) {
                     context.read<WalletProvider>().fetchBalance(buyerId);
                     context.read<WalletProvider>().fetchTransactions(buyerId);
@@ -394,6 +395,7 @@ class _WalletScreenState extends State<WalletScreen>
                   context,
                   _pageRoute(BuyerWithdrawScreen(balance: wallet.balance)),
                 ).then((_) {
+                  if (!mounted) return;
                   if (buyerId.isNotEmpty) {
                     context.read<WalletProvider>().fetchBalance(buyerId);
                     context.read<WalletProvider>().fetchTransactions(buyerId);

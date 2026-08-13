@@ -156,7 +156,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                           }
 
                                           if (!await isConnected()) {
-                                            if (mounted) {
+                                            if (mounted && context.mounted) {
                                               PremiumToast.error(
                                                 context,
                                                 "No internet connection",
@@ -181,6 +181,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                             provider.setSubmitted(false);
 
                                             if (!mounted) return;
+                                            if (!context.mounted) return;
                                             PremiumToast.success(
                                               context,
                                               "Registration Successful",
@@ -196,7 +197,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                               ),
                                             );
                                           } else {
-                                            if (mounted) {
+                                            if (mounted && context.mounted) {
                                               PremiumToast.error(
                                                 context,
                                                 provider.errorMessage ??

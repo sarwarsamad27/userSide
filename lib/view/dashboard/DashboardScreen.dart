@@ -75,7 +75,7 @@ class _HomeNavBarScreenState extends State<HomeNavBarScreen> {
         builder: (context, child) {
           return PopScope(
             canPop: false,
-            onPopInvoked: (didPop) async {
+            onPopInvokedWithResult: (didPop, result) async {
               if (didPop) return;
 
               final now = DateTime.now();

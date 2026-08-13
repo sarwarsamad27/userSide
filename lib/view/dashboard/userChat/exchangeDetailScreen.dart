@@ -84,6 +84,7 @@ class _ExchangeDetailScreenState extends State<ExchangeDetailScreen> {
       setState(() => _loading = false);
       return;
     }
+    if (!mounted) return;
     await context.read<ExchangeProvider>().fetchMyRequests(buyerId);
     if (!mounted) return;
     final list = context.read<ExchangeProvider>().listModel?.requests ?? [];
@@ -1022,6 +1023,7 @@ class _ReturnProofWidgetState extends State<_ReturnProofWidget> {
 
     final images = await _toBase64();
 
+    if (!mounted) return;
     final ok = await context.read<ExchangeProvider>().uploadReturnProof(
       exchangeId: widget.exchange.id ?? "",
       buyerId: buyerId,
@@ -1172,33 +1174,6 @@ class _ReturnProofWidgetState extends State<_ReturnProofWidget> {
     );
   }
 
-  Widget _field(String label, TextEditingController ctrl, IconData icon) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 6.h),
-        TextField(
-          controller: ctrl,
-          style: TextStyle(fontSize: 14.sp),
-          decoration: InputDecoration(
-            prefixIcon: Icon(icon, size: 18.sp),
-            hintText: "Enter $label",
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: 12.w,
-              vertical: 12.h,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 class _TimelineStep {

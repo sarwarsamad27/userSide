@@ -140,6 +140,7 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
       setState(() => _otpSent = true);
       _tryAutofillOtpFromClipboard();
     } else {
+      if (!mounted) return;
       _showError(context.read<WalletProvider>().errorMessage);
     }
   }
@@ -179,6 +180,7 @@ class _BuyerWithdrawScreenState extends State<BuyerWithdrawScreen>
         ),
       );
     } else {
+      if (!mounted) return;
       _showError(context.read<WalletProvider>().errorMessage);
     }
   }

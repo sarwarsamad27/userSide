@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:user_side/models/courier/leopards_tracking_model.dart';
 import 'package:user_side/network/base_api_services.dart';
 import 'package:user_side/network/network_api_services.dart';
@@ -17,7 +18,7 @@ class LeopardsTrackingRepository {
       }
       return [];
     } catch (e) {
-      print("❌ LeopardsTrackingRepository Error: $e");
+      debugPrint("❌ LeopardsTrackingRepository Error: $e");
       return [];
     }
   }

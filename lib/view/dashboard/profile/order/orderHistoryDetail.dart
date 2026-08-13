@@ -149,7 +149,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       debugPrint("❌ Error refreshing orders: $e");
     }
 
+    if (!mounted) return;
     await context.read<ExchangeProvider>().fetchMyRequests(buyerId);
+    if (!mounted) return;
     await context.read<ExchangeProvider>().fetchMyRefunds(buyerId);
 
     if (!mounted) return;

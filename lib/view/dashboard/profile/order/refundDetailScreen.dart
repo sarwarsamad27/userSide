@@ -40,6 +40,7 @@ class _RefundDetailScreenState extends State<RefundDetailScreen> {
       setState(() => _loading = false);
       return;
     }
+    if (!mounted) return;
     await context.read<ExchangeProvider>().fetchMyRefunds(buyerId);
     if (!mounted) return;
     final list =

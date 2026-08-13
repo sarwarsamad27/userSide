@@ -167,6 +167,8 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
                                     "Verification code is valid") {
                               AppToast.success(provider.verifyData!.message!);
 
+                              if (!mounted) return;
+                              if (!context.mounted) return;
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(

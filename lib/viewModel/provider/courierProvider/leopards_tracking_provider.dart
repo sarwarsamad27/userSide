@@ -19,7 +19,7 @@ class LeopardsTrackingProvider with ChangeNotifier {
     try {
       _history = await _repository.trackParcel(trackNumber);
     } catch (e) {
-      print("❌ fetchTracking Error: $e");
+      debugPrint("❌ fetchTracking Error: $e");
     } finally {
       _loading = false;
       notifyListeners();

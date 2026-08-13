@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/utiles.dart';
-import 'package:user_side/resources/global.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/resources/toast.dart';
 import 'package:user_side/viewModel/provider/exchangeProvider/exchange_provider.dart';
@@ -31,6 +30,7 @@ class _ExchangeRequestsScreenState extends State<ExchangeRequestsScreen> {
     // ✅ buyerId fetch karein (LocalStorage ya kisi aur source se)
     buyerId = await LocalStorage.getUserId(); // Ya jo bhi method ho
 
+    if (!mounted) return;
     if (buyerId != null) {
       context.read<ExchangeProvider>().fetchMyRequests(buyerId!);
     }
@@ -45,8 +45,6 @@ class _ExchangeRequestsScreenState extends State<ExchangeRequestsScreen> {
     final provider = context.read<ExchangeProvider>();
 
     final authHeaders = <String, String>{"Accept": "application/pdf"};
-
-    final baseUrl = Global.BaseUrl;
 
     final file = await provider.downloadPdf(
       requestId: requestId,

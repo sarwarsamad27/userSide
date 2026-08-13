@@ -1554,6 +1554,7 @@ class _WalletOtpSheetState extends State<_WalletOtpSheet> {
                         final verified = await provider.verifyWalletOtp(
                           otp: otp,
                         );
+                        if (!context.mounted) return;
                         if (verified) {
                           widget.onVerified();
                         } else if (provider.errorMessage != null) {

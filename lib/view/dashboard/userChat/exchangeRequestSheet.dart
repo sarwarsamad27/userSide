@@ -129,6 +129,7 @@ class _ExchangeRequestSheetState extends State<ExchangeRequestSheet> {
     final provider = context.read<ExchangeProvider>();
     final buyerId = await LocalStorage.getUserId() ?? "";
     if (buyerId.isEmpty) {
+      if (!mounted) return;
       PremiumToast.error(context, "User ID not found");
       return;
     }

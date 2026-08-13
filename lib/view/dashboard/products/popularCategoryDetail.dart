@@ -25,7 +25,9 @@ class PopularCategoryDetailScreen extends StatelessWidget {
                     horizontal: 16.w,
                     vertical: 8.h,
                   ),
-                  child: SearchbarCategorylist(onCategorySelected: (String ) {  },),
+                  child: SearchbarCategorylist(
+                    onCategorySelected: (String category) {},
+                  ),
                 ),
               ),
             ),

@@ -63,6 +63,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         categoryProvider.selectCategory(0);
       }
 
+      if (!mounted) return;
       final followProvider = Provider.of<FollowProvider>(
         context,
         listen: false,
@@ -155,6 +156,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                   } catch (e) {
                     debugPrint("Error launching call: $e");
                   }
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                 },
               ),
@@ -177,6 +179,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                   } catch (e) {
                     debugPrint("Error launching WhatsApp: $e");
                   }
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                 },
               ),
@@ -252,7 +255,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                         ),
                         child: GestureDetector(
                           onTap: () {
-                            print("👆icon BUTTON TAPPED");
+                            debugPrint("👆icon BUTTON TAPPED");
                           },
                           child: Container(
                             padding: EdgeInsets.all(2.w),
@@ -462,6 +465,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
 
                                           log(threadId);
                                           log(widget.profileId);
+                                          if (!context.mounted) return;
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(

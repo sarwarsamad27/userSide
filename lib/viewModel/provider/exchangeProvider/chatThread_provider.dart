@@ -14,9 +14,9 @@ class ChatThreadProvider extends ChangeNotifier {
 
     try {
       threadListModel = await repository.getChatThreads(buyerId);
-      print("✅ Threads loaded: ${threadListModel?.threads.length}");
+      debugPrint("✅ Threads loaded: ${threadListModel?.threads.length}");
     } catch (e) {
-      print("❌ Error loading threads: $e");
+      debugPrint("❌ Error loading threads: $e");
       threadListModel = ChatThreadListModel(
         success: false,
         message: "Error: $e",
@@ -37,7 +37,7 @@ class ChatThreadProvider extends ChangeNotifier {
       // ✅ YAHAN FIELD NAME MATCH KARO
       // agar aapke model me unread ka field different hai:
       // t.unreadMessages / t.unread / t.unreadMessageCount etc
-      final c = (t.unreadCount ?? 0);
+      final c = t.unreadCount;
 
       total += c;
     }

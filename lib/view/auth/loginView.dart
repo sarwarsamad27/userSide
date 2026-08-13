@@ -158,6 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ); // Reset state
 
                                         // ✅ Global API Refresh
+                                        if (!context.mounted) return;
                                         AuthSession.refreshAppData(context);
 
                                         if (!mounted) return;
@@ -178,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           );
                                         }
                                       } else {
-                                        if (mounted) {
+                                        if (mounted && context.mounted) {
                                           PremiumToast.error(
                                             context,
                                             provider.errorMessage ??
@@ -236,6 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 .token!
                                                 .isNotEmpty) {
                                           if (!mounted) return;
+                                          if (!context.mounted) return;
                                           PremiumToast.success(
                                             context,
                                             "Logged in with Google!",
@@ -255,7 +257,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                             );
                                           }
                                         } else {
-                                          if (mounted) {
+                                          if (mounted && context.mounted) {
                                             PremiumToast.error(
                                               context,
                                               googleProvider.errorMessage ??

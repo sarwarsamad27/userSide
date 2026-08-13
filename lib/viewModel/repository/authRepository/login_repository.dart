@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:user_side/models/auth/login_model.dart';
 import 'package:user_side/network/base_api_services.dart';
 import 'package:user_side/network/network_api_services.dart';
@@ -13,7 +14,7 @@ class LoginRepository {
         "email": email,
         "password": password,
       });
-      print(response);
+      debugPrint(response.toString());
       return LoginModel.fromJson(response);
     } catch (e) {
       return LoginModel(message: "Error occurred: $e");

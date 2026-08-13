@@ -146,6 +146,7 @@ class Utils {
       ),
     );
     Future.delayed(const Duration(seconds: 2), () {
+      if (!context.mounted) return;
       if (Navigator.canPop(context)) {
         Navigator.pop(context);
       }
@@ -176,6 +177,7 @@ class Utils {
       ),
     );
     Future.delayed(const Duration(milliseconds: 2500), () {
+      if (!context.mounted) return;
       if (Navigator.canPop(context)) {
         PremiumToast.success(context, message);
         Navigator.pop(context);

@@ -11,6 +11,7 @@ class OffersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Future.microtask(() {
+      if (!context.mounted) return;
       context.read<DeliverySettingsProvider>().fetchSettings();
     });
     final deliveryCfg = context.watch<DeliverySettingsProvider>();

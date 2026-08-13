@@ -62,6 +62,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     if (success) {
       setState(() => _otpSent = true);
     } else {
+      if (!mounted) return;
       _showError(context.read<WalletProvider>().errorMessage);
     }
   }
@@ -92,6 +93,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
         ),
       );
     } else {
+      if (!mounted) return;
       _showError(context.read<WalletProvider>().errorMessage);
     }
   }
