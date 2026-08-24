@@ -200,19 +200,22 @@ class _UserChatListScreenState extends State<UserChatListScreen> {
   String _formatTime(String? timestamp) {
     if (timestamp == null) return "";
     try {
-      final date = DateTime.parse(timestamp);
+      final date = DateTime.parse(timestamp).toLocal();
       final now = DateTime.now();
       final difference = now.difference(date);
+      final today = DateTime(now.year, now.month, now.day);
+      final messageDay = DateTime(date.year, date.month, date.day);
+      final diffDays = today.difference(messageDay).inDays;
 
       if (difference.inMinutes < 1) {
         return "Just now";
       } else if (difference.inHours < 1) {
         return "${difference.inMinutes}m ago";
-      } else if (difference.inDays == 0) {
+      } else if (diffDays == 0) {
         return DateFormat('HH:mm').format(date);
-      } else if (difference.inDays == 1) {
+      } else if (diffDays == 1) {
         return "Yesterday";
-      } else if (difference.inDays < 7) {
+      } else if (diffDays < 7) {
         return DateFormat('EEEE').format(date);
       } else {
         return DateFormat('dd/MM/yy').format(date);

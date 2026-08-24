@@ -911,13 +911,15 @@ class UserChatProvider extends ChangeNotifier {
   String formatTime(String? timestamp) {
     if (timestamp == null) return "";
     try {
-      final date = DateTime.parse(timestamp);
+      final date = DateTime.parse(timestamp).toLocal();
       final now = DateTime.now();
-      final diff = now.difference(date);
+      final today = DateTime(now.year, now.month, now.day);
+      final messageDay = DateTime(date.year, date.month, date.day);
+      final diffDays = today.difference(messageDay).inDays;
 
-      if (diff.inDays == 0) return DateFormat('HH:mm').format(date);
-      if (diff.inDays == 1) return "Yesterday";
-      if (diff.inDays < 7) return DateFormat('EEEE').format(date);
+      if (diffDays == 0) return DateFormat('HH:mm').format(date);
+      if (diffDays == 1) return "Yesterday";
+      if (diffDays < 7) return DateFormat('EEEE').format(date);
       return DateFormat('dd/MM/yyyy').format(date);
     } catch (_) {
       return "";

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:user_side/resources/appColor.dart';
 import 'package:user_side/resources/local_storage.dart';
 import 'package:user_side/resources/authSession.dart';
-import 'package:user_side/view/auth/loginView.dart';
 
 import '../../../models/auth/googleLogin_model.dart';
 import '../../repository/authRepository/signInWithGoogle_repository.dart';
@@ -89,7 +90,12 @@ class GoogleLoginProvider with ChangeNotifier {
     // await googleSignIn.disconnect();
   }
 
-  /// ✅ Show confirmation dialog, then logout + navigate
+  /// ✅ Show confirmation dialog, then logout — no navigation. The buyer app
+  /// is browsable as a guest, so logout just clears the session in place;
+  /// every screen that reads AuthSession (e.g. ProfileScreen's `isLoggedIn`
+  /// via `context.watch<AuthSession>()`) re-renders itself into its
+  /// logged-out state automatically once logout() calls notifyListeners(),
+  /// the same way it would if the user had never logged in.
   Future<void> confirmLogout(BuildContext context) async {
     final result = await showDialog<bool>(
       context: context,
@@ -112,21 +118,46 @@ class GoogleLoginProvider with ChangeNotifier {
       },
     );
 
-    if (result == true) {
-      try {
-        await logout();
+    if (result != true || !context.mounted) return;
 
-        if (!context.mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => PopScope(
+        canPop: false,
+        child: Dialog(
+          backgroundColor: AppColor.appimagecolor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SpinKitThreeBounce(color: AppColor.whiteColor, size: 28.0),
+                const SizedBox(height: 16),
+                const Text(
+                  "Logging out...",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
 
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-          (route) => false,
-        );
-      } catch (e) {
-        // Optional: show toast/snackbar
-        // AppToast.error("Logout error: $e");
-      }
+    try {
+      await logout();
+    } catch (_) {
+      // Optional: show toast/snackbar
+    } finally {
+      if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
     }
   }
 }
