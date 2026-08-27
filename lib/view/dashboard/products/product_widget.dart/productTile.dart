@@ -97,9 +97,13 @@ class CustomProductTile extends StatelessWidget {
             ],
           ),
           SizedBox(height: 6.h),
-          FittedBox(
+          SizedBox(
+            width: 100.w,
             child: Text(
               name,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 10.sp, fontWeight: FontWeight.w500),
             ),
           ),

@@ -1,4 +1,4 @@
-package com.example.user_side
+package pk.shookoo.shookoo
 
 import io.flutter.embedding.android.FlutterActivity
 
