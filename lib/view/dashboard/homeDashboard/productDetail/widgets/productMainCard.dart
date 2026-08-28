@@ -1,10 +1,7 @@
 import 'dart:developer';
-import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -335,73 +332,25 @@ class ProductMainCard extends StatelessWidget {
                         final name = product.name ?? '';
                         final price = product.afterDiscountPrice ?? 0;
                         final oldPrice = product.beforeDiscountPrice ?? 0;
-                        final brand = data.profileName ?? '';
-                        final desc = product.description ?? '';
-                        final rating = (data.averageRating ?? 0)
-                            .toStringAsFixed(1);
-                        final reviews = data.reviews?.length ?? 0;
 
                         String discountLine = '';
                         if (oldPrice > 0 && oldPrice > price) {
                           final pct = (((oldPrice - price) / oldPrice) * 100)
                               .round();
-                          discountLine =
-                              '🏷️ *$pct% OFF* — ~~Rs: $oldPrice~~\n';
+                          discountLine = ' ($pct% OFF)';
                         }
 
+                        // No attached file/text formatting here on purpose —
+                        // the share target (WhatsApp, Messenger, etc.) reads
+                        // the og:title/og:description/og:image the link's
+                        // landing page (productRedirect.js) serves and
+                        // builds its own rich preview card from that, same
+                        // as any other link share. Attaching a downloaded
+                        // image turns that into a plain image message and
+                        // suppresses the link-preview card entirely.
                         final shareText =
-                            '''🛍️ *$name*
+                            '$name — Rs: $price$discountLine\n$link';
 
-$discountLine💰 *Price: Rs: $price*
-⭐ *$rating* ($reviews reviews)
-🏪 *Brand:* $brand
-
-📝 ${desc.length > 120 ? '${desc.substring(0, 120)}...' : desc}
-
-━━━━━━━━━━━━━━━━━━━━
-🔗 *Shop Now:*
-$link
-━━━━━━━━━━━━━━━━━━━━
-
-_Powered by Shookoo 🇵🇰_''';
-
-                        // ✅ Image bhi share karo
-                        final imageUrl = product.images?.isNotEmpty == true
-                            ? product.images!.first
-                            : null;
-
-                        if (imageUrl != null && imageUrl.isNotEmpty) {
-                          try {
-                            // Image download karke share karo
-                            final http = await HttpClient().getUrl(
-                              Uri.parse(Global.getImageUrl(imageUrl)),
-                            );
-                            final response = await http.close();
-                            final bytes =
-                                await consolidateHttpClientResponseBytes(
-                                  response,
-                                );
-
-                            final tempDir = await getTemporaryDirectory();
-                            final file = File(
-                              '${tempDir.path}/share_product.jpg',
-                            );
-                            await file.writeAsBytes(bytes);
-
-                            await SharePlus.instance.share(
-                              ShareParams(
-                                files: [XFile(file.path)],
-                                text: shareText,
-                                subject: '$name — Rs: $price | Shookoo',
-                              ),
-                            );
-                            return;
-                          } catch (_) {
-                            // Image fail hoi toh sirf text share karo
-                          }
-                        }
-
-                        // Fallback — sirf text
                         await SharePlus.instance.share(
                           ShareParams(
                             text: shareText,

@@ -48,6 +48,28 @@
             android:host="p" />
     </intent-filter>
 
+    <!-- ✅ HTTPS: https://shookoo.pk/p/productId/slug -->
+    <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data
+            android:scheme="https"
+            android:host="shookoo.pk"
+            android:pathPrefix="/p/" />
+    </intent-filter>
+
+    <!-- ✅ HTTPS: https://www.shookoo.pk/p/productId/slug -->
+    <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data
+            android:scheme="https"
+            android:host="www.shookoo.pk"
+            android:pathPrefix="/p/" />
+    </intent-filter>
+
     <!-- ✅ HTTPS: https://seller-and-buyer-backend.onrender.com/p/productId/slug -->
     <intent-filter android:autoVerify="true">
         <action android:name="android.intent.action.VIEW"/>
