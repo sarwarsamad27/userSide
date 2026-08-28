@@ -246,7 +246,7 @@ class HelpCenterScreen extends StatelessWidget {
                           color: Colors.black87,
                           icon: FontAwesomeIcons.tiktok.data,
                           onTap: () =>
-                              _launchUrl('https://tiktok.com/@shookoo'),
+                              _launchUrl('https://www.tiktok.com/@shookoo.pk?_r=1&_t=ZS-99FBcwV5G59'),
                         ),
                       ],
                     ),
