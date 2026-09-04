@@ -112,6 +112,7 @@ class Global {
   static String leopardsTrack(String trackNumber) =>
       "${BaseUrl}/leopards/track/$trackNumber";
   static var DeliverySettings = "${BaseUrl}/delivery/settings";
+  static var PaymentSettings = "${BaseUrl}/payment/settings";
 
   // Global.dart mein add karo
   static String getImageUrl(String? url) {

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -37,6 +38,14 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
   // String _method = 'safepay';
   XFile? _screenshot;
   bool _submittingBankTransfer = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<WalletProvider>().fetchPaymentSettings();
+    });
+  }
 
   @override
   void dispose() {
@@ -98,12 +107,19 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
   //   // the balance will simply update next time they check it.
   // }
 
-  Future<void> _downloadQr() async {
+  Future<void> _downloadQr(String qrImageUrl) async {
     try {
-      final byteData = await rootBundle.load('assets/images/QR_sarwar.jpeg');
       final tempDir = await getTemporaryDirectory();
       final file = File('${tempDir.path}/shookoo_payment_qr.jpeg');
-      await file.writeAsBytes(byteData.buffer.asUint8List());
+
+      if (qrImageUrl.isNotEmpty) {
+        final response = await http.get(Uri.parse(qrImageUrl));
+        await file.writeAsBytes(response.bodyBytes);
+      } else {
+        final byteData = await rootBundle.load('assets/images/QR_sarwar.jpeg');
+        await file.writeAsBytes(byteData.buffer.asUint8List());
+      }
+
       await SharePlus.instance.share(
         ShareParams(files: [XFile(file.path)], text: 'Shookoo payment QR code'),
       );
@@ -336,43 +352,71 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
               style: TextStyle(fontSize: 12.5.sp, color: Colors.grey.shade600),
             ),
             SizedBox(height: 16.h),
-            Center(
-              child: Container(
-                padding: EdgeInsets.all(10.r),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14.r),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Image.asset(
-                  'assets/images/QR_sarwar.jpeg',
-                  height: 170.r,
-                  width: 170.r,
-                  fit: BoxFit.contain,
-                ),
-              ),
+            Consumer<WalletProvider>(
+              builder: (context, wallet, _) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        padding: EdgeInsets.all(10.r),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14.r),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: wallet.qrImageUrl.isNotEmpty
+                            ? Image.network(
+                                wallet.qrImageUrl,
+                                height: 170.r,
+                                width: 170.r,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => Image.asset(
+                                  'assets/images/QR_sarwar.jpeg',
+                                  height: 170.r,
+                                  width: 170.r,
+                                  fit: BoxFit.contain,
+                                ),
+                              )
+                            : Image.asset(
+                                'assets/images/QR_sarwar.jpeg',
+                                height: 170.r,
+                                width: 170.r,
+                                fit: BoxFit.contain,
+                              ),
+                      ),
+                    ),
+                    SizedBox(height: 10.h),
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: () => _downloadQr(wallet.qrImageUrl),
+                        icon: Icon(
+                          Icons.download_outlined,
+                          size: 16.sp,
+                          color: _spBlue,
+                        ),
+                        label: Text(
+                          'Download QR',
+                          style: TextStyle(
+                            fontSize: 12.5.sp,
+                            fontWeight: FontWeight.w600,
+                            color: _spBlue,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 6.h),
+                    BankAccountDetailCard(
+                      bankName: wallet.bankName,
+                      accountTitle: wallet.accountTitle,
+                      accountNumber: wallet.accountNumber,
+                      iban: wallet.iban,
+                      branch: wallet.branch,
+                    ),
+                  ],
+                );
+              },
             ),
-            SizedBox(height: 10.h),
-            Center(
-              child: TextButton.icon(
-                onPressed: _downloadQr,
-                icon: Icon(
-                  Icons.download_outlined,
-                  size: 16.sp,
-                  color: _spBlue,
-                ),
-                label: Text(
-                  'Download QR',
-                  style: TextStyle(
-                    fontSize: 12.5.sp,
-                    fontWeight: FontWeight.w600,
-                    color: _spBlue,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 6.h),
-            const BankAccountDetailCard(),
             SizedBox(height: 22.h),
 
             _label('Amount Sent'),
@@ -571,18 +615,32 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
 /// Platform bank account shown for manual "Bank Transfer" deposits — see
 /// the identical widget in personal_project's wallet.dart (seller side).
 class BankAccountDetailCard extends StatelessWidget {
-  const BankAccountDetailCard({super.key});
+  // Admin-controlled (Payment Settings) — these defaults are only shown
+  // until that data loads, matching what used to be hardcoded here.
+  const BankAccountDetailCard({
+    super.key,
+    this.bankName = 'Meezan Bank',
+    this.accountTitle = 'SARWAR',
+    this.accountNumber = '10380111659062',
+    this.iban = 'PK57MEZN0010380111659062',
+    this.branch = 'SHABBIRABAD BRANCH',
+  });
 
-  static const _rows = [
-    ('Bank', 'Meezan Bank'),
-    ('Title', 'SARWAR'),
-    ('Account No.', '10380111659062'),
-    ('IBAN', 'PK57MEZN0010380111659062'),
-    ('Branch', 'SHABBIRABAD BRANCH'),
-  ];
+  final String bankName;
+  final String accountTitle;
+  final String accountNumber;
+  final String iban;
+  final String branch;
 
   @override
   Widget build(BuildContext context) {
+    final rows = [
+      ('Bank', bankName),
+      ('Title', accountTitle),
+      ('Account No.', accountNumber),
+      ('IBAN', iban),
+      ('Branch', branch),
+    ];
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(14.r),
@@ -594,9 +652,9 @@ class BankAccountDetailCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final row in _rows) ...[
+          for (final row in rows) ...[
             _detailRow(context, row.$1, row.$2),
-            if (row != _rows.last) SizedBox(height: 10.h),
+            if (row != rows.last) SizedBox(height: 10.h),
           ],
         ],
       ),

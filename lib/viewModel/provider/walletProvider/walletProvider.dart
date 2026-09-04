@@ -67,6 +67,31 @@ class WalletProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // ── Platform Payment Settings (bank account / IBAN / QR) ─────────────────
+  // Admin-controlled — falls back to these hardcoded defaults (the old
+  // static values) until fetchPaymentSettings() resolves, so nothing
+  // flashes empty/broken while it loads.
+  String bankName = 'Meezan Bank';
+  String accountTitle = 'SARWAR';
+  String accountNumber = '10380111659062';
+  String iban = 'PK57MEZN0010380111659062';
+  String branch = 'SHABBIRABAD BRANCH';
+  String qrImageUrl = '';
+  bool paymentSettingsLoaded = false;
+
+  Future<void> fetchPaymentSettings() async {
+    final res = await _repo.getPaymentSettings();
+    if (res.isEmpty) return;
+    bankName = res['bankName'] as String? ?? bankName;
+    accountTitle = res['accountTitle'] as String? ?? accountTitle;
+    accountNumber = res['accountNumber'] as String? ?? accountNumber;
+    iban = res['iban'] as String? ?? iban;
+    branch = res['branch'] as String? ?? branch;
+    qrImageUrl = res['qrImageUrl'] as String? ?? qrImageUrl;
+    paymentSettingsLoaded = true;
+    notifyListeners();
+  }
+
   // ── Add Money: Safepay Checkout ─────────────────────────────────────────────
   String? lastTrackId;
 

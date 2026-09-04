@@ -5,6 +5,17 @@ import 'package:user_side/resources/global.dart';
 class WalletRepository {
   final NetworkApiServices _api = NetworkApiServices();
 
+  // ── Platform Payment Settings (bank account / IBAN / QR) ────────────────
+  // Admin-controlled — see the identical fetch in personal_project's
+  // addMoney_repository.dart (seller side).
+  Future<Map<String, dynamic>> getPaymentSettings() async {
+    try {
+      return await _api.getApi(Global.PaymentSettings);
+    } catch (e) {
+      return {};
+    }
+  }
+
   // ── Get Wallet Balance ──────────────────────────────────────────────────────
   Future<WalletBalanceModel> getBalance(String buyerId) async {
     try {
