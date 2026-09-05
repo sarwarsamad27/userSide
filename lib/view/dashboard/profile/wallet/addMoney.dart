@@ -411,7 +411,6 @@ class _AddMoneyScreenState extends State<AddMoneyScreen> {
                       accountTitle: wallet.accountTitle,
                       accountNumber: wallet.accountNumber,
                       iban: wallet.iban,
-                      branch: wallet.branch,
                     ),
                   ],
                 );
@@ -623,14 +622,12 @@ class BankAccountDetailCard extends StatelessWidget {
     this.accountTitle = 'SARWAR',
     this.accountNumber = '10380111659062',
     this.iban = 'PK57MEZN0010380111659062',
-    this.branch = 'SHABBIRABAD BRANCH',
   });
 
   final String bankName;
   final String accountTitle;
   final String accountNumber;
   final String iban;
-  final String branch;
 
   @override
   Widget build(BuildContext context) {
@@ -639,7 +636,6 @@ class BankAccountDetailCard extends StatelessWidget {
       ('Title', accountTitle),
       ('Account No.', accountNumber),
       ('IBAN', iban),
-      ('Branch', branch),
     ];
     return Container(
       width: double.infinity,

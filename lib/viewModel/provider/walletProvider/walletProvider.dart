@@ -75,7 +75,6 @@ class WalletProvider with ChangeNotifier {
   String accountTitle = 'SARWAR';
   String accountNumber = '10380111659062';
   String iban = 'PK57MEZN0010380111659062';
-  String branch = 'SHABBIRABAD BRANCH';
   String qrImageUrl = '';
   bool paymentSettingsLoaded = false;
 
@@ -86,7 +85,6 @@ class WalletProvider with ChangeNotifier {
     accountTitle = res['accountTitle'] as String? ?? accountTitle;
     accountNumber = res['accountNumber'] as String? ?? accountNumber;
     iban = res['iban'] as String? ?? iban;
-    branch = res['branch'] as String? ?? branch;
     qrImageUrl = res['qrImageUrl'] as String? ?? qrImageUrl;
     paymentSettingsLoaded = true;
     notifyListeners();
